@@ -1,6 +1,5 @@
 param(
-  [int]$BackendPort = 3001,
-  [int]$FrontendPort = 5173
+  [int]$Port = 3001
 )
 
 $ErrorActionPreference = "Stop"
@@ -8,6 +7,7 @@ $ErrorActionPreference = "Stop"
 $root = Split-Path -Parent $MyInvocation.MyCommand.Path
 $backendDir = Join-Path $root "backend"
 $frontendDir = Join-Path $root "frontend"
+$frontendDist = Join-Path $frontendDir "dist\index.html"
 
 function Resolve-Node {
   $command = Get-Command node -ErrorAction SilentlyContinue
@@ -44,14 +44,19 @@ function Resolve-Pnpm {
 }
 
 $node = Resolve-Node
-$pnpm = Resolve-Pnpm
 $nodeDir = Split-Path -Parent $node
 $env:PATH = "$nodeDir;$env:PATH"
 
-if (-not (Test-Path -LiteralPath (Join-Path $frontendDir "node_modules"))) {
-  Write-Host "Installing frontend dependencies..."
+if (-not (Test-Path -LiteralPath $frontendDist)) {
+  Write-Host "Frontend build not found. Building production frontend..."
+  $pnpm = Resolve-Pnpm
   Push-Location $frontendDir
   & $pnpm install
+  if ($LASTEXITCODE -ne 0) {
+    Pop-Location
+    exit $LASTEXITCODE
+  }
+  & $pnpm build
   if ($LASTEXITCODE -ne 0) {
     Pop-Location
     exit $LASTEXITCODE
@@ -59,31 +64,7 @@ if (-not (Test-Path -LiteralPath (Join-Path $frontendDir "node_modules"))) {
   Pop-Location
 }
 
-Write-Host "Starting backend on port $BackendPort..."
-$env:PORT = [string]$BackendPort
-$backendProcess = Start-Process -FilePath $node -ArgumentList "server.mjs" -WorkingDirectory $backendDir -WindowStyle Hidden -PassThru
-
-$ready = $false
-for ($attempt = 0; $attempt -lt 20; $attempt++) {
-  Start-Sleep -Milliseconds 350
-  try {
-    $response = Invoke-WebRequest -UseBasicParsing "http://127.0.0.1:$BackendPort/api/health" -TimeoutSec 2
-    if ($response.StatusCode -eq 200) {
-      $ready = $true
-      break
-    }
-  } catch {
-    # Keep waiting until the backend is ready.
-  }
-}
-
-if (-not $ready) {
-  Write-Error "Backend did not become ready."
-  exit 1
-}
-
-Write-Host "Backend ready: http://127.0.0.1:$BackendPort"
-Write-Host "Starting frontend on port $FrontendPort..."
-
-Set-Location -LiteralPath $frontendDir
-& $pnpm dev --host 127.0.0.1 --port $FrontendPort
+Write-Host "Starting Mini Playbox on http://127.0.0.1:$Port"
+$env:PORT = [string]$Port
+Set-Location -LiteralPath $backendDir
+& $node server.mjs
