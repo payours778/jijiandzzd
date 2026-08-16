@@ -2,19 +2,27 @@ import http from "node:http";
 import fs from "node:fs";
 import path from "node:path";
 import crypto from "node:crypto";
+import { DatabaseSync } from "node:sqlite";
 import { fileURLToPath } from "node:url";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const rootDir = path.resolve(__dirname, "..");
+const rootDir = path.resolve(__dirname, "..", "frontend", "dist");
 const dataDir = path.join(__dirname, "data");
-const usersFile = path.join(dataDir, "users.json");
+const dbFile = path.join(dataDir, "app.db");
 const port = Number(process.env.PORT || 3001);
 
 fs.mkdirSync(dataDir, { recursive: true });
 
-if (!fs.existsSync(usersFile)) {
-  fs.writeFileSync(usersFile, "{}", "utf8");
-}
+const db = new DatabaseSync(dbFile);
+db.exec(`
+  CREATE TABLE IF NOT EXISTS users (
+    id TEXT PRIMARY KEY,
+    token TEXT UNIQUE NOT NULL,
+    display_name TEXT NOT NULL,
+    created_at TEXT NOT NULL,
+    last_seen_at TEXT NOT NULL
+  );
+`);
 
 const mimeTypes = {
   ".html": "text/html; charset=utf-8",
@@ -27,18 +35,6 @@ const mimeTypes = {
   ".jpeg": "image/jpeg",
   ".ico": "image/x-icon",
 };
-
-function loadUsers() {
-  try {
-    return JSON.parse(fs.readFileSync(usersFile, "utf8"));
-  } catch {
-    return {};
-  }
-}
-
-function saveUsers(users) {
-  fs.writeFileSync(usersFile, JSON.stringify(users, null, 2), "utf8");
-}
 
 function sendJson(res, status, data) {
   res.writeHead(status, {
@@ -90,10 +86,54 @@ function createAnonymousUser(displayName) {
   };
 }
 
-function getUserFromRequest(req, users) {
+function insertUser(user) {
+  const stmt = db.prepare(`
+    INSERT INTO users (id, token, display_name, created_at, last_seen_at)
+    VALUES (?, ?, ?, ?, ?)
+  `);
+  stmt.run(
+    user.id,
+    user.token,
+    user.displayName,
+    user.createdAt,
+    user.lastSeenAt,
+  );
+}
+
+function getUserByToken(token) {
+  const row = db
+    .prepare(`
+      SELECT id, token, display_name, created_at, last_seen_at
+      FROM users
+      WHERE token = ?
+    `)
+    .get(token);
+
+  if (!row) {
+    return null;
+  }
+
+  return {
+    id: row.id,
+    token: row.token,
+    displayName: row.display_name,
+    createdAt: row.created_at,
+    lastSeenAt: row.last_seen_at,
+  };
+}
+
+function updateUser(user) {
+  db.prepare(`
+    UPDATE users
+    SET display_name = ?, last_seen_at = ?
+    WHERE token = ?
+  `).run(user.displayName, user.lastSeenAt, user.token);
+}
+
+function getUserFromRequest(req) {
   const auth = req.headers.authorization || "";
   const token = auth.startsWith("Bearer ") ? auth.slice(7) : "";
-  return token ? users[token] || null : null;
+  return token ? getUserByToken(token) : null;
 }
 
 function serveStatic(req, res) {
@@ -122,23 +162,20 @@ async function handleApi(req, res, pathname) {
   }
 
   if (pathname === "/api/health" && req.method === "GET") {
-    sendJson(res, 200, { ok: true, service: "mini-playbox-backend" });
+    sendJson(res, 200, { ok: true, service: "mini-playbox-backend", database: "sqlite" });
     return;
   }
 
   if (pathname === "/api/auth/anonymous" && req.method === "POST") {
     const body = await readBody(req);
-    const users = loadUsers();
     const user = createAnonymousUser(body.displayName);
-    users[user.token] = user;
-    saveUsers(users);
+    insertUser(user);
     sendJson(res, 201, { token: user.token, user });
     return;
   }
 
   if (pathname === "/api/me" && (req.method === "GET" || req.method === "PATCH")) {
-    const users = loadUsers();
-    const user = getUserFromRequest(req, users);
+    const user = getUserFromRequest(req);
 
     if (!user) {
       sendJson(res, 401, { error: "Unauthorized" });
@@ -151,8 +188,7 @@ async function handleApi(req, res, pathname) {
         user.displayName = body.displayName.slice(0, 24);
       }
       user.lastSeenAt = new Date().toISOString();
-      users[user.token] = user;
-      saveUsers(users);
+      updateUser(user);
     }
 
     sendJson(res, 200, {
