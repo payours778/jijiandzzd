@@ -9,6 +9,34 @@ interface GameCardProps {
   onToggleFavorite: (id: string) => void;
 }
 
+/** 按分类/tag 映射到对应的彩色 badge class（TouchGal 同款色卡体系） */
+const categoryBadgeClass: Record<string, string> = {
+  消除: "badge-sky",
+  益智: "badge-violet",
+  动作: "badge-rose",
+  棋牌: "badge-emerald",
+};
+
+const tagBadgeClass: Record<string, string> = {
+  新游: "badge-primary",
+  高分推荐: "badge-amber",
+  经典: "badge-emerald",
+  烧脑: "badge-violet",
+  复古: "badge-amber",
+  亲子: "badge-sky",
+  挑战: "badge-rose",
+  创意: "badge-violet",
+  休闲: "badge-sky",
+};
+
+function getCategoryBadge(category: string) {
+  return categoryBadgeClass[category] ?? "badge-clear";
+}
+
+function getTagBadge(tag: string) {
+  return tagBadgeClass[tag] ?? "badge-casual";
+}
+
 export function GameCard({
   game,
   isFavorite,
@@ -32,6 +60,9 @@ export function GameCard({
     event.preventDefault();
     onOpen(game.id);
   };
+
+  const badgeClass1 = getCategoryBadge(game.category);
+  const badgeClass2 = getTagBadge(game.tag);
 
   return (
     <article
@@ -60,19 +91,24 @@ export function GameCard({
             <Heart className="icon" aria-hidden="true" />
           </button>
         </div>
+
         <div className="game-card-tags">
-          <span className="badge badge-accent">{game.category}</span>
-          <span className="badge">{game.tag}</span>
+          <span className={`badge ${badgeClass1}`}>{game.category}</span>
+          <span className={`badge ${badgeClass2}`}>{game.tag}</span>
         </div>
-        <div className="game-card-meta">
-          <span>
+
+        <div className="card-meta-line">
+          <span className="meta-group">
             <Users className="icon" aria-hidden="true" />
             {game.plays}
           </span>
-          <span>
+          <span className="meta-divider" aria-hidden="true" />
+          <span className="meta-group meta-rating">
             <Star className="icon" aria-hidden="true" />
-            {game.rating}
+            <strong>{game.rating}</strong>
           </span>
+          <span className="meta-divider" aria-hidden="true" />
+          <span className="meta-group">{game.duration}</span>
         </div>
       </div>
     </article>
