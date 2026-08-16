@@ -15,9 +15,18 @@ fs.mkdirSync(dataDir, { recursive: true });
 
 const db = new DatabaseSync(dbFile);
 db.exec(`
-  CREATE TABLE IF NOT EXISTS users (
+  CREATE TABLE IF NOT EXISTS accounts (
+    id TEXT PRIMARY KEY,
+    username TEXT UNIQUE NOT NULL,
+    password_hash TEXT NOT NULL,
+    display_name TEXT NOT NULL,
+    created_at TEXT NOT NULL
+  );
+
+  CREATE TABLE IF NOT EXISTS sessions (
     id TEXT PRIMARY KEY,
     token TEXT UNIQUE NOT NULL,
+    account_id TEXT,
     display_name TEXT NOT NULL,
     created_at TEXT NOT NULL,
     last_seen_at TEXT NOT NULL
@@ -72,39 +81,41 @@ function readBody(req) {
   });
 }
 
-function createAnonymousUser(displayName) {
-  const id = crypto.randomUUID();
-  const token = `mp_${crypto.randomBytes(24).toString("base64url")}`;
-  const now = new Date().toISOString();
+function createToken() {
+  return `mp_${crypto.randomBytes(24).toString("base64url")}`;
+}
 
+function createSession(displayName, accountId = null) {
+  const now = new Date().toISOString();
   return {
-    id,
-    token,
-    displayName: displayName || `游客_${id.slice(0, 4).toUpperCase()}`,
+    id: crypto.randomUUID(),
+    token: createToken(),
+    accountId,
+    displayName,
     createdAt: now,
     lastSeenAt: now,
   };
 }
 
-function insertUser(user) {
-  const stmt = db.prepare(`
-    INSERT INTO users (id, token, display_name, created_at, last_seen_at)
-    VALUES (?, ?, ?, ?, ?)
-  `);
-  stmt.run(
-    user.id,
-    user.token,
-    user.displayName,
-    user.createdAt,
-    user.lastSeenAt,
+function insertSession(session) {
+  db.prepare(`
+    INSERT INTO sessions (id, token, account_id, display_name, created_at, last_seen_at)
+    VALUES (?, ?, ?, ?, ?, ?)
+  `).run(
+    session.id,
+    session.token,
+    session.accountId,
+    session.displayName,
+    session.createdAt,
+    session.lastSeenAt,
   );
 }
 
-function getUserByToken(token) {
+function getSessionByToken(token) {
   const row = db
     .prepare(`
-      SELECT id, token, display_name, created_at, last_seen_at
-      FROM users
+      SELECT id, token, account_id, display_name, created_at, last_seen_at
+      FROM sessions
       WHERE token = ?
     `)
     .get(token);
@@ -116,24 +127,98 @@ function getUserByToken(token) {
   return {
     id: row.id,
     token: row.token,
+    accountId: row.account_id,
     displayName: row.display_name,
     createdAt: row.created_at,
     lastSeenAt: row.last_seen_at,
   };
 }
 
-function updateUser(user) {
+function updateSession(session) {
   db.prepare(`
-    UPDATE users
+    UPDATE sessions
     SET display_name = ?, last_seen_at = ?
     WHERE token = ?
-  `).run(user.displayName, user.lastSeenAt, user.token);
+  `).run(session.displayName, session.lastSeenAt, session.token);
 }
 
-function getUserFromRequest(req) {
+function deleteSession(token) {
+  db.prepare("DELETE FROM sessions WHERE token = ?").run(token);
+}
+
+function hashPassword(password) {
+  const salt = crypto.randomBytes(16).toString("hex");
+  const hash = crypto.scryptSync(password, salt, 64).toString("hex");
+  return `${salt}:${hash}`;
+}
+
+function verifyPassword(password, stored) {
+  const [salt, hash] = stored.split(":");
+  const candidate = crypto.scryptSync(password, salt, 64).toString("hex");
+  const expected = Buffer.from(hash, "hex");
+  const actual = Buffer.from(candidate, "hex");
+  return expected.length === actual.length && crypto.timingSafeEqual(expected, actual);
+}
+
+function getAccountByUsername(username) {
+  const row = db
+    .prepare(`
+      SELECT id, username, password_hash, display_name, created_at
+      FROM accounts
+      WHERE username = ?
+    `)
+    .get(username);
+
+  if (!row) {
+    return null;
+  }
+
+  return {
+    id: row.id,
+    username: row.username,
+    passwordHash: row.password_hash,
+    displayName: row.display_name,
+    createdAt: row.created_at,
+  };
+}
+
+function createAccount(username, password, displayName) {
+  const account = {
+    id: crypto.randomUUID(),
+    username,
+    passwordHash: hashPassword(password),
+    displayName: displayName || username,
+    createdAt: new Date().toISOString(),
+  };
+
+  db.prepare(`
+    INSERT INTO accounts (id, username, password_hash, display_name, created_at)
+    VALUES (?, ?, ?, ?, ?)
+  `).run(
+    account.id,
+    account.username,
+    account.passwordHash,
+    account.displayName,
+    account.createdAt,
+  );
+
+  return account;
+}
+
+function getSessionFromRequest(req) {
   const auth = req.headers.authorization || "";
   const token = auth.startsWith("Bearer ") ? auth.slice(7) : "";
-  return token ? getUserByToken(token) : null;
+  return token ? getSessionByToken(token) : null;
+}
+
+function publicSession(session) {
+  return {
+    id: session.id,
+    displayName: session.displayName,
+    createdAt: session.createdAt,
+    lastSeenAt: session.lastSeenAt,
+    isGuest: !session.accountId,
+  };
 }
 
 function serveStatic(req, res) {
@@ -167,17 +252,65 @@ async function handleApi(req, res, pathname) {
   }
 
   if (pathname === "/api/auth/anonymous" && req.method === "POST") {
+    const session = createSession("游客", null);
+    insertSession(session);
+    sendJson(res, 201, { token: session.token, user: publicSession(session) });
+    return;
+  }
+
+  if (pathname === "/api/auth/register" && req.method === "POST") {
     const body = await readBody(req);
-    const user = createAnonymousUser(body.displayName);
-    insertUser(user);
-    sendJson(res, 201, { token: user.token, user });
+    const username = String(body.username || "").trim().slice(0, 24);
+    const password = String(body.password || "");
+    const displayName = String(body.displayName || username).slice(0, 24);
+
+    if (username.length < 2 || password.length < 6) {
+      sendJson(res, 400, { error: "用户名至少 2 位，密码至少 6 位" });
+      return;
+    }
+
+    if (getAccountByUsername(username)) {
+      sendJson(res, 409, { error: "用户名已存在" });
+      return;
+    }
+
+    const account = createAccount(username, password, displayName);
+    const session = createSession(account.displayName, account.id);
+    insertSession(session);
+    sendJson(res, 201, { token: session.token, user: publicSession(session) });
+    return;
+  }
+
+  if (pathname === "/api/auth/login" && req.method === "POST") {
+    const body = await readBody(req);
+    const username = String(body.username || "").trim();
+    const password = String(body.password || "");
+    const account = getAccountByUsername(username);
+
+    if (!account || !verifyPassword(password, account.passwordHash)) {
+      sendJson(res, 401, { error: "用户名或密码错误" });
+      return;
+    }
+
+    const session = createSession(account.displayName, account.id);
+    insertSession(session);
+    sendJson(res, 200, { token: session.token, user: publicSession(session) });
+    return;
+  }
+
+  if (pathname === "/api/auth/logout" && req.method === "POST") {
+    const session = getSessionFromRequest(req);
+    if (session) {
+      deleteSession(session.token);
+    }
+    sendJson(res, 200, { ok: true });
     return;
   }
 
   if (pathname === "/api/me" && (req.method === "GET" || req.method === "PATCH")) {
-    const user = getUserFromRequest(req);
+    const session = getSessionFromRequest(req);
 
-    if (!user) {
+    if (!session) {
       sendJson(res, 401, { error: "Unauthorized" });
       return;
     }
@@ -185,18 +318,13 @@ async function handleApi(req, res, pathname) {
     if (req.method === "PATCH") {
       const body = await readBody(req);
       if (body.displayName) {
-        user.displayName = body.displayName.slice(0, 24);
+        session.displayName = body.displayName.slice(0, 24);
       }
-      user.lastSeenAt = new Date().toISOString();
-      updateUser(user);
+      session.lastSeenAt = new Date().toISOString();
+      updateSession(session);
     }
 
-    sendJson(res, 200, {
-      id: user.id,
-      displayName: user.displayName,
-      createdAt: user.createdAt,
-      lastSeenAt: user.lastSeenAt,
-    });
+    sendJson(res, 200, publicSession(session));
     return;
   }
 

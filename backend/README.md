@@ -15,6 +15,9 @@ node server.mjs
 
 - `GET /api/health`
 - `POST /api/auth/anonymous`
+- `POST /api/auth/register`
+- `POST /api/auth/login`
+- `POST /api/auth/logout`
 - `GET /api/me`
 - `PATCH /api/me`
 

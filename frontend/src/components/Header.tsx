@@ -9,6 +9,10 @@ export function Header() {
   const theme = useAppStore((state) => state.theme);
   const menuOpen = useAppStore((state) => state.menuOpen);
   const favorites = useAppStore((state) => state.favorites);
+  const user = useAppStore((state) => state.user);
+  const setAuthOpen = useAppStore((state) => state.setAuthOpen);
+  const setAuthMode = useAppStore((state) => state.setAuthMode);
+  const setUser = useAppStore((state) => state.setUser);
   const setCategory = useAppStore((state) => state.setCategory);
   const setQuery = useAppStore((state) => state.setQuery);
   const setTheme = useAppStore((state) => state.setTheme);
@@ -83,23 +87,56 @@ export function Header() {
         </nav>
 
         <div className="header-actions">
-          {/* TouchGal 同款 tint 按钮组 */}
-          <button
-            className="button button-tint-primary"
-            type="button"
-            style={{ minHeight: 36, padding: "0 14px", display: "none" }}
-            onClick={() => showToast("登录功能开发中")}
-          >
-            登录
-          </button>
-          <button
-            className="button button-primary"
-            type="button"
-            style={{ minHeight: 36, padding: "0 14px", display: "none" }}
-            onClick={() => showToast("注册功能开发中")}
-          >
-            注册
-          </button>
+          {user ? (
+            <>
+              <div className="user-chip" title={user.id}>
+                {user.displayName}
+              </div>
+              <button
+                className="button button-secondary"
+                type="button"
+                onClick={async () => {
+                  try {
+                    await fetch("/api/auth/logout", {
+                      method: "POST",
+                      headers: {
+                        Authorization: `Bearer ${localStorage.getItem("mini-playbox-token")}`,
+                      },
+                    });
+                  } finally {
+                    localStorage.removeItem("mini-playbox-token");
+                    setUser(null);
+                    showToast("已退出登录");
+                  }
+                }}
+              >
+                退出
+              </button>
+            </>
+          ) : (
+            <>
+              <button
+                className="button button-secondary"
+                type="button"
+                onClick={() => {
+                  setAuthMode("login");
+                  setAuthOpen(true);
+                }}
+              >
+                登录
+              </button>
+              <button
+                className="button button-primary"
+                type="button"
+                onClick={() => {
+                  setAuthMode("register");
+                  setAuthOpen(true);
+                }}
+              >
+                注册
+              </button>
+            </>
+          )}
           <button
             className="icon-button favorites-toggle"
             type="button"

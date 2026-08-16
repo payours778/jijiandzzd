@@ -5,6 +5,14 @@ import type { Game, SortKey } from "../types/game";
 
 type Theme = "light" | "dark";
 
+export interface AuthUser {
+  id: string;
+  displayName: string;
+  createdAt: string;
+  lastSeenAt: string;
+  isGuest: boolean;
+}
+
 interface AppState {
   theme: Theme;
   category: string;
@@ -17,6 +25,9 @@ interface AppState {
   modalOpen: boolean;
   menuOpen: boolean;
   toast: string | null;
+  authOpen: boolean;
+  authMode: "login" | "register";
+  user: AuthUser | null;
   setTheme: (theme: Theme) => void;
   setCategory: (category: string) => void;
   setQuery: (query: string) => void;
@@ -28,6 +39,9 @@ interface AppState {
   closeGame: () => void;
   setMenuOpen: (open: boolean) => void;
   showToast: (message: string) => void;
+  setAuthOpen: (open: boolean) => void;
+  setAuthMode: (mode: "login" | "register") => void;
+  setUser: (user: AuthUser | null) => void;
 }
 
 let toastTimer: ReturnType<typeof setTimeout> | null = null;
@@ -50,6 +64,9 @@ export const useAppStore = create<AppState>()(
       modalOpen: false,
       menuOpen: false,
       toast: null,
+      authOpen: false,
+      authMode: "login",
+      user: null,
       setTheme: (theme) => set({ theme }),
       setCategory: (category) => set({ category }),
       setQuery: (query) => set({ query }),
@@ -77,6 +94,9 @@ export const useAppStore = create<AppState>()(
         set({ activeGameId, modalOpen: true, menuOpen: false }),
       closeGame: () => set({ activeGameId: null, modalOpen: false }),
       setMenuOpen: (menuOpen) => set({ menuOpen }),
+      setAuthOpen: (authOpen) => set({ authOpen }),
+      setAuthMode: (authMode) => set({ authMode }),
+      setUser: (user) => set({ user }),
       showToast: (message) => {
         if (toastTimer) {
           window.clearTimeout(toastTimer);

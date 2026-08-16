@@ -1623,3 +1623,80 @@ img { max-width: 100%; display: block; }
   .game-grid { grid-template-columns: 1fr; }
   .hero-quick-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
+
+/* TouchGalUI适配：登录注册弹窗与用户状态 */
+.user-chip {
+  display: inline-flex;
+  align-items: center;
+  max-width: 132px;
+  min-height: 34px;
+  padding: 0 10px;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--surface-2);
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.auth-modal {
+  z-index: 160;
+}
+
+.auth-card {
+  width: min(420px, 100%);
+}
+
+.auth-card-body {
+  padding: 28px;
+}
+
+.auth-card-body h2 {
+  margin: 0;
+  font-size: 24px;
+}
+
+.auth-form {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin-top: 20px;
+}
+
+.auth-form label {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.auth-form input {
+  height: 40px;
+  padding: 0 11px;
+  border: 1px solid var(--border);
+  border-radius: var(--tag-radius);
+  background: var(--surface-2);
+  color: var(--text);
+  outline: 0;
+}
+
+.auth-form input:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px var(--primary-soft);
+}
+
+.auth-switch {
+  margin-top: 14px;
+  border: 0;
+  background: transparent;
+  color: var(--primary);
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.auth-switch:hover {
+  text-decoration: underline;
+}
