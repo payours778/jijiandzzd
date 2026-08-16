@@ -457,6 +457,12 @@ export class GamePlayScene extends Phaser.Scene {
     return zombies.sort((a, b) => a.x - b.x)[0] || null;
   }
 
+  getNearestZombieInRow(row: number, fromX: number) {
+    return this.getZombiesInRow(row).sort(
+      (a, b) => Math.abs(a.x - fromX) - Math.abs(b.x - fromX),
+    )[0] || null;
+  }
+
   getZombiesInRange(row: number, minCol: number, maxCol: number) {
     const minX = Config.boardX + minCol * Config.cellWidth;
     const maxX = Config.boardX + (maxCol + 1) * Config.cellWidth;

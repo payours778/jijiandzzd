@@ -53,7 +53,7 @@ export class Soldier extends Unit {
     }
 
     if (this.soldierType === "弓") {
-      const target = scene.getFrontZombieInRow(this.row);
+      const target = scene.getNearestZombieInRow(this.row, this.x);
       if (target) {
         scene.shootArrow(this.x, this.y, target, stats.damage * damageMultiplier);
         this.attackTimer = stats.cooldown * cooldownMultiplier;
