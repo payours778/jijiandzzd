@@ -163,36 +163,21 @@ let heroTimer = null;
 const elements = {
   root: document.documentElement,
   body: document.body,
-  hero: document.getElementById("hero"),
-  pageLoader: document.getElementById("pageLoader"),
-  offlineBanner: document.getElementById("offlineBanner"),
   resetFiltersButton: document.getElementById("resetFiltersButton"),
   searchForm: document.getElementById("searchForm"),
   searchInput: document.getElementById("searchInput"),
   categoryNav: document.getElementById("categoryNav"),
-  categoryChipList: document.getElementById("categoryChipList"),
+  randomGameButton: document.getElementById("randomGameButton"),
   favoriteCount: document.getElementById("favoriteCount"),
   favoritesToggle: document.getElementById("favoritesToggle"),
   themeToggle: document.getElementById("themeToggle"),
   menuToggle: document.getElementById("menuToggle"),
-  heroContent: document.getElementById("heroContent"),
-  heroImage: document.getElementById("heroImage"),
-  heroTitle: document.getElementById("heroTitle"),
-  heroDescription: document.getElementById("heroDescription"),
-  heroTags: document.getElementById("heroTags"),
-  heroStats: document.getElementById("heroStats"),
-  heroDots: document.getElementById("heroDots"),
-  heroPrev: document.getElementById("heroPrev"),
-  heroNext: document.getElementById("heroNext"),
-  heroPlayButton: document.getElementById("heroPlayButton"),
-  heroDetailButton: document.getElementById("heroDetailButton"),
-  rankList: document.getElementById("rankList"),
-  gameGrid: document.getElementById("gameGrid"),
+  gameList: document.getElementById("gameList"),
+  patchList: document.getElementById("patchList"),
   emptyState: document.getElementById("emptyState"),
   resultCount: document.getElementById("resultCount"),
   gameSectionTitle: document.getElementById("gameSectionTitle"),
   sortSelect: document.getElementById("sortSelect"),
-  viewToggle: document.getElementById("viewToggle"),
   gameModal: document.getElementById("gameModal"),
   modalClose: document.getElementById("modalClose"),
   modalDetail: document.getElementById("modalDetail"),
@@ -320,19 +305,6 @@ function restartHeroAutoplay() {
 }
 
 function renderCategoryChips() {
-  const categories = ["all", ...new Set(games.map((game) => game.category))];
-  const labels = { all: "全部", 消除: "消除", 益智: "益智", 动作: "动作", 棋牌: "棋牌" };
-
-  elements.categoryChipList.innerHTML = "";
-  categories.forEach((category) => {
-    const button = document.createElement("button");
-    button.type = "button";
-    button.className = `chip${state.category === category ? " is-active" : ""}`;
-    button.textContent = labels[category] || category;
-    button.dataset.category = category;
-    elements.categoryChipList.append(button);
-  });
-
   document.querySelectorAll("[data-category]").forEach((button) => {
     button.classList.toggle("is-active", button.dataset.category === state.category);
   });
@@ -371,7 +343,7 @@ function createFavoriteButton(game) {
   return button;
 }
 
-function createGameCard(game) {
+function createGameRow(game) {
   const card = document.createElement("article");
   card.className = "game-card";
   card.dataset.game = game.id;
@@ -384,48 +356,77 @@ function createGameCard(game) {
       <img src="${game.cover}" alt="${game.title} 封面" loading="lazy" />
     </div>
     <div class="game-card-body">
-      <div class="game-card-top">
-        <h3 class="game-title">${game.title}</h3>
-      </div>
-      <div class="game-card-tags">
-        <span class="badge badge-accent">${game.category}</span>
-        <span class="badge">${game.tag}</span>
-      </div>
+      <h3 class="game-title">${game.title}</h3>
       <div class="game-card-meta">
-        <span>
-          <svg class="icon" aria-hidden="true"><use href="#icon-users"></use></svg>
-          ${game.plays}
-        </span>
-        <span>
+        <span class="rating">
           <svg class="icon" aria-hidden="true"><use href="#icon-star"></use></svg>
           ${game.rating}
         </span>
+        <span>${game.plays}</span>
+      </div>
+      <div class="game-card-tags">
+        <span class="platform-tag">PC中文</span>
+        <span class="platform-tag">PCPE</span>
       </div>
     </div>
   `;
 
-  const top = card.querySelector(".game-card-top");
-  top.append(createFavoriteButton(game));
+  card.append(createFavoriteButton(game));
   return card;
 }
 
 function renderGames() {
   const filtered = filterGames();
-  elements.gameGrid.innerHTML = "";
+  elements.gameList.innerHTML = "";
 
   if (filtered.length === 0) {
     elements.emptyState.hidden = false;
-    elements.gameGrid.hidden = true;
     elements.resultCount.textContent = "没有匹配结果";
     return;
   }
 
   elements.emptyState.hidden = true;
-  elements.gameGrid.hidden = false;
   elements.resultCount.textContent = `共 ${filtered.length} 款游戏`;
   const fragment = document.createDocumentFragment();
-  filtered.forEach((game) => fragment.append(createGameCard(game)));
-  elements.gameGrid.append(fragment);
+  filtered.forEach((game) => fragment.append(createGameRow(game)));
+  elements.gameList.append(fragment);
+}
+
+// TouchGalUI适配：补丁列表复用 games 字段，不新增业务数据源。
+function createPatchRow(game, index) {
+  const patchTypes = ["AI翻译", "简体中文", "Windows"];
+  const sizes = ["32.8MB", "118.5MB", "64.2MB"];
+  const authors = ["Mini Team", "Playbox", "社区贡献"];
+
+  const row = document.createElement("article");
+  row.className = "patch-row";
+  row.dataset.patchGame = game.id;
+  row.tabIndex = 0;
+  row.setAttribute("role", "button");
+  row.setAttribute("aria-label", `查看 ${game.title} 的补丁资源`);
+
+  row.innerHTML = `
+    <h3 class="patch-title">${game.title} 中文适配补丁</h3>
+    <p class="patch-game">对应游戏：${game.title}</p>
+    <div class="patch-tags">
+      <span class="patch-tag">${patchTypes[index % patchTypes.length]}</span>
+      <span class="patch-tag">简体中文</span>
+      <span class="patch-tag">Windows</span>
+    </div>
+    <div class="patch-meta">
+      <span>发布作者：${authors[index % authors.length]}</span>
+      <span>发布时长：${index + 2} 小时前</span>
+      <span>文件大小：${sizes[index % sizes.length]}</span>
+    </div>
+  `;
+
+  return row;
+}
+
+function renderPatches() {
+  const fragment = document.createDocumentFragment();
+  games.forEach((game, index) => fragment.append(createPatchRow(game, index)));
+  elements.patchList.replaceChildren(fragment);
 }
 
 function renderRankList() {
@@ -621,8 +622,7 @@ function setCategory(category) {
 }
 
 function updateSectionTitle() {
-  const labels = { all: "热门游戏", 消除: "消除游戏", 益智: "益智游戏", 动作: "动作游戏", 棋牌: "棋牌游戏" };
-  elements.gameSectionTitle.textContent = labels[state.category] || "热门游戏";
+  elements.gameSectionTitle.textContent = "最新游戏";
 }
 
 function applyTheme(theme) {
@@ -631,7 +631,11 @@ function applyTheme(theme) {
 }
 
 function bindEvents() {
-  // UI optimization: clear active search/category when the empty state action is used.
+  elements.randomGameButton.addEventListener("click", () => {
+    const randomGame = games[Math.floor(Math.random() * games.length)];
+    openGameModal(randomGame.id);
+  });
+
   elements.resetFiltersButton.addEventListener("click", () => {
     state.category = "all";
     state.query = "";
@@ -658,20 +662,9 @@ function bindEvents() {
     elements.menuToggle.setAttribute("aria-expanded", "false");
   });
 
-  elements.categoryChipList.addEventListener("click", (event) => {
-    const button = event.target.closest("[data-category]");
-    if (button) setCategory(button.dataset.category);
-  });
-
   elements.sortSelect.addEventListener("change", (event) => {
     state.sort = event.target.value;
     renderGames();
-  });
-
-  elements.viewToggle.addEventListener("click", () => {
-    state.listView = !state.listView;
-    elements.gameGrid.classList.toggle("is-list", state.listView);
-    elements.viewToggle.setAttribute("aria-pressed", String(state.listView));
   });
 
   elements.themeToggle.addEventListener("click", () => {
@@ -694,7 +687,7 @@ function bindEvents() {
     openGameModal(firstFavorite);
   });
 
-  elements.gameGrid.addEventListener("click", (event) => {
+  elements.gameList.addEventListener("click", (event) => {
     const favoriteButton = event.target.closest("[data-favorite]");
     if (favoriteButton) {
       event.stopPropagation();
@@ -706,7 +699,7 @@ function bindEvents() {
     if (card) openGameModal(card.dataset.game);
   });
 
-  elements.gameGrid.addEventListener("keydown", (event) => {
+  elements.gameList.addEventListener("keydown", (event) => {
     if (event.key !== "Enter" && event.key !== " ") return;
     const card = event.target.closest("[data-game]");
     if (card && !event.target.closest("[data-favorite]")) {
@@ -715,38 +708,18 @@ function bindEvents() {
     }
   });
 
-  elements.rankList.addEventListener("click", (event) => {
-    const item = event.target.closest("[data-game]");
-    if (item) openGameModal(item.dataset.game);
+  elements.patchList.addEventListener("click", (event) => {
+    const row = event.target.closest("[data-patch-game]");
+    if (row) openGameModal(row.dataset.patchGame);
   });
 
-  elements.heroPrev.addEventListener("click", () => moveHero(-1));
-  elements.heroNext.addEventListener("click", () => moveHero(1));
-
-  elements.heroDots.addEventListener("click", (event) => {
-    const dot = event.target.closest("[data-index]");
-    if (!dot) return;
-    state.heroIndex = Number(dot.dataset.index);
-    renderHero();
-    restartHeroAutoplay();
-  });
-
-  // UI optimization: pause the carousel while the pointer or keyboard is over it.
-  elements.hero.addEventListener("mouseenter", stopHeroAutoplay);
-  elements.hero.addEventListener("mouseleave", startHeroAutoplay);
-  elements.hero.addEventListener("focusin", stopHeroAutoplay);
-  elements.hero.addEventListener("focusout", (event) => {
-    if (!elements.hero.contains(event.relatedTarget)) {
-      startHeroAutoplay();
+  elements.patchList.addEventListener("keydown", (event) => {
+    if (event.key !== "Enter" && event.key !== " ") return;
+    const row = event.target.closest("[data-patch-game]");
+    if (row) {
+      event.preventDefault();
+      openGameModal(row.dataset.patchGame);
     }
-  });
-
-  elements.heroPlayButton.addEventListener("click", () => {
-    openGameModal(elements.heroPlayButton.dataset.gameId);
-  });
-
-  elements.heroDetailButton.addEventListener("click", () => {
-    openGameModal(elements.heroDetailButton.dataset.gameId);
   });
 
   elements.modalClose.addEventListener("click", closeGameModal);
@@ -771,14 +744,6 @@ function bindEvents() {
     if (card) handleMemoryClick(card);
   });
 
-  // UI optimization: reflect browser connectivity without blocking local play.
-  const updateOfflineState = () => {
-    elements.offlineBanner.hidden = navigator.onLine;
-  };
-  window.addEventListener("online", updateOfflineState);
-  window.addEventListener("offline", updateOfflineState);
-  updateOfflineState();
-
   document.addEventListener("keydown", (event) => {
     if (event.key === "Escape" && !elements.gameModal.hidden) closeGameModal();
   });
@@ -789,21 +754,10 @@ function init() {
   applyTheme(initialTheme);
   updateFavoriteCount();
   renderCategoryChips();
-  renderRankList();
   renderGames();
-  renderHero();
+  renderPatches();
   updateSectionTitle();
   bindEvents();
-
-  // UI optimization: hide the startup loader and reveal the page with a short transition.
-  window.setTimeout(() => {
-    elements.pageLoader.classList.add("is-hidden");
-    elements.body.classList.add("is-ready");
-  }, 180);
-
-  if (!window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
-    startHeroAutoplay();
-  }
 }
 
 init();

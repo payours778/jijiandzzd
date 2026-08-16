@@ -11,20 +11,6 @@
     <link rel="stylesheet" href="styles.css" />
   </head>
   <body>
-    <!-- UI optimization: page-level loading state -->
-    <div class="page-loader" id="pageLoader" aria-hidden="true">
-      <div class="loader-mark">
-        <svg class="icon"><use href="#icon-grid"></use></svg>
-      </div>
-      <span>Mini Playbox</span>
-    </div>
-
-    <!-- UI optimization: offline state banner -->
-    <div class="offline-banner" id="offlineBanner" hidden>
-      <svg class="icon" aria-hidden="true"><use href="#icon-clock"></use></svg>
-      <span>当前处于离线模式，部分内容可能无法加载。</span>
-    </div>
-
     <svg class="svg-sprite" aria-hidden="true">
       <symbol id="icon-grid" viewBox="0 0 24 24">
         <rect x="3" y="3" width="7" height="7" rx="2"></rect>
@@ -111,15 +97,16 @@
 
     <a class="skip-link" href="#main-content">跳到主要内容</a>
 
+    <!-- TouchGalUI适配：顶部品牌与文字分类导航，不再使用 Hero 轮播 -->
     <header class="site-header">
       <div class="header-inner">
-        <a class="brand" href="#" aria-label="Mini Playbox 首页">
+        <a class="brand" href="#main-content" aria-label="Mini Playbox 首页">
           <span class="brand-mark" aria-hidden="true">
             <svg class="icon"><use href="#icon-grid"></use></svg>
           </span>
           <span class="brand-copy">
             <strong>Mini Playbox</strong>
-            <small>轻量小游戏</small>
+            <small>轻量小游戏门户</small>
           </span>
         </a>
 
@@ -178,100 +165,51 @@
       </div>
     </header>
 
-    <main id="main-content">
-      <section class="hero" id="hero" aria-label="精选游戏">
-        <div class="hero-media">
-          <img id="heroImage" src="assets/hero.png" alt="" />
-        </div>
-        <div class="hero-shade"></div>
-        <div class="hero-content" id="heroContent">
-          <div class="hero-kicker">
+    <section class="notice-strip" aria-label="站点公告">
+      <a class="notice-item" href="#gameSection">
+        <span>站内公告</span>
+        <strong>Mini Playbox 已切换为 TouchGal 风格信息流</strong>
+      </a>
+    </section>
+
+    <section class="quick-panel" aria-label="快捷入口">
+      <div class="quick-panel-copy">
+        <span class="quick-badge">欢迎来到 Mini Playbox</span>
+        <h1>轻量小游戏门户</h1>
+        <p>免费、轻量、随手即玩的小游戏资源站</p>
+        <div class="quick-panel-actions">
+          <button class="button button-primary" id="randomGameButton" type="button">
             <svg class="icon" aria-hidden="true"><use href="#icon-sparkles"></use></svg>
-            <span>今日精选</span>
-          </div>
-          <h1 id="heroTitle">星轨消消乐</h1>
-          <p id="heroDescription">
-            在轨道上消除同色星球，连击越多，得分越高。
-          </p>
-          <div class="hero-tags" id="heroTags"></div>
-          <div class="hero-actions">
-            <button class="button button-primary play-trigger" id="heroPlayButton" type="button">
-              <svg class="icon" aria-hidden="true"><use href="#icon-play"></use></svg>
-              开始游戏
-            </button>
-            <button class="button button-ghost" id="heroDetailButton" type="button">
-              了解详情
-            </button>
-          </div>
-          <div class="hero-stats" id="heroStats"></div>
-        </div>
-        <div class="hero-controls">
-          <button class="hero-arrow" id="heroPrev" type="button" aria-label="上一个精选">
-            <svg class="icon"><use href="#icon-chevron-left"></use></svg>
-          </button>
-          <button class="hero-arrow" id="heroNext" type="button" aria-label="下一个精选">
-            <svg class="icon"><use href="#icon-chevron-right"></use></svg>
+            随机一部游戏
           </button>
         </div>
-        <div class="hero-dots" id="heroDots" aria-label="精选分页"></div>
-      </section>
-
-      <section class="quick-strip" aria-label="快捷入口">
-        <a class="quick-item" href="#gameSection">
-          <span class="quick-icon"><svg class="icon"><use href="#icon-grid"></use></svg></span>
-          <span><strong>48</strong><small>全部游戏</small></span>
+      </div>
+      <div class="quick-panel-grid">
+        <a class="quick-card" href="#gameSection">
+          <img src="assets/cover-01.png" alt="" />
+          <span>游戏标签</span>
         </a>
-        <a class="quick-item" href="#gameSection">
-          <span class="quick-icon"><svg class="icon"><use href="#icon-sparkles"></use></svg></span>
-          <span><strong>12</strong><small>本周新游</small></span>
+        <a class="quick-card" href="#gameSection">
+          <img src="assets/cover-03.png" alt="" />
+          <span>论坛</span>
         </a>
-        <a class="quick-item" href="#rankPanel">
-          <span class="quick-icon"><svg class="icon"><use href="#icon-trophy"></use></svg></span>
-          <span><strong>Top 5</strong><small>人气排行</small></span>
+        <a class="quick-card" href="#gameSection">
+          <img src="assets/cover-05.png" alt="" />
+          <span>帮助文档</span>
         </a>
-        <a class="quick-item" href="#gameSection">
-          <span class="quick-icon"><svg class="icon"><use href="#icon-clock"></use></svg></span>
-          <span><strong>10 分钟</strong><small>轻松一局</small></span>
-        </a>
-      </section>
+      </div>
+    </section>
 
-      <div class="content-shell">
-        <aside class="sidebar">
-          <section class="panel rank-panel" id="rankPanel" aria-labelledby="rankTitle">
-            <div class="panel-heading">
-              <h2 id="rankTitle">人气排行</h2>
-              <span class="panel-note">本周</span>
-            </div>
-            <ol class="rank-list" id="rankList"></ol>
-          </section>
-
-          <section class="panel category-panel" aria-labelledby="categoryTitle">
-            <div class="panel-heading">
-              <h2 id="categoryTitle">游戏类型</h2>
-            </div>
-            <div class="category-chip-list" id="categoryChipList"></div>
-          </section>
-
-          <section class="panel note-panel">
-            <div class="panel-heading">
-              <h2>游戏快讯</h2>
-            </div>
-            <ul class="note-list">
-              <li><span class="note-dot"></span><span>周末高分挑战即将开启</span></li>
-              <li><span class="note-dot"></span><span>新游戏《像素跳跳》已上线</span></li>
-              <li><span class="note-dot"></span><span>收藏功能会在后续同步账号</span></li>
-            </ul>
-          </section>
-        </aside>
-
-        <section class="game-section" id="gameSection" aria-labelledby="gameSectionTitle">
-          <div class="section-toolbar">
+    <main id="main-content" class="page-shell">
+      <div class="main-column">
+        <section class="content-section" id="gameSection" aria-labelledby="gameSectionTitle">
+          <div class="section-heading">
             <div>
               <p class="section-eyebrow">游戏大厅</p>
-              <h2 id="gameSectionTitle">热门游戏</h2>
+              <h2 id="gameSectionTitle">最新游戏</h2>
               <p class="result-count" id="resultCount">共 12 款游戏</p>
             </div>
-            <div class="toolbar-actions">
+            <div class="section-actions">
               <label class="sort-control" for="sortSelect">
                 <span>排序</span>
                 <select id="sortSelect">
@@ -280,53 +218,12 @@
                   <option value="newest">最新上架</option>
                 </select>
               </label>
-              <button
-                class="icon-button view-toggle"
-                id="viewToggle"
-                type="button"
-                aria-label="切换列表布局"
-                aria-pressed="false"
-              >
-                <svg class="icon"><use href="#icon-grid"></use></svg>
-              </button>
+              <a class="more-link" href="#gameSection">查看更多</a>
             </div>
           </div>
 
-          <div class="game-grid" id="gameGrid">
-            <!-- UI optimization: initial skeleton shown before render -->
-            <div class="game-skeleton" aria-hidden="true">
-              <div class="skeleton-card">
-                <div class="skeleton-media"></div>
-                <div class="skeleton-line skeleton-title"></div>
-                <div class="skeleton-line skeleton-short"></div>
-              </div>
-              <div class="skeleton-card">
-                <div class="skeleton-media"></div>
-                <div class="skeleton-line skeleton-title"></div>
-                <div class="skeleton-line skeleton-short"></div>
-              </div>
-              <div class="skeleton-card">
-                <div class="skeleton-media"></div>
-                <div class="skeleton-line skeleton-title"></div>
-                <div class="skeleton-line skeleton-short"></div>
-              </div>
-              <div class="skeleton-card">
-                <div class="skeleton-media"></div>
-                <div class="skeleton-line skeleton-title"></div>
-                <div class="skeleton-line skeleton-short"></div>
-              </div>
-              <div class="skeleton-card">
-                <div class="skeleton-media"></div>
-                <div class="skeleton-line skeleton-title"></div>
-                <div class="skeleton-line skeleton-short"></div>
-              </div>
-              <div class="skeleton-card">
-                <div class="skeleton-media"></div>
-                <div class="skeleton-line skeleton-title"></div>
-                <div class="skeleton-line skeleton-short"></div>
-              </div>
-            </div>
-          </div>
+          <div class="game-list" id="gameList"></div>
+
           <div class="empty-state" id="emptyState" hidden>
             <span class="empty-icon">
               <svg class="icon"><use href="#icon-search"></use></svg>
@@ -338,26 +235,39 @@
             </button>
           </div>
         </section>
+
+        <!-- TouchGalUI适配：新增独立补丁资源板块，复用 games 数据生成展示 -->
+        <section class="content-section" id="patchSection" aria-labelledby="patchSectionTitle">
+          <div class="section-heading">
+            <div>
+              <p class="section-eyebrow">资源下载</p>
+              <h2 id="patchSectionTitle">最新补丁</h2>
+              <p class="result-count">共 12 个补丁资源</p>
+            </div>
+            <a class="more-link" href="#patchSection">查看更多</a>
+          </div>
+          <div class="patch-list" id="patchList"></div>
+        </section>
       </div>
+
+      <aside class="side-column" aria-label="辅助信息">
+        <section class="aside-card">
+          <h2>站点信息</h2>
+          <p>收录 12 款轻量小游戏，支持本地收藏与明暗主题。</p>
+        </section>
+        <section class="aside-card">
+          <h2>快捷入口</h2>
+          <a href="#gameSection">全部游戏</a>
+          <a href="#patchSection">补丁资源</a>
+          <a href="#">帮助说明</a>
+        </section>
+      </aside>
     </main>
 
     <footer class="site-footer">
       <div class="footer-inner">
-        <div class="footer-brand">
-          <span class="brand-mark" aria-hidden="true">
-            <svg class="icon"><use href="#icon-grid"></use></svg>
-          </span>
-          <span>
-            <strong>Mini Playbox</strong>
-            <small>嵌入博客的独立小游戏服务</small>
-          </span>
-        </div>
-        <nav class="footer-links" aria-label="页脚导航">
-          <a href="#gameSection">游戏大厅</a>
-          <a href="#rankPanel">人气排行</a>
-          <a href="#">反馈建议</a>
-          <a href="#">隐私说明</a>
-        </nav>
+        <span>Mini Playbox</span>
+        <span>轻量小游戏门户 · 原生静态实现</span>
       </div>
     </footer>
 
