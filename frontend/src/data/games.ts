@@ -1,15 +1,4 @@
-export interface Game {
-  id: string;
-  title: string;
-  category: string;
-  tag: string;
-  plays: string;
-  playValue: number;
-  rating: string;
-  duration: string;
-  cover: string;
-  description: string;
-}
+import type { Game } from "../types/game";
 
 export const games: Game[] = [
   {
@@ -157,3 +146,21 @@ export const games: Game[] = [
     description: "经典数独规则，配合星空主题与难度递进。",
   },
 ];
+
+export const featuredIds = ["star-track", "2048", "snake-club"];
+
+export const categories: Array<"all" | Game["category"]> = [
+  "all",
+  "消除",
+  "益智",
+  "动作",
+  "棋牌",
+];
+
+export const categoryLabels: Record<string, string> = {
+  all: "全部",
+  消除: "消除",
+  益智: "益智",
+  动作: "动作",
+  棋牌: "棋牌",
+};

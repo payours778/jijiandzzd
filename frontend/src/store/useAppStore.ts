@@ -1,64 +1,91 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import { games } from "../data/games";
+import type { Game, SortKey } from "../types/game";
 
-export interface AuthUser {
-  id: string;
-  displayName: string;
-  createdAt: string;
-  lastSeenAt: string;
-}
+type Theme = "light" | "dark";
 
 interface AppState {
-  theme: "light" | "dark";
+  theme: Theme;
   category: string;
   query: string;
-  sort: "popular" | "rating" | "newest";
+  sort: SortKey;
+  listView: boolean;
+  heroIndex: number;
   favorites: string[];
   activeGameId: string | null;
-  user: AuthUser | null;
+  modalOpen: boolean;
+  menuOpen: boolean;
   toast: string | null;
-  setTheme: (theme: "light" | "dark") => void;
+  setTheme: (theme: Theme) => void;
   setCategory: (category: string) => void;
   setQuery: (query: string) => void;
-  setSort: (sort: AppState["sort"]) => void;
+  setSort: (sort: SortKey) => void;
+  toggleListView: () => void;
+  setHeroIndex: (index: number) => void;
   toggleFavorite: (id: string) => void;
   openGame: (id: string) => void;
   closeGame: () => void;
-  setUser: (user: AuthUser | null) => void;
+  setMenuOpen: (open: boolean) => void;
   showToast: (message: string) => void;
 }
 
-export const getGameById = (id: string) =>
-  games.find((game) => game.id === id) ?? games[0];
+let toastTimer: ReturnType<typeof setTimeout> | null = null;
+
+export function getGameById(id: string): Game {
+  return games.find((game) => game.id === id) ?? games[0];
+}
 
 export const useAppStore = create<AppState>()(
   persist(
-    (set) => ({
+    (set, get) => ({
       theme: "light",
       category: "all",
       query: "",
       sort: "popular",
+      listView: false,
+      heroIndex: 0,
       favorites: [],
       activeGameId: null,
-      user: null,
+      modalOpen: false,
+      menuOpen: false,
       toast: null,
       setTheme: (theme) => set({ theme }),
       setCategory: (category) => set({ category }),
       setQuery: (query) => set({ query }),
       setSort: (sort) => set({ sort }),
-      toggleFavorite: (id) =>
-        set((state) => ({
-          favorites: state.favorites.includes(id)
-            ? state.favorites.filter((item) => item !== id)
-            : [...state.favorites, id],
-        })),
-      openGame: (activeGameId) => set({ activeGameId }),
-      closeGame: () => set({ activeGameId: null }),
-      setUser: (user) => set({ user }),
+      toggleListView: () => set((state) => ({ listView: !state.listView })),
+      setHeroIndex: (heroIndex) => set({ heroIndex }),
+      toggleFavorite: (id) => {
+        const favorites = new Set(get().favorites);
+        const isFavorite = !favorites.has(id);
+
+        if (isFavorite) {
+          favorites.add(id);
+        } else {
+          favorites.delete(id);
+        }
+
+        set({ favorites: [...favorites] });
+        get().showToast(
+          isFavorite
+            ? `已收藏「${getGameById(id).title}」`
+            : `已取消收藏「${getGameById(id).title}」`,
+        );
+      },
+      openGame: (activeGameId) =>
+        set({ activeGameId, modalOpen: true, menuOpen: false }),
+      closeGame: () => set({ activeGameId: null, modalOpen: false }),
+      setMenuOpen: (menuOpen) => set({ menuOpen }),
       showToast: (message) => {
+        if (toastTimer) {
+          window.clearTimeout(toastTimer);
+        }
+
         set({ toast: message });
-        window.setTimeout(() => set({ toast: null }), 2200);
+        toastTimer = window.setTimeout(() => {
+          set({ toast: null });
+        }, 2200);
       },
     }),
     {
