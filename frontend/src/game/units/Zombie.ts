@@ -34,7 +34,7 @@ export class Zombie extends Unit {
     if (unit && !unit.dead) {
       if (this.biteTimer <= 0) {
         unit.takeDamage(8);
-        scene.tiltTargetOnHit(unit);
+        this.tiltToward(unit);
         this.biteTimer = 900;
       }
       return;
@@ -42,5 +42,18 @@ export class Zombie extends Unit {
 
     this.x += (this.speed * delta) / 1000;
     this.setX(this.x);
+  }
+
+  private tiltToward(target: Unit) {
+    const startAngle = this.angle;
+    const direction = target.x >= this.x ? 18 : -18;
+    this.scene.tweens.add({
+      targets: this,
+      angle: startAngle + direction,
+      duration: 90,
+      yoyo: true,
+      repeat: 1,
+      onComplete: () => this.setAngle(startAngle),
+    });
   }
 }
