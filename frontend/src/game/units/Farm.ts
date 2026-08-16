@@ -1,6 +1,9 @@
+import { Config } from "../config";
 import { Unit } from "../Unit";
 
 export class Farm extends Unit {
+  nextProduceAt = 0;
+
   constructor(
     scene: Phaser.Scene,
     x: number,
@@ -9,5 +12,10 @@ export class Farm extends Unit {
     col: number,
   ) {
     super(scene, x, y, "农", { color: "#16a34a" }, row, col, 80);
+    this.nextProduceAt = scene.time.now + this.getProduceInterval();
+  }
+
+  getProduceInterval() {
+    return Config.farmProduceInterval / (1 + (this.level - 1) * 0.25);
   }
 }

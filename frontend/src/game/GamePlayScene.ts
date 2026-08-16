@@ -53,7 +53,7 @@ export class GamePlayScene extends Phaser.Scene {
     this.input.keyboard?.on("keydown-R", () => this.scene.restart());
 
     this.time.addEvent({
-      delay: Config.farmProduceInterval,
+      delay: 500,
       loop: true,
       callback: this.produceFarms,
       callbackScope: this,
@@ -253,6 +253,9 @@ export class GamePlayScene extends Phaser.Scene {
     if (existing) {
       if (existing.baseText === card && existing.level < Config.maxLevel) {
         existing.setLevel(existing.level + 1);
+        if (existing instanceof Farm) {
+          existing.nextProduceAt = this.time.now + existing.getProduceInterval();
+        }
         this.hand.splice(this.hand.indexOf(card), 1);
         this.selectedCard = null;
         this.renderHand();
@@ -301,6 +304,9 @@ export class GamePlayScene extends Phaser.Scene {
     if (targetUnit && targetUnit !== unit) {
       if (targetUnit.baseText === unit.baseText && targetUnit.level === unit.level && targetUnit.level < Config.maxLevel) {
         targetUnit.setLevel(targetUnit.level + 1);
+        if (targetUnit instanceof Farm) {
+          targetUnit.nextProduceAt = this.time.now + targetUnit.getProduceInterval();
+        }
         this.board[unit.row][unit.col] = null;
         unit.destroy();
         this.cleanupBoard();
@@ -331,21 +337,37 @@ export class GamePlayScene extends Phaser.Scene {
 
   private produceFarms() {
     if (this.gameOver) return;
-    let farmCount = 0;
 
     for (let row = 0; row < Config.rows; row += 1) {
       for (let col = 0; col < Config.cols; col += 1) {
-        if (this.board[row][col] instanceof Farm) {
-          farmCount += 1;
+        const unit = this.board[row][col];
+        if (unit instanceof Farm && !unit.dead && this.time.now >= unit.nextProduceAt) {
+          this.mantou += Config.farmProduceNum;
+          unit.nextProduceAt = this.time.now + unit.getProduceInterval();
+          this.animateHoe(unit);
         }
       }
     }
 
-    if (farmCount > 0) {
-      this.mantou += farmCount * Config.farmProduceNum;
-      this.updateMantouText();
-      this.messageText.setText(`农产出 ${farmCount * Config.farmProduceNum} 馒头`);
-    }
+    this.updateMantouText();
+  }
+
+  private animateHoe(farm: Farm) {
+    const hoe = this.add.text(farm.x, farm.y - 24, "锄", {
+      fontFamily: Config.fontFamily,
+      fontSize: "24px",
+      color: "#d9a441",
+      fontStyle: "bold",
+    }).setOrigin(0.5).setDepth(80);
+
+    this.tweens.add({
+      targets: hoe,
+      y: farm.y - 10,
+      scale: 1.5,
+      alpha: 0,
+      duration: 300,
+      onComplete: () => hoe.destroy(),
+    });
   }
 
   private scheduleNextZombie() {
