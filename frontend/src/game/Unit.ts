@@ -87,6 +87,16 @@ export abstract class Unit extends Phaser.GameObjects.Text {
     this.syncHealthBar();
   }
 
+  protected onDestroyed() {
+    // 子类销毁前清理自定义对象。
+  }
+
+  override destroy(fromScene?: boolean) {
+    this.dead = true;
+    this.onDestroyed();
+    super.destroy(fromScene);
+  }
+
   update(_scene: Phaser.Scene, _time: number, _delta: number) {
     // 子类按需覆盖。
   }
