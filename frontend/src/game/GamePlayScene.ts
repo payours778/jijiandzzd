@@ -48,6 +48,8 @@ export class GamePlayScene extends Phaser.Scene {
     this.renderHand();
 
     this.input.on("pointerdown", this.handlePointerDown, this);
+    this.input.on("drag", this.handleDrag, this);
+    this.input.on("dragend", this.handleDragEnd, this);
     this.input.keyboard?.on("keydown-R", () => this.scene.restart());
 
     this.time.addEvent({
@@ -59,7 +61,8 @@ export class GamePlayScene extends Phaser.Scene {
 
     this.scheduleNextZombie();
 
-    this.hand.push("刀", "农", "弓");
+    this.hand = Array.from({ length: Config.refreshCardCount }, () => this.randomCard());
+    this.refreshCost = Config.refreshStartCost;
     this.renderHand();
     this.updateMantouText();
     this.messageText.setText("点击抽卡获取文字卡牌，再点击格子放置");
@@ -126,7 +129,7 @@ export class GamePlayScene extends Phaser.Scene {
     });
 
     this.drawButton = this.add
-      .text(Config.gameWidth - 30, Config.gameHeight - 36, `抽卡 ${Config.drawCost} 馒头`, {
+      .text(Config.gameWidth - 30, Config.gameHeight - 36, "", {
         fontFamily: Config.fontFamily,
         fontSize: "20px",
         color: "#111",
@@ -148,6 +151,11 @@ export class GamePlayScene extends Phaser.Scene {
       .setOrigin(0.5);
 
     this.updateMantouText();
+    this.updateDrawButton();
+  }
+
+  private updateDrawButton() {
+    this.drawButton.setText(`刷新 ${this.refreshCost} 馒头`);
   }
 
   private renderHand() {
@@ -203,32 +211,23 @@ export class GamePlayScene extends Phaser.Scene {
       return;
     }
 
-    if (this.board[row][col]) {
-      this.messageText.setText("该格子已被占用");
-      return;
-    }
-
     this.placeCard(this.selectedCard, row, col);
   }
 
   private drawCard() {
     if (this.gameOver) return;
-    if (this.mantou < Config.drawCost) {
+    if (this.mantou < this.refreshCost) {
       this.messageText.setText("馒头不足，无法抽卡");
       return;
     }
 
-    if (this.hand.length >= Config.handLimit) {
-      this.messageText.setText("手牌已满");
-      return;
-    }
-
-    this.mantou -= Config.drawCost;
-    const card = this.randomCard();
-    this.hand.push(card);
+    this.mantou -= this.refreshCost;
+    this.hand = Array.from({ length: Config.refreshCardCount }, () => this.randomCard());
+    this.refreshCost += Config.refreshCostStep;
     this.updateMantouText();
+    this.updateDrawButton();
     this.renderHand();
-    this.messageText.setText(`抽到：${card}`);
+    this.messageText.setText(`刷新手牌，消耗馒头：${this.refreshCost - Config.refreshCostStep}`);
   }
 
   private randomCard(): CardType {
@@ -236,11 +235,11 @@ export class GamePlayScene extends Phaser.Scene {
     const soldierCards: CardType[] = ["刀", "枪", "骑", "弓"];
     const fragmentCards: CardType[] = ["赵", "云", "黄", "忠", "关", "羽", "张", "飞"];
 
-    if (roll < DrawProbability.soldier) {
+    if (roll < RefreshProbability.soldier) {
       return soldierCards[Math.floor(Math.random() * soldierCards.length)];
     }
 
-    if (roll < DrawProbability.soldier + DrawProbability.farm) {
+    if (roll < RefreshProbability.soldier + RefreshProbability.farm) {
       return "农";
     }
 
@@ -249,6 +248,21 @@ export class GamePlayScene extends Phaser.Scene {
 
   private placeCard(card: CardType, row: number, col: number) {
     const center = this.getCellCenter(row, col);
+    const existing = this.board[row][col];
+
+    if (existing) {
+      if (existing.baseText === card && existing.level < Config.maxLevel) {
+        existing.setLevel(existing.level + 1);
+        this.hand.splice(this.hand.indexOf(card), 1);
+        this.selectedCard = null;
+        this.renderHand();
+        this.messageText.setText(`${card} 升级到 ${existing.level} 级`);
+      } else {
+        this.messageText.setText("该格子被占用，无法放置");
+      }
+      return;
+    }
+
     let unit: Unit;
 
     if (card === "农") {
@@ -260,10 +274,59 @@ export class GamePlayScene extends Phaser.Scene {
     }
 
     this.board[row][col] = unit;
+    unit.setInteractive({ draggable: true });
     this.hand.splice(this.hand.indexOf(card), 1);
     this.selectedCard = null;
     this.renderHand();
     this.messageText.setText(`已放置：${card}`);
+  }
+
+  private handleDrag(_pointer: Phaser.Input.Pointer, gameObject: Phaser.GameObjects.GameObject, dragX: number, dragY: number) {
+    const unit = gameObject as Unit;
+    unit.setPosition(dragX, dragY);
+    unit.syncHealthBar();
+  }
+
+  private handleDragEnd(pointer: Phaser.Input.Pointer, gameObject: Phaser.GameObjects.GameObject) {
+    const unit = gameObject as Unit;
+    const targetRow = Math.floor((pointer.y - Config.boardY) / Config.cellHeight);
+    const targetCol = Math.floor((pointer.x - Config.boardX) / Config.cellWidth);
+
+    if (targetRow < 0 || targetRow >= Config.rows || targetCol < 0 || targetCol >= Config.cols) {
+      this.snapUnitBack(unit);
+      return;
+    }
+
+    const targetUnit = this.board[targetRow][targetCol];
+    if (targetUnit && targetUnit !== unit) {
+      if (targetUnit.baseText === unit.baseText && targetUnit.level === unit.level && targetUnit.level < Config.maxLevel) {
+        targetUnit.setLevel(targetUnit.level + 1);
+        this.board[unit.row][unit.col] = null;
+        unit.destroy();
+        this.cleanupBoard();
+        this.messageText.setText(`${targetUnit.baseText} 升级到 ${targetUnit.level} 级`);
+        return;
+      }
+
+      this.snapUnitBack(unit);
+      this.messageText.setText("目标格子被占用");
+      return;
+    }
+
+    this.board[unit.row][unit.col] = null;
+    unit.row = targetRow;
+    unit.col = targetCol;
+    this.board[targetRow][targetCol] = unit;
+    const center = this.getCellCenter(targetRow, targetCol);
+    unit.setPosition(center.x, center.y);
+    unit.syncHealthBar();
+    this.messageText.setText(`${unit.baseText} 已移动`);
+  }
+
+  private snapUnitBack(unit: Unit) {
+    const center = this.getCellCenter(unit.row, unit.col);
+    unit.setPosition(center.x, center.y);
+    unit.syncHealthBar();
   }
 
   private produceFarms() {
@@ -318,9 +381,9 @@ export class GamePlayScene extends Phaser.Scene {
           right instanceof GeneralFragment &&
           !left.dead &&
           !right.dead &&
-          FragmentMatch[left.text] === right.text
+          FragmentMatch[left.baseText] === right.baseText
         ) {
-          const generalName = GeneralName[left.text + right.text];
+          const generalName = GeneralName[left.baseText + right.baseText];
           if (!generalName) continue;
           const center = this.getCellCenter(row, col);
           const general = new General(
@@ -331,6 +394,7 @@ export class GamePlayScene extends Phaser.Scene {
             col,
             generalName as "赵云" | "黄忠" | "关羽" | "张飞",
           );
+          general.setLevel(Math.max(left.level, right.level));
           left.destroy();
           right.destroy();
           this.board[row][col] = general;
@@ -400,6 +464,18 @@ export class GamePlayScene extends Phaser.Scene {
     return this.getZombiesInRange(row, minCol, maxCol).sort((a, b) => b.x - a.x)[0] || null;
   }
 
+  getZombiesInCircle(row: number, col: number, radiusCells: number) {
+    const center = this.getCellCenter(row, col);
+    return this.zombies.filter((zombie) => {
+      if (zombie.dead || zombie.row < row - 1 || zombie.row > row + 1) {
+        return false;
+      }
+      const dx = (zombie.x - center.x) / Config.cellWidth;
+      const dy = zombie.row - row;
+      return Math.sqrt(dx * dx + dy * dy) <= radiusCells;
+    });
+  }
+
   shootArrow(fromX: number, fromY: number, target: Zombie, damage: number) {
     const arrow = this.add.text(fromX, fromY, "箭", {
       fontFamily: Config.fontFamily,
@@ -419,6 +495,42 @@ export class GamePlayScene extends Phaser.Scene {
         }
         arrow.destroy();
       },
+    });
+  }
+
+  animateSlash(x: number, y: number) {
+    const slash = this.add.text(x, y, "斩", {
+      fontFamily: Config.fontFamily,
+      fontSize: "26px",
+      color: "#fbbf24",
+      fontStyle: "bold",
+    }).setOrigin(0.5);
+
+    this.tweens.add({
+      targets: slash,
+      scale: 1.8,
+      alpha: 0,
+      duration: 180,
+      onComplete: () => slash.destroy(),
+    });
+  }
+
+  animateThrust(unit: Unit, targetCol: number) {
+    const startX = unit.x;
+    const endX = Config.boardX + targetCol * Config.cellWidth + Config.cellWidth / 2;
+    const thrust = this.add.text(unit.x, unit.y, "刺", {
+      fontFamily: Config.fontFamily,
+      fontSize: "26px",
+      color: "#60a5fa",
+      fontStyle: "bold",
+    }).setOrigin(0.5);
+
+    this.tweens.add({
+      targets: thrust,
+      x: endX,
+      alpha: 0,
+      duration: 200,
+      onComplete: () => thrust.destroy(),
     });
   }
 
