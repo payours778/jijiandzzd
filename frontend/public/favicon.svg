@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#006FEE" />
+      <stop offset="100%" stop-color="#7008E7" />
+    </linearGradient>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="2" stdDeviation="1.6" flood-color="#00000033" />
+    </filter>
+  </defs>
+
+  <!-- 圆角卡片背景 -->
+  <rect
+    x="6"
+    y="6"
+    width="52"
+    height="52"
+    rx="12"
+    ry="12"
+    fill="url(#bg)"
+    filter="url(#shadow)"
+  />
+
+  <!-- 中央 2×2 游戏网格（和品牌 LayoutGrid 图标一致），4 格有轻微错落感 -->
+  <g fill="#ffffff" opacity="0.96">
+    <rect x="18" y="18" width="11" height="11" rx="2.4" />
+    <rect x="35" y="18" width="11" height="11" rx="2.4" />
+    <rect x="18" y="35" width="11" height="11" rx="2.4" />
+    <rect x="35" y="35" width="11" height="11" rx="2.4" />
+  </g>
+
+  <!-- 右下格加一颗小高光星点，象征"精选" -->
+  <circle cx="46" cy="46" r="2.2" fill="#ffffff" />
+  <circle cx="46" cy="46" r="1" fill="#006FEE" opacity="0.9" />
+</svg>

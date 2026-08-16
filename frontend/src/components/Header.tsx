@@ -83,6 +83,23 @@ export function Header() {
         </nav>
 
         <div className="header-actions">
+          {/* TouchGal 同款 tint 按钮组 */}
+          <button
+            className="button button-tint-primary"
+            type="button"
+            style={{ minHeight: 36, padding: "0 14px", display: "none" }}
+            onClick={() => showToast("登录功能开发中")}
+          >
+            登录
+          </button>
+          <button
+            className="button button-primary"
+            type="button"
+            style={{ minHeight: 36, padding: "0 14px", display: "none" }}
+            onClick={() => showToast("注册功能开发中")}
+          >
+            注册
+          </button>
           <button
             className="icon-button favorites-toggle"
             type="button"
