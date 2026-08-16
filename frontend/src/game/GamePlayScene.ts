@@ -314,8 +314,23 @@ export class GamePlayScene extends Phaser.Scene {
         return;
       }
 
-      this.snapUnitBack(unit);
-      this.messageText.setText("目标格子被占用");
+      const originRow = unit.row;
+      const originCol = unit.col;
+      const originCenter = this.getCellCenter(originRow, originCol);
+      const targetCenter = this.getCellCenter(targetRow, targetCol);
+
+      this.board[originRow][originCol] = targetUnit;
+      this.board[targetRow][targetCol] = unit;
+      unit.row = targetRow;
+      unit.col = targetCol;
+      targetUnit.row = originRow;
+      targetUnit.col = originCol;
+
+      unit.setPosition(targetCenter.x, targetCenter.y);
+      targetUnit.setPosition(originCenter.x, originCenter.y);
+      unit.syncHealthBar();
+      targetUnit.syncHealthBar();
+      this.messageText.setText(`${unit.baseText} 与 ${targetUnit.baseText} 交换位置`);
       return;
     }
 
