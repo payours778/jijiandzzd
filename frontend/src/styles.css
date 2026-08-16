@@ -491,8 +491,8 @@ img { max-width: 100%; display: block; }
 :root[data-theme="dark"] .theme-toggle .icon-sun  { display: block; }
 
 /* =========================================================
-   Hero 区（上方"欢迎卡+分类按钮"区 + 下方"轮播 Banner"区）
-   按 TouchGal 原型结构复刻
+   Hero 区（左列：欢迎卡+快捷按钮 | 右列：轮播 Banner）
+   按 TouchGal 原型左右结构复刻
    ========================================================= */
 
 /* —— 外层 Hero 容器 —— */
@@ -509,26 +509,40 @@ img { max-width: 100%; display: block; }
   padding: 16px 24px 0;
 }
 
-/* —— Hero 顶部：欢迎卡 (左) + 分类快捷按钮组 (右) —— */
+/* —— Hero 主体：左列(欢迎卡+快捷按钮) | 右列(轮播) —— 等宽两列 */
 .hero-top {
   display: grid;
-  grid-template-columns: 1fr;           /* 手机单列 */
-  gap: 12px;
+  grid-template-columns: 1fr 1fr;   /* 等宽两列，与原型一致 */
+  gap: 24px;
+  align-items: stretch;
+  min-height: 300px;
 }
-@media (min-width: 640px) {
+
+/* 移动端降级：<820px 变为单列上下堆叠 */
+@media (max-width: 819px) {
   .hero-top {
-    grid-template-columns: 1fr 1fr;     /* sm 起 双列 */
-    gap: 24px;
+    grid-template-columns: 1fr;
+    min-height: auto;
+    gap: 16px;
   }
 }
 
-/* === 欢迎卡（左）：三色渐变 tint 玻璃卡 === */
+/* 左列：纵向堆叠欢迎卡 + 快捷按钮 */
+.hero-left {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-height: 300px;
+}
+
+/* === 欢迎卡（左列上）：三色渐变 tint 玻璃卡 === */
 .hero-welcome {
   position: relative;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  min-height: 300px;
+  flex: 1 1 auto;
+  min-height: 0;
   padding: 12px;                       /* p-3 内边距 */
   border-radius: var(--radius-lg);     /* large = 14px */
   background:
@@ -539,7 +553,7 @@ img { max-width: 100%; display: block; }
   box-shadow: var(--shadow-md);
   overflow: hidden;
 }
-.hero-welcome-inner { position: relative; display: flex; flex-direction: column; gap: 24px; }
+.hero-welcome-inner { position: relative; display: flex; flex-direction: column; gap: 10px; }
 .hero-welcome-top { display: flex; align-items: center; gap: 8px; }
 
 /* Kicker chip: "欢迎来到 Mini Playbox" */
@@ -567,13 +581,12 @@ img { max-width: 100%; display: block; }
 }
 
 /* Hero 标题：渐变文字！bg-gradient from-primary to-secondary bg-clip-text */
-.hero-title-block { display: flex; flex-direction: column; gap: 16px; }
+.hero-title-block { display: flex; flex-direction: column; gap: 10px; }
 .hero h1 {
   margin: 0;
-  padding: 4px 0;
-  font-size: 30px;                /* text-3xl */
+  font-size: 26px;                /* text-3xl */
   font-weight: 800;
-  line-height: 1.1;
+  line-height: 1.15;
   background: linear-gradient(90deg, var(--primary-500) 0%, var(--secondary-500) 100%);
   background-clip: text;
   -webkit-background-clip: text;
@@ -581,40 +594,43 @@ img { max-width: 100%; display: block; }
   letter-spacing: -0.01em;
 }
 @media (min-width: 1280px) {
-  .hero h1 { font-size: 36px; }   /* xl:text-4xl */
+  .hero h1 { font-size: 32px; }   /* xl:text-4xl */
 }
 
 .hero-subtitle {
   margin: 0;
-  font-size: 14px;                /* text-md */
+  font-size: 13px;                /* text-base */
   color: var(--foreground-600);
   line-height: 1.5;
 }
 
 /* 欢迎卡 CTA 区: button + 社交图标 */
 .hero-cta {
-  display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+  display: flex; align-items: center; gap: 6px; flex-wrap: wrap;
 }
 .icon-btn-social {
-  width: 40px; height: 40px;
-  min-width: 40px;
+  width: 36px; height: 36px;
+  min-width: 36px;
+  border: 0;
   border-radius: var(--radius-md);
   display: inline-grid; place-items: center;
   background: var(--secondary-soft);
   color: var(--secondary-600);
   cursor: pointer;
-  transition: opacity 0.18s;
+  transition: opacity 0.18s, transform 0.12s var(--ease-out);
 }
 .icon-btn-social:hover { opacity: var(--hover-opacity); }
+.icon-btn-social:active { transform: scale(0.95); }
 
-/* === Hero 快捷按钮组（右）：3个网格大按钮 === */
+/* === Hero 快捷按钮组：3个网格大按钮 === */
 .hero-quick-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 12px;
+  flex-shrink: 0;   /* 不被压缩 */
 }
 @media (min-width: 640px) {
-  .hero-quick-grid { gap: 24px; }   /* sm:gap-6 */
+  .hero-quick-grid { gap: 16px; }   /* sm:gap-4 */
 }
 
 .hero-quick-btn {
@@ -622,15 +638,16 @@ img { max-width: 100%; display: block; }
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 12px;
-  padding: 0 24px;
-  min-height: 48px;              /* h-12 */
+  gap: 10px;
+  padding: 0 16px;
+  min-height: 44px;              /* h-11 */
   min-width: 0;
   width: 100%;
-  border-radius: var(--radius-lg);  /* large 14px */
+  border: 0;
+  border-radius: var(--radius-md);  /* medium 12px */
   box-shadow: var(--shadow-chip-md);
   opacity: 0.72;
-  font-size: 16px;                  /* text-medium */
+  font-size: 15px;                  /* text-medium */
   font-weight: 500;
   cursor: pointer;
   transition: transform 0.12s var(--ease-out),
@@ -638,7 +655,7 @@ img { max-width: 100%; display: block; }
 }
 .hero-quick-btn:active { transform: scale(0.97); }
 .hero-quick-btn:hover  { opacity: 1; }
-.hero-quick-btn .icon { font-size: 20px; }
+.hero-quick-btn .icon { font-size: 18px; }
 
 .hero-quick-btn.q-primary   { background: var(--primary-soft);   color: var(--primary-600); }
 .hero-quick-btn.q-secondary { background: var(--secondary-soft); color: var(--secondary-600); }
@@ -647,16 +664,22 @@ img { max-width: 100%; display: block; }
 :root[data-theme="dark"] .hero-quick-btn.q-amber { color: var(--amber-700); }
 
 /* ———————————————————————————————————————————————
-   轮播 Banner 区 (Hero 下部分)
-   300px 高，图片 brightness-75 + 渐变遮罩 + 玻璃信息卡
+   轮播 Banner 区 (右列)
+   最小高度 300px + 内容自然撑高 + 图片 brightness + 渐变遮罩
    ——————————————————————————————————————————————— */
 .hero-banner {
   position: relative;
-  margin-top: 24px;
-  height: 300px;
+  min-height: 300px;
   overflow: hidden;
   border-radius: var(--radius-xl);     /* rounded-2xl = 16px */
   touch-action: pan-y;
+}
+
+/* 移动端降级为单列时最小高度 240px */
+@media (max-width: 819px) {
+  .hero-banner {
+    min-height: 240px;
+  }
 }
 
 /* 整图 带 brightness 滤镜 + 渐变遮罩 */
@@ -669,7 +692,11 @@ img { max-width: 100%; display: block; }
   object-fit: cover;
   display: block;
   filter: brightness(0.78);   /* brightness-75～80 */
-  transition: opacity 0.35s ease;
+  animation: heroFadeIn 0.5s ease;
+}
+@keyframes heroFadeIn {
+  from { opacity: 0; transform: scale(1.03); }
+  to   { opacity: 1; transform: scale(1); }
 }
 .hero-shade {
   position: absolute; inset: 0; z-index: 2;
@@ -692,6 +719,11 @@ img { max-width: 100%; display: block; }
   -webkit-backdrop-filter: blur(12px);
   backdrop-filter: blur(12px);
   box-shadow: var(--shadow-md);
+  animation: glassSlideUp 0.4s ease 0.1s both;
+}
+@keyframes glassSlideUp {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
 }
 .hero-banner-meta {
   display: flex; align-items: center; gap: 12px; margin-bottom: 8px;
