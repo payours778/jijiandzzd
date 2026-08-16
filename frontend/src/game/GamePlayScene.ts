@@ -1,7 +1,7 @@
 import Phaser from "phaser";
 import {
   Config,
-  DrawProbability,
+  RefreshProbability,
   FragmentMatch,
   GeneralName,
   SoldierStats,
@@ -23,6 +23,7 @@ export class GamePlayScene extends Phaser.Scene {
   private selectedCard: CardType | null = null;
   private gameOver = false;
   private wave = 0;
+  private refreshCost = Config.refreshStartCost;
 
   private mantouText!: Phaser.GameObjects.Text;
   private messageText!: Phaser.GameObjects.Text;

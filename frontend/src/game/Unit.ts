@@ -8,6 +8,11 @@ export abstract class Unit extends Phaser.GameObjects.Text {
   maxHp: number;
   attackTimer = 0;
   dead = false;
+  level = 1;
+  baseText: string;
+  protected healthBar?: Phaser.GameObjects.Rectangle;
+  protected healthBarBackground?: Phaser.GameObjects.Rectangle;
+  protected healthBarWidth = 34;
 
   constructor(
     scene: Phaser.Scene,
@@ -28,12 +33,38 @@ export abstract class Unit extends Phaser.GameObjects.Text {
       strokeThickness: 3,
       ...style,
     });
+    this.baseText = text;
     this.row = row;
     this.col = col;
     this.maxHp = maxHp;
     this.hp = maxHp;
     this.setOrigin(0.5);
     scene.add.existing(this);
+  }
+
+  attachHealthBar(width = 34) {
+    this.healthBarWidth = width;
+    this.healthBarBackground = this.scene.add
+      .rectangle(this.x, this.y - 32, width, 5, 0x111318)
+      .setOrigin(0.5);
+    this.healthBar = this.scene.add
+      .rectangle(this.x, this.y - 32, width, 5, 0xef4444)
+      .setOrigin(0.5);
+    this.syncHealthBar();
+  }
+
+  syncHealthBar() {
+    this.healthBar?.setPosition(this.x, this.y - 32);
+    this.healthBarBackground?.setPosition(this.x, this.y - 32);
+    const ratio = Math.max(0, this.hp / this.maxHp);
+    this.healthBar?.setDisplaySize(this.healthBarWidth * ratio, 5);
+  }
+
+  setLevel(level: number) {
+    this.level = Math.min(level, 5);
+    const suffix = this.level > 1 ? String(this.level) : "";
+    this.setText(`${this.baseText}${suffix}`);
+    this.syncHealthBar();
   }
 
   takeDamage(damage: number) {
@@ -47,8 +78,13 @@ export abstract class Unit extends Phaser.GameObjects.Text {
 
     if (this.hp <= 0) {
       this.dead = true;
+      this.healthBar?.destroy();
+      this.healthBarBackground?.destroy();
       this.destroy();
+      return;
     }
+
+    this.syncHealthBar();
   }
 
   update(_scene: Phaser.Scene, _time: number, _delta: number) {

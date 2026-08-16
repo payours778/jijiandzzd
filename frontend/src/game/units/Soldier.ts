@@ -29,21 +29,25 @@ export class Soldier extends Unit {
     }
 
     const stats = SoldierStats[this.soldierType as keyof typeof SoldierStats];
+    const damageMultiplier = 1 + (this.level - 1) * 1;
+    const cooldownMultiplier = Math.max(0.2, 1 - (this.level - 1) * 0.2);
 
     if (this.soldierType === "刀") {
       const target = scene.getFrontZombieInRange(this.row, this.col + 1, this.col + 1);
       if (target) {
-        target.takeDamage(stats.damage);
-        this.attackTimer = stats.cooldown;
+        target.takeDamage(stats.damage * damageMultiplier);
+        scene.animateSlash(target.x, target.y);
+        this.attackTimer = stats.cooldown * cooldownMultiplier;
       }
       return;
     }
 
     if (this.soldierType === "枪") {
-      const targets = scene.getZombiesInRange(this.row, this.col + 1, this.col + 2);
+      const targets = scene.getZombiesInRange(this.row, this.col + 1, this.col + 3);
       if (targets.length > 0) {
-        targets.forEach((zombie) => zombie.takeDamage(stats.damage));
-        this.attackTimer = stats.cooldown;
+        targets.forEach((zombie) => zombie.takeDamage(stats.damage * damageMultiplier));
+        scene.animateThrust(this, this.col + 3);
+        this.attackTimer = stats.cooldown * cooldownMultiplier;
       }
       return;
     }
@@ -51,18 +55,18 @@ export class Soldier extends Unit {
     if (this.soldierType === "弓") {
       const target = scene.getFrontZombieInRow(this.row);
       if (target) {
-        scene.shootArrow(this.x, this.y, target, stats.damage);
-        this.attackTimer = stats.cooldown;
+        scene.shootArrow(this.x, this.y, target, stats.damage * damageMultiplier);
+        this.attackTimer = stats.cooldown * cooldownMultiplier;
       }
       return;
     }
 
     if (this.soldierType === "骑") {
-      const targets = scene.getZombiesInRange(this.row, this.col + 1, this.col + 3);
+      const targets = scene.getZombiesInCircle(this.row, this.col, 1.5);
       if (targets.length > 0) {
-        targets.forEach((zombie) => zombie.takeDamage(stats.damage));
+        targets.forEach((zombie) => zombie.takeDamage(stats.damage * damageMultiplier));
         scene.animateCharge(this, this.col + 2);
-        this.attackTimer = stats.cooldown;
+        this.attackTimer = stats.cooldown * cooldownMultiplier;
       }
     }
   }

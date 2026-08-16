@@ -35,12 +35,14 @@ export class General extends Unit {
     }
 
     const config = GeneralConfig[this.generalName];
+    const damageMultiplier = 1 + (this.level - 1) * 1;
+    const cooldownMultiplier = Math.max(0.2, 1 - (this.level - 1) * 0.2);
 
     if (this.generalName === "赵云") {
       const targets = scene.getZombiesInRange(this.row, this.col + 1, this.col + 2);
       if (targets.length > 0) {
-        targets.forEach((zombie) => zombie.takeDamage(config.damage));
-        this.attackTimer = config.cooldown;
+        targets.forEach((zombie) => zombie.takeDamage(config.damage * damageMultiplier));
+        this.attackTimer = config.cooldown * cooldownMultiplier;
       }
       return;
     }
@@ -48,9 +50,9 @@ export class General extends Unit {
     if (this.generalName === "黄忠") {
       const targets = scene.getZombiesInRow(this.row);
       if (targets.length > 0) {
-        targets.forEach((zombie) => zombie.takeDamage(config.damage));
+        targets.forEach((zombie) => zombie.takeDamage(config.damage * damageMultiplier));
         scene.rainArrows(this.row);
-        this.attackTimer = config.cooldown;
+        this.attackTimer = config.cooldown * cooldownMultiplier;
       }
       return;
     }
@@ -58,8 +60,8 @@ export class General extends Unit {
     if (this.generalName === "关羽") {
       const targets = scene.getZombiesInRange(this.row, this.col + 1, this.col + 4);
       if (targets.length > 0) {
-        targets.forEach((zombie) => zombie.takeDamage(config.damage));
-        this.attackTimer = config.cooldown;
+        targets.forEach((zombie) => zombie.takeDamage(config.damage * damageMultiplier));
+        this.attackTimer = config.cooldown * cooldownMultiplier;
       }
       return;
     }
@@ -68,10 +70,10 @@ export class General extends Unit {
       const targets = scene.getZombiesInRow(this.row);
       if (targets.length > 0) {
         targets.forEach((zombie) => {
-          zombie.takeDamage(config.damage);
+          zombie.takeDamage(config.damage * damageMultiplier);
           zombie.setX(zombie.x - 42);
         });
-        this.attackTimer = config.cooldown;
+        this.attackTimer = config.cooldown * cooldownMultiplier;
       }
     }
   }
