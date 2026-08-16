@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { Footer } from "./components/Footer";
 import { AuthModal } from "./components/AuthModal";
 import { GameModal } from "./components/GameModal";
@@ -8,6 +8,7 @@ import { QuickStrip } from "./components/QuickStrip";
 import { GameGrid } from "./components/GameGrid";
 import { Sidebar } from "./components/Sidebar";
 import { Toast } from "./components/Toast";
+import { TowerDefenseGame } from "./components/TowerDefenseGame";
 import { useAppStore } from "./store/useAppStore";
 
 export default function App() {
@@ -15,6 +16,9 @@ export default function App() {
   const modalOpen = useAppStore((state) => state.modalOpen);
   const menuOpen = useAppStore((state) => state.menuOpen);
   const setUser = useAppStore((state) => state.setUser);
+  const setAuthOpen = useAppStore((state) => state.setAuthOpen);
+  const user = useAppStore((state) => state.user);
+  const [gameOpen, setGameOpen] = useState(() => window.location.hash === "#/game");
 
   useEffect(() => {
     document.documentElement.dataset.theme = theme;
@@ -56,6 +60,22 @@ export default function App() {
       cancelled = true;
     };
   }, [setUser]);
+
+  useEffect(() => {
+    const handleHashChange = () => {
+      const open = window.location.hash === "#/game";
+      setGameOpen(open);
+      if (open && !useAppStore.getState().user) {
+        setAuthOpen(true);
+      }
+    };
+    window.addEventListener("hashchange", handleHashChange);
+    return () => window.removeEventListener("hashchange", handleHashChange);
+  }, [setAuthOpen]);
+
+  if (gameOpen && user) {
+    return <TowerDefenseGame onBack={() => { window.location.hash = ""; setGameOpen(false); }} />;
+  }
 
   return (
     <>

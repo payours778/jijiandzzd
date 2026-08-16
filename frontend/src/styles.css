@@ -1700,3 +1700,35 @@ img { max-width: 100%; display: block; }
 .auth-switch:hover {
   text-decoration: underline;
 }
+
+/* 塔防游戏页面 */
+.tower-defense-page {
+  position: relative;
+  display: grid;
+  min-height: 100vh;
+  place-items: center;
+  background: #0f1114;
+  padding: 20px;
+}
+
+.tower-defense-container {
+  width: min(960px, 100%);
+}
+
+.tower-defense-back {
+  position: fixed;
+  top: 16px;
+  left: 16px;
+  z-index: 10;
+  border: 1px solid #3a3f48;
+  border-radius: 6px;
+  background: #15171b;
+  color: #f3f4f6;
+  padding: 8px 12px;
+  cursor: pointer;
+}
+
+.tower-defense-back:hover {
+  border-color: #78a5f7;
+  color: #78a5f7;
+}

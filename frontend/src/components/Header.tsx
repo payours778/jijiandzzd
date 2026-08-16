@@ -84,6 +84,7 @@ export function Header() {
               {categoryLabels[item]}
             </button>
           ))}
+          <a className="category-link" href="#/game">塔防</a>
         </nav>
 
         <div className="header-actions">
