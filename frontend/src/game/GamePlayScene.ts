@@ -482,7 +482,7 @@ export class GamePlayScene extends Phaser.Scene {
       fontSize: "20px",
       color: "#60a5fa",
       fontStyle: "bold",
-    }).setOrigin(0.5);
+    }).setOrigin(0.5).setDepth(80);
 
     this.tweens.add({
       targets: arrow,
@@ -504,13 +504,14 @@ export class GamePlayScene extends Phaser.Scene {
       fontSize: "26px",
       color: "#fbbf24",
       fontStyle: "bold",
-    }).setOrigin(0.5);
+    }).setOrigin(0.5).setDepth(80).setScale(0.6);
 
     this.tweens.add({
       targets: slash,
-      scale: 1.8,
+      scale: 2.1,
+      angle: 18,
       alpha: 0,
-      duration: 180,
+      duration: 260,
       onComplete: () => slash.destroy(),
     });
   }
@@ -523,13 +524,14 @@ export class GamePlayScene extends Phaser.Scene {
       fontSize: "26px",
       color: "#60a5fa",
       fontStyle: "bold",
-    }).setOrigin(0.5);
+    }).setOrigin(0.5).setDepth(80).setScale(0.7);
 
     this.tweens.add({
       targets: thrust,
       x: endX,
+      scale: 1.7,
       alpha: 0,
-      duration: 200,
+      duration: 240,
       onComplete: () => thrust.destroy(),
     });
   }
@@ -537,12 +539,27 @@ export class GamePlayScene extends Phaser.Scene {
   animateCharge(unit: Unit, targetCol: number) {
     const target = this.getCellCenter(unit.row, targetCol).x;
     const startX = unit.x;
+    const charge = this.add.text(startX, unit.y, "冲", {
+      fontFamily: Config.fontFamily,
+      fontSize: "28px",
+      color: "#ef4444",
+      fontStyle: "bold",
+    }).setOrigin(0.5).setDepth(80);
+
     this.tweens.add({
       targets: unit,
       x: target,
       duration: 180,
       yoyo: true,
       onComplete: () => unit.setX(startX),
+    });
+
+    this.tweens.add({
+      targets: charge,
+      x: target,
+      alpha: 0,
+      duration: 220,
+      onComplete: () => charge.destroy(),
     });
   }
 
@@ -554,7 +571,7 @@ export class GamePlayScene extends Phaser.Scene {
         fontSize: "20px",
         color: "#fbbf24",
         fontStyle: "bold",
-      }).setOrigin(0.5);
+      }).setOrigin(0.5).setDepth(80);
 
       this.tweens.add({
         targets: arrow,

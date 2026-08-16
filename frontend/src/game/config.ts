@@ -15,9 +15,9 @@ export const Config = {
   startingMantou: 150,
   handLimit: 7,
   maxLevel: 5,
-  zombieSpawnStart: 4000,
-  zombieSpawnStep: 220,
-  zombieSpawnMin: 1100,
+  zombieSpawnStart: 6000,
+  zombieSpawnStep: 260,
+  zombieSpawnMin: 1200,
   fontFamily: "'Microsoft YaHei', 'PingFang SC', sans-serif",
 } as const;
 
