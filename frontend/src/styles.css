@@ -1713,6 +1713,14 @@ img { max-width: 100%; display: block; }
 
 .tower-defense-container {
   width: min(960px, 100%);
+  aspect-ratio: 960 / 640;
+  max-height: calc(100vh - 40px);
+}
+
+.tower-defense-container canvas {
+  display: block;
+  width: 100% !important;
+  height: 100% !important;
 }
 
 .tower-defense-back {
