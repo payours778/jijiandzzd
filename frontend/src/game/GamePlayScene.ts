@@ -449,7 +449,7 @@ export class GamePlayScene extends Phaser.Scene {
 
   getFrontZombieInRow(row: number) {
     const zombies = this.getZombiesInRow(row);
-    return zombies.sort((a, b) => b.x - a.x)[0] || null;
+    return zombies.sort((a, b) => a.x - b.x)[0] || null;
   }
 
   getZombiesInRange(row: number, minCol: number, maxCol: number) {
@@ -461,7 +461,7 @@ export class GamePlayScene extends Phaser.Scene {
   }
 
   getFrontZombieInRange(row: number, minCol: number, maxCol: number) {
-    return this.getZombiesInRange(row, minCol, maxCol).sort((a, b) => b.x - a.x)[0] || null;
+    return this.getZombiesInRange(row, minCol, maxCol).sort((a, b) => a.x - b.x)[0] || null;
   }
 
   getZombiesInCircle(row: number, col: number, radiusCells: number) {
@@ -518,7 +518,8 @@ export class GamePlayScene extends Phaser.Scene {
 
   animateThrust(unit: Unit, targetCol: number) {
     const startX = unit.x;
-    const endX = Config.boardX + targetCol * Config.cellWidth + Config.cellWidth / 2;
+    const safeTargetCol = Math.max(0, targetCol);
+    const endX = Config.boardX + safeTargetCol * Config.cellWidth + Config.cellWidth / 2;
     const thrust = this.add.text(unit.x, unit.y, "刺", {
       fontFamily: Config.fontFamily,
       fontSize: "26px",
@@ -537,7 +538,7 @@ export class GamePlayScene extends Phaser.Scene {
   }
 
   animateCharge(unit: Unit, targetCol: number) {
-    const target = this.getCellCenter(unit.row, targetCol).x;
+    const target = this.getCellCenter(unit.row, Math.max(0, targetCol)).x;
     const startX = unit.x;
     const charge = this.add.text(startX, unit.y, "冲", {
       fontFamily: Config.fontFamily,

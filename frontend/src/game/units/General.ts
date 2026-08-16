@@ -39,7 +39,7 @@ export class General extends Unit {
     const cooldownMultiplier = Math.max(0.2, 1 - (this.level - 1) * 0.2);
 
     if (this.generalName === "赵云") {
-      const targets = scene.getZombiesInRange(this.row, this.col + 1, this.col + 2);
+      const targets = scene.getZombiesInRange(this.row, this.col - 2, this.col - 1);
       if (targets.length > 0) {
         targets.forEach((zombie) => zombie.takeDamage(config.damage * damageMultiplier));
         this.attackTimer = config.cooldown * cooldownMultiplier;
@@ -58,7 +58,7 @@ export class General extends Unit {
     }
 
     if (this.generalName === "关羽") {
-      const targets = scene.getZombiesInRange(this.row, this.col + 1, this.col + 4);
+      const targets = scene.getZombiesInRange(this.row, this.col - 4, this.col - 1);
       if (targets.length > 0) {
         targets.forEach((zombie) => zombie.takeDamage(config.damage * damageMultiplier));
         this.attackTimer = config.cooldown * cooldownMultiplier;
