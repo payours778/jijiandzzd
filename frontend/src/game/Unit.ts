@@ -14,6 +14,7 @@ export abstract class Unit extends Phaser.GameObjects.Text {
   protected healthBarBackground?: Phaser.GameObjects.Rectangle;
   protected healthBarWidth = 34;
   protected levelText?: Phaser.GameObjects.Text;
+  protected hitFlashTimer?: Phaser.Time.TimerEvent;
 
   constructor(
     scene: Phaser.Scene,
@@ -60,6 +61,7 @@ export abstract class Unit extends Phaser.GameObjects.Text {
     const ratio = Math.max(0, this.hp / this.maxHp);
     this.healthBar?.setDisplaySize(this.healthBarWidth * ratio, 5);
     this.syncLevelText();
+    this.setAlpha(0.35 + 0.65 * ratio);
   }
 
   syncLevelText() {
@@ -96,18 +98,17 @@ export abstract class Unit extends Phaser.GameObjects.Text {
 
   takeDamage(damage: number) {
     this.hp -= damage;
-    this.setAlpha(0.65);
-    this.scene.time.delayedCall(80, () => {
-      if (!this.dead) {
-        this.setAlpha(1);
-      }
-    });
+    this.showDamageNumber(damage);
+    this.setAlpha(0.35);
+    this.hitFlashTimer?.remove();
+    this.hitFlashTimer = this.scene.time.delayedCall(120, () => this.syncHealthBar());
 
     if (this.hp <= 0) {
       this.dead = true;
       this.healthBar?.destroy();
       this.healthBarBackground?.destroy();
       this.levelText?.destroy();
+      this.hitFlashTimer?.remove();
       this.destroy();
       return;
     }
@@ -115,9 +116,32 @@ export abstract class Unit extends Phaser.GameObjects.Text {
     this.syncHealthBar();
   }
 
+  private showDamageNumber(damage: number) {
+    const number = this.scene.add
+      .text(this.x, this.y - 20, `-${damage}`, {
+        fontFamily: Config.fontFamily,
+        fontSize: "16px",
+        color: "#f87171",
+        fontStyle: "bold",
+        stroke: "#111",
+        strokeThickness: 2,
+      })
+      .setOrigin(0.5)
+      .setDepth(90);
+
+    this.scene.tweens.add({
+      targets: number,
+      y: this.y - 38,
+      alpha: 0,
+      duration: 520,
+      onComplete: () => number.destroy(),
+    });
+  }
+
   protected onDestroyed() {
     // 子类销毁前清理自定义对象。
     this.levelText?.destroy();
+    this.hitFlashTimer?.remove();
   }
 
   override destroy(fromScene?: boolean) {
