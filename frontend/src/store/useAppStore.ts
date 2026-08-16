@@ -90,8 +90,15 @@ export const useAppStore = create<AppState>()(
             : `已取消收藏「${getGameById(id).title}」`,
         );
       },
-      openGame: (activeGameId) =>
-        set({ activeGameId, modalOpen: true, menuOpen: false }),
+      openGame: (activeGameId) => {
+        if (!get().user) {
+          get().showToast("请先登录后再开始游戏");
+          set({ authOpen: true, authMode: "login", menuOpen: false });
+          return;
+        }
+
+        set({ activeGameId, modalOpen: true, menuOpen: false });
+      },
       closeGame: () => set({ activeGameId: null, modalOpen: false }),
       setMenuOpen: (menuOpen) => set({ menuOpen }),
       setAuthOpen: (authOpen) => set({ authOpen }),
