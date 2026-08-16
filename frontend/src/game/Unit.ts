@@ -13,6 +13,7 @@ export abstract class Unit extends Phaser.GameObjects.Text {
   protected healthBar?: Phaser.GameObjects.Rectangle;
   protected healthBarBackground?: Phaser.GameObjects.Rectangle;
   protected healthBarWidth = 34;
+  protected levelText?: Phaser.GameObjects.Text;
 
   constructor(
     scene: Phaser.Scene,
@@ -58,12 +59,38 @@ export abstract class Unit extends Phaser.GameObjects.Text {
     this.healthBarBackground?.setPosition(this.x, this.y - 32);
     const ratio = Math.max(0, this.hp / this.maxHp);
     this.healthBar?.setDisplaySize(this.healthBarWidth * ratio, 5);
+    this.syncLevelText();
+  }
+
+  syncLevelText() {
+    this.levelText?.setPosition(this.x + 22, this.y - 22);
   }
 
   setLevel(level: number) {
     this.level = Math.min(level, 5);
-    const suffix = this.level > 1 ? String(this.level) : "";
-    this.setText(`${this.baseText}${suffix}`);
+    this.setText(this.baseText);
+
+    if (this.level > 1) {
+      if (!this.levelText) {
+        this.levelText = this.scene.add
+          .text(this.x + 22, this.y - 22, String(this.level), {
+            fontFamily: Config.fontFamily,
+            fontSize: "14px",
+            color: "#fbbf24",
+            fontStyle: "bold",
+            stroke: "#111",
+            strokeThickness: 2,
+          })
+          .setOrigin(0.5)
+          .setDepth(75);
+      } else {
+        this.levelText.setText(String(this.level));
+        this.levelText.setVisible(true);
+      }
+    } else {
+      this.levelText?.setVisible(false);
+    }
+
     this.syncHealthBar();
   }
 
@@ -80,6 +107,7 @@ export abstract class Unit extends Phaser.GameObjects.Text {
       this.dead = true;
       this.healthBar?.destroy();
       this.healthBarBackground?.destroy();
+      this.levelText?.destroy();
       this.destroy();
       return;
     }
@@ -89,6 +117,7 @@ export abstract class Unit extends Phaser.GameObjects.Text {
 
   protected onDestroyed() {
     // 子类销毁前清理自定义对象。
+    this.levelText?.destroy();
   }
 
   override destroy(fromScene?: boolean) {
