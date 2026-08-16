@@ -15,6 +15,7 @@ export abstract class Unit extends Phaser.GameObjects.Text {
   protected healthBarWidth = 34;
   protected levelText?: Phaser.GameObjects.Text;
   protected hitFlashTimer?: Phaser.Time.TimerEvent;
+  protected isFriendly = false;
 
   constructor(
     scene: Phaser.Scene,
@@ -44,13 +45,13 @@ export abstract class Unit extends Phaser.GameObjects.Text {
     scene.add.existing(this);
   }
 
-  attachHealthBar(width = 34) {
+  attachHealthBar(width = 34, color = 0xef4444) {
     this.healthBarWidth = width;
     this.healthBarBackground = this.scene.add
       .rectangle(this.x, this.y - 32, width, 5, 0x111318)
       .setOrigin(0.5);
     this.healthBar = this.scene.add
-      .rectangle(this.x, this.y - 32, width, 5, 0xef4444)
+      .rectangle(this.x, this.y - 32, width, 5, color)
       .setOrigin(0.5);
     this.syncHealthBar();
   }
@@ -61,7 +62,6 @@ export abstract class Unit extends Phaser.GameObjects.Text {
     const ratio = Math.max(0, this.hp / this.maxHp);
     this.healthBar?.setDisplaySize(this.healthBarWidth * ratio, 5);
     this.syncLevelText();
-    this.setAlpha(0.35 + 0.65 * ratio);
   }
 
   syncLevelText() {
@@ -99,9 +99,9 @@ export abstract class Unit extends Phaser.GameObjects.Text {
   takeDamage(damage: number) {
     this.hp -= damage;
     this.showDamageNumber(damage);
-    this.setAlpha(0.35);
-    this.hitFlashTimer?.remove();
-    this.hitFlashTimer = this.scene.time.delayedCall(120, () => this.syncHealthBar());
+    if (this.isFriendly) {
+      this.shakeOnHit();
+    }
 
     if (this.hp <= 0) {
       this.dead = true;
@@ -114,6 +114,18 @@ export abstract class Unit extends Phaser.GameObjects.Text {
     }
 
     this.syncHealthBar();
+  }
+
+  private shakeOnHit() {
+    const startX = this.x;
+    this.scene.tweens.add({
+      targets: this,
+      x: startX - 3,
+      duration: 45,
+      yoyo: true,
+      repeat: 2,
+      onComplete: () => this.setX(startX),
+    });
   }
 
   private showDamageNumber(damage: number) {

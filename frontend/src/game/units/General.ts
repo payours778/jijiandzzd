@@ -22,6 +22,8 @@ export class General extends Unit {
     const config = GeneralConfig[generalName];
     super(scene, x, y, generalName, { color: config.color }, row, col, config.hp);
     this.generalName = generalName;
+    this.isFriendly = true;
+    this.attachHealthBar(36, 0x22c55e);
   }
 
   override update(scene: GamePlayScene, _time: number, delta: number) {

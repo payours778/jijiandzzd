@@ -16,6 +16,8 @@ export class Soldier extends Unit {
     const stats = SoldierStats[soldierType as keyof typeof SoldierStats];
     super(scene, x, y, soldierType, { color: stats.color }, row, col, stats.hp);
     this.soldierType = soldierType;
+    this.isFriendly = true;
+    this.attachHealthBar(32, 0x22c55e);
   }
 
   override update(scene: GamePlayScene, _time: number, delta: number) {
