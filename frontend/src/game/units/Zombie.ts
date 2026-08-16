@@ -34,6 +34,7 @@ export class Zombie extends Unit {
     if (unit && !unit.dead) {
       if (this.biteTimer <= 0) {
         unit.takeDamage(8);
+        scene.tiltTargetOnHit(unit);
         this.biteTimer = 900;
       }
       return;

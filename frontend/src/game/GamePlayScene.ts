@@ -592,6 +592,18 @@ export class GamePlayScene extends Phaser.Scene {
     });
   }
 
+  tiltTargetOnHit(target: Unit) {
+    const startAngle = target.angle;
+    this.tweens.add({
+      targets: target,
+      angle: startAngle - 18,
+      duration: 80,
+      yoyo: true,
+      repeat: 1,
+      onComplete: () => target.setAngle(startAngle),
+    });
+  }
+
   animateThrust(unit: Unit, targetCol: number) {
     const startX = unit.x;
     const safeTargetCol = Math.max(0, targetCol);
