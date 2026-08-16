@@ -395,6 +395,7 @@ export class GamePlayScene extends Phaser.Scene {
             generalName as "赵云" | "黄忠" | "关羽" | "张飞",
           );
           general.setLevel(Math.max(left.level, right.level));
+          general.setInteractive({ draggable: true });
           left.destroy();
           right.destroy();
           this.board[row][col] = general;
@@ -513,6 +514,56 @@ export class GamePlayScene extends Phaser.Scene {
       alpha: 0,
       duration: 260,
       onComplete: () => slash.destroy(),
+    });
+  }
+
+  animateCavalrySlash(unit: Unit) {
+    const center = this.getCellCenter(unit.row, unit.col);
+    const radius = Config.cellWidth * 1.5;
+
+    for (let i = 0; i < 8; i += 1) {
+      const angle = (Math.PI * 2 * i) / 8;
+      const slash = this.add
+        .text(
+          center.x + Math.cos(angle) * radius * 0.6,
+          center.y + Math.sin(angle) * radius * 0.6,
+          "刀",
+          {
+            fontFamily: Config.fontFamily,
+            fontSize: "22px",
+            color: "#ef4444",
+            fontStyle: "bold",
+          },
+        )
+        .setOrigin(0.5)
+        .setDepth(80)
+        .setScale(0.4);
+
+      this.tweens.add({
+        targets: slash,
+        x: center.x + Math.cos(angle) * radius,
+        y: center.y + Math.sin(angle) * radius,
+        scale: 1.3,
+        alpha: 0,
+        duration: 260,
+        onComplete: () => slash.destroy(),
+      });
+    }
+
+    const sweep = this.add.text(center.x, center.y, "斩", {
+      fontFamily: Config.fontFamily,
+      fontSize: "34px",
+      color: "#f87171",
+      fontStyle: "bold",
+    }).setOrigin(0.5).setDepth(80).setScale(0.6);
+
+    this.tweens.add({
+      targets: sweep,
+      scale: 3.2,
+      angle: 35,
+      alpha: 0,
+      duration: 300,
+      onComplete: () => sweep.destroy(),
     });
   }
 

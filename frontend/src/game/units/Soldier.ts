@@ -65,7 +65,7 @@ export class Soldier extends Unit {
       const targets = scene.getZombiesInCircle(this.row, this.col, 1.5);
       if (targets.length > 0) {
         targets.forEach((zombie) => zombie.takeDamage(stats.damage * damageMultiplier));
-        scene.animateCharge(this, this.col - 2);
+        scene.animateCavalrySlash(this);
         this.attackTimer = stats.cooldown * cooldownMultiplier;
       }
     }
