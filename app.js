@@ -155,6 +155,7 @@ const state = {
   favorites: loadFavorites(),
   activeGameId: null,
   memory: null,
+  user: null,
 };
 
 // UI optimization: timer used by the Hero auto carousel.
@@ -168,6 +169,7 @@ const elements = {
   searchInput: document.getElementById("searchInput"),
   categoryNav: document.getElementById("categoryNav"),
   randomGameButton: document.getElementById("randomGameButton"),
+  userChip: document.getElementById("userChip"),
   favoriteCount: document.getElementById("favoriteCount"),
   favoritesToggle: document.getElementById("favoritesToggle"),
   themeToggle: document.getElementById("themeToggle"),
@@ -231,6 +233,74 @@ function saveTheme(theme) {
     localStorage.setItem("mini-playbox-theme", theme);
   } catch {
     // Storage may be unavailable in some embedded contexts.
+  }
+}
+
+// TouchGalUI适配：轻量后端匿名鉴权，失败时自动降级为本地用户标识。
+async function apiRequest(path, options = {}) {
+  const response = await fetch(path, {
+    ...options,
+    headers: {
+      "Content-Type": "application/json",
+      ...(options.headers || {}),
+    },
+  });
+
+  if (!response.ok) {
+    throw new Error(`API ${response.status}`);
+  }
+
+  return response.json();
+}
+
+function getLocalFallbackUser() {
+  const stored = localStorage.getItem("mini-playbox-user");
+
+  if (stored) {
+    try {
+      return JSON.parse(stored);
+    } catch {
+      // Fall through and create a new local user.
+    }
+  }
+
+  const id = crypto.randomUUID();
+  const user = {
+    id,
+    displayName: `游客_${id.slice(0, 4).toUpperCase()}`,
+    createdAt: new Date().toISOString(),
+    lastSeenAt: new Date().toISOString(),
+  };
+  localStorage.setItem("mini-playbox-user", JSON.stringify(user));
+  return user;
+}
+
+async function initAuth() {
+  try {
+    const token = localStorage.getItem("mini-playbox-token");
+
+    if (token) {
+      const user = await apiRequest("/api/me", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      state.user = user;
+      localStorage.setItem("mini-playbox-user", JSON.stringify(user));
+    } else {
+      const result = await apiRequest("/api/auth/anonymous", {
+        method: "POST",
+        body: JSON.stringify({}),
+      });
+      localStorage.setItem("mini-playbox-token", result.token);
+      state.user = result.user;
+      localStorage.setItem("mini-playbox-user", JSON.stringify(result.user));
+    }
+  } catch {
+    state.user = getLocalFallbackUser();
+  }
+
+  if (elements.userChip) {
+    elements.userChip.textContent = state.user?.displayName || "游客";
+    elements.userChip.title = state.user?.id || "";
   }
 }
 
@@ -758,6 +828,7 @@ function init() {
   renderPatches();
   updateSectionTitle();
   bindEvents();
+  initAuth();
 }
 
 init();

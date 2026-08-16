@@ -280,6 +280,22 @@ img {
   gap: 6px;
 }
 
+.user-chip {
+  display: inline-flex;
+  align-items: center;
+  max-width: 132px;
+  min-height: 34px;
+  padding: 0 10px;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--surface-2);
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
 .icon-button {
   position: relative;
   display: inline-grid;
