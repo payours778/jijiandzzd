@@ -63,5 +63,6 @@ export class Farm extends Unit {
 
   protected override onDestroyed() {
     this.stopHoe();
+    super.onDestroyed();
   }
 }
