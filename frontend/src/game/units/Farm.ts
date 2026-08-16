@@ -4,6 +4,7 @@ import { Unit } from "../Unit";
 export class Farm extends Unit {
   nextProduceAt = 0;
   private hoeTween?: Phaser.Tweens.Tween;
+  private swingFlag = false;
 
   constructor(
     scene: Phaser.Scene,
@@ -24,12 +25,39 @@ export class Farm extends Unit {
   private startHoe() {
     this.hoeTween = this.scene.tweens.add({
       targets: this,
-      angle: -22,
+      angle: 20,
       scale: 1.18,
-      duration: 340,
+      duration: 360,
       yoyo: true,
       repeat: -1,
       ease: "Sine.easeInOut",
+      onUpdate: () => {
+        if (this.angle > 8 && !this.swingFlag) {
+          this.swingFlag = true;
+          this.spawnHoeEffect();
+        }
+        if (this.angle < 3) {
+          this.swingFlag = false;
+        }
+      },
+    });
+  }
+
+  private spawnHoeEffect() {
+    const hoe = this.scene.add.text(this.x + 16, this.y + 18, "锄", {
+      fontFamily: Config.fontFamily,
+      fontSize: "20px",
+      color: "#d9a441",
+      fontStyle: "bold",
+    }).setOrigin(0.5).setDepth(80);
+
+    this.scene.tweens.add({
+      targets: hoe,
+      y: this.y + 34,
+      scale: 1.5,
+      alpha: 0,
+      duration: 220,
+      onComplete: () => hoe.destroy(),
     });
   }
 
