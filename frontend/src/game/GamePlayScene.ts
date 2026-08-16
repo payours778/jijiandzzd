@@ -344,30 +344,12 @@ export class GamePlayScene extends Phaser.Scene {
         if (unit instanceof Farm && !unit.dead && this.time.now >= unit.nextProduceAt) {
           this.mantou += Config.farmProduceNum;
           unit.nextProduceAt = this.time.now + unit.getProduceInterval();
-          this.animateHoe(unit);
+          unit.showProduceNumber(Config.farmProduceNum);
         }
       }
     }
 
     this.updateMantouText();
-  }
-
-  private animateHoe(farm: Farm) {
-    const hoe = this.add.text(farm.x, farm.y - 24, "锄", {
-      fontFamily: Config.fontFamily,
-      fontSize: "24px",
-      color: "#d9a441",
-      fontStyle: "bold",
-    }).setOrigin(0.5).setDepth(80);
-
-    this.tweens.add({
-      targets: hoe,
-      y: farm.y - 10,
-      scale: 1.5,
-      alpha: 0,
-      duration: 300,
-      onComplete: () => hoe.destroy(),
-    });
   }
 
   private scheduleNextZombie() {
