@@ -105,10 +105,6 @@ export abstract class Unit extends Phaser.GameObjects.Text {
 
     if (this.hp <= 0) {
       this.dead = true;
-      this.healthBar?.destroy();
-      this.healthBarBackground?.destroy();
-      this.levelText?.destroy();
-      this.hitFlashTimer?.remove();
       this.destroy();
       return;
     }
@@ -152,6 +148,8 @@ export abstract class Unit extends Phaser.GameObjects.Text {
 
   protected onDestroyed() {
     // 子类销毁前清理自定义对象。
+    this.healthBar?.destroy();
+    this.healthBarBackground?.destroy();
     this.levelText?.destroy();
     this.hitFlashTimer?.remove();
   }
