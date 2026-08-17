@@ -9,7 +9,6 @@ export class LuBu extends Zombie {
   private skillCooldown = 0;
   private chargeRemaining = 0;
   private charging = false;
-  private skillPhase = 0;
 
   constructor(
     scene: GamePlayScene,
@@ -54,19 +53,19 @@ export class LuBu extends Zombie {
       return;
     }
 
-    const unit = scene.getUnitAt(this.row, Math.min(Config.cols - 1, col + 1));
-
-    if (unit && !unit.dead) {
-      if (this.skillCooldown <= 0 && this.skillPhase % 2 === 0) {
-        this.skillSlash(scene, unit);
-        return;
-      }
-
-      if (this.skillCooldown <= 0 && this.skillPhase % 2 === 1) {
+    if (this.skillCooldown <= 0) {
+      if (Math.random() < 0.5) {
+        this.skillSlash(scene);
+      } else if (scene.getRightmostUnitInRow(this.row)) {
         this.skillCharge(scene);
-        return;
+      } else {
+        this.skillCooldown = 600;
       }
+      return;
+    }
 
+    const unit = scene.getUnitAt(this.row, Math.min(Config.cols - 1, col + 1));
+    if (unit && !unit.dead) {
       this.normalAttack(scene, unit);
       return;
     }
@@ -91,9 +90,9 @@ export class LuBu extends Zombie {
     this.normalCooldown = LuBuStats.normalCooldown;
   }
 
-  private skillSlash(scene: GamePlayScene, unit: Unit) {
+  private skillSlash(scene: GamePlayScene) {
     const damage = LuBuStats.slashDamage * this.strengthMultiplier;
-    const col = unit.col;
+    const col = Math.min(Config.cols - 1, scene.getColFromX(this.x) + 1);
 
     for (let row = Math.max(0, this.row - 1); row <= Math.min(Config.rows - 1, this.row + 1); row += 1) {
       const target = scene.getUnitAt(row, col);
@@ -106,7 +105,6 @@ export class LuBu extends Zombie {
     }
 
     scene.showLuBuSlash(this, col);
-    this.skillPhase += 1;
     this.skillCooldown = LuBuStats.skillCooldown;
   }
 
@@ -119,7 +117,6 @@ export class LuBu extends Zombie {
     this.charging = true;
     this.chargeRemaining = 3000;
     scene.showLuBuCharge(this);
-    this.skillPhase += 1;
   }
 
   private firePrecisionArrow(scene: GamePlayScene) {
