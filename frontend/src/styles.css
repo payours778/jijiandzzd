@@ -1712,7 +1712,15 @@ img { max-width: 100%; display: block; }
 }
 
 .tower-defense-container {
-  width: min(960px, 100%);
+  width: min(960px, calc((100vh - 40px) * 1.5), 100%);
+  aspect-ratio: 3 / 2;
+  overflow: hidden;
+}
+
+.tower-defense-container canvas {
+  display: block;
+  max-width: 100%;
+  max-height: 100%;
 }
 
 .tower-defense-back {
