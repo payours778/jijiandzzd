@@ -92,7 +92,9 @@ export class LuBu extends Zombie {
       const target = scene.getUnitAt(row, col);
       if (target && !target.dead) {
         target.takeDamage(damage);
-        target.stun(1000);
+        if (!target.dead) {
+          target.stun(1000);
+        }
       }
     }
 
