@@ -67,7 +67,7 @@ export function GameStartScreen({
           </div>
         </div>
         <div className="game-start-title">
-          <h1>阿斗大战僵尸</h1>
+          <h1>保卫阿斗</h1>
           <p>选择模式开始你的守卫</p>
         </div>
       </header>

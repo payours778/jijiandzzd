@@ -97,6 +97,12 @@ export const useAppStore = create<AppState>()(
           return;
         }
 
+        if (activeGameId === "adou-defense") {
+          window.location.hash = "#/game";
+          set({ activeGameId: null, modalOpen: false, menuOpen: false });
+          return;
+        }
+
         set({ activeGameId, modalOpen: true, menuOpen: false });
       },
       closeGame: () => set({ activeGameId: null, modalOpen: false }),

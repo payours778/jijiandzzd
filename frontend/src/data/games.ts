@@ -145,6 +145,18 @@ export const games: Game[] = [
     cover: "/assets/cover-12.png",
     description: "经典数独规则，配合星空主题与难度递进。",
   },
+  {
+    id: "adou-defense",
+    title: "保卫阿斗",
+    category: "塔防",
+    tag: "策略",
+    plays: "9.9万",
+    playValue: 99000,
+    rating: "9.5",
+    duration: "10分钟",
+    cover: "/assets/cover-adou.png",
+    description: "文字武将塔防，阿斗需要你的守护。",
+  },
 ];
 
 export const featuredIds = ["star-track", "2048", "snake-club"];
@@ -155,6 +167,7 @@ export const categories: Array<"all" | Game["category"]> = [
   "益智",
   "动作",
   "棋牌",
+  "塔防",
 ];
 
 export const categoryLabels: Record<string, string> = {
@@ -163,4 +176,5 @@ export const categoryLabels: Record<string, string> = {
   益智: "益智",
   动作: "动作",
   棋牌: "棋牌",
+  塔防: "塔防",
 };

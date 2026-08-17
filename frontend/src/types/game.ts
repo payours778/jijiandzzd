@@ -1,4 +1,4 @@
-export type Category = "消除" | "益智" | "动作" | "棋牌";
+export type Category = "消除" | "益智" | "动作" | "棋牌" | "塔防";
 
 export type SortKey = "popular" | "rating" | "newest";
 

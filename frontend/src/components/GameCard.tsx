@@ -15,6 +15,7 @@ const categoryBadgeClass: Record<string, string> = {
   益智: "badge-violet",
   动作: "badge-rose",
   棋牌: "badge-emerald",
+  塔防: "badge-amber",
 };
 
 const tagBadgeClass: Record<string, string> = {
@@ -27,6 +28,7 @@ const tagBadgeClass: Record<string, string> = {
   挑战: "badge-rose",
   创意: "badge-violet",
   休闲: "badge-sky",
+  策略: "badge-amber",
 };
 
 function getCategoryBadge(category: string) {
