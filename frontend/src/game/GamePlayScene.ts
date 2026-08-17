@@ -34,6 +34,7 @@ export class GamePlayScene extends Phaser.Scene {
   private wave = 1;
   private zombiesSpawnedInWave = 0;
   private waveSize = 5;
+  private bossSpawnedInWave = false;
   private refreshCost = Config.refreshStartCost;
   private fragmentPool: Record<string, number> = {};
 
@@ -87,6 +88,7 @@ export class GamePlayScene extends Phaser.Scene {
     this.gameOverShown = false;
     this.wave = 1;
     this.zombiesSpawnedInWave = 0;
+    this.bossSpawnedInWave = false;
     this.mantou = Config.startingMantou;
     this.hand = [];
     this.handTexts = [];
@@ -856,6 +858,7 @@ export class GamePlayScene extends Phaser.Scene {
       if (this.zombiesSpawnedInWave >= this.waveSize) {
         this.zombiesSpawnedInWave = 0;
         this.wave += 1;
+        this.bossSpawnedInWave = false;
         this.updateWaveText();
         this.messageText.setText(`进入第 ${this.wave} 波`);
         if (this.wave % 5 === 0) {
@@ -868,7 +871,10 @@ export class GamePlayScene extends Phaser.Scene {
 
   private spawnZombie() {
     const row = Phaser.Math.Between(0, this.board.length - 1);
-    const isBossWave = this.wave % 5 === 0;
+    const isBossWave = this.wave % 5 === 0 && !this.bossSpawnedInWave;
+    if (isBossWave) {
+      this.bossSpawnedInWave = true;
+    }
     const type = isBossWave ? "cone" : "normal";
     const y = Config.boardY + row * Config.cellHeight + Config.cellHeight / 2;
     const strengthMultiplier = Math.pow(1.2, this.wave - 1);
