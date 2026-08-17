@@ -4,7 +4,12 @@ import { SoldierStats } from "../config";
  * 纯 Graphics 扇形劈砍刀光，以传入坐标为原点。
  * 刀光围绕原点从左上向左下扇形展开。
  */
-export function playSlashDownSwing(x: number, y: number, scene: Phaser.Scene): void {
+export function playSlashDownSwing(
+  x: number,
+  y: number,
+  scene: Phaser.Scene,
+  pool?: Phaser.GameObjects.Graphics[],
+): void {
   const radius = 42;
   const sweepStart = Math.PI * 0.72;
   const sweepEnd = Math.PI * 1.28;
@@ -12,11 +17,13 @@ export function playSlashDownSwing(x: number, y: number, scene: Phaser.Scene): v
   const edgeColor = 0xc9cdd6;
   const mainDuration = SoldierStats.刀.cooldown;
 
-  const slash = scene.add.graphics();
+  const slash = pool?.shift() ?? scene.add.graphics();
+  slash.clear();
   slash.setDepth(90);
   slash.setAlpha(0);
   slash.setScale(0.35);
   slash.setPosition(x, y);
+  slash.setVisible(true);
 
   const drawFan = (graphics: Phaser.GameObjects.Graphics, progress: number) => {
     graphics.clear();
@@ -98,6 +105,13 @@ export function playSlashDownSwing(x: number, y: number, scene: Phaser.Scene): v
     duration: mainDuration * (0.13 / 0.45),
     delay: mainDuration * (0.32 / 0.45),
     ease: "Linear",
-    onComplete: () => slash.destroy(),
+    onComplete: () => {
+      slash.setVisible(false).setAlpha(0);
+      if (pool && pool.length < 12) {
+        pool.push(slash);
+      } else {
+        slash.destroy();
+      }
+    },
   });
 }

@@ -18,7 +18,7 @@ export const Config = {
   zombieSpawnStart: 6000,
   zombieSpawnStep: 260,
   zombieSpawnMin: 1200,
-  fontFamily: "'Microsoft YaHei', 'PingFang SC', sans-serif",
+  fontFamily: "'Courier New', monospace",
 };
 
 export type CardType =

@@ -40,16 +40,32 @@ export class GamePlayScene extends Phaser.Scene {
   private drawButton!: Phaser.GameObjects.Text;
   private selectedText!: Phaser.GameObjects.Text;
   private waveText!: Phaser.GameObjects.Text;
-  private binBounds = { x: 856, y: 150, width: 90, height: 260 };
+  private binBounds = {
+    x: 0.89 * 960,
+    y: 0.23 * 640,
+    width: 0.09 * 960,
+    height: 0.41 * 640,
+  };
   private binText!: Phaser.GameObjects.Text;
   private selectedTestType: string | null = null;
   private testButtons: Phaser.GameObjects.Text[] = [];
+  private cardTooltip?: Phaser.GameObjects.Text;
+  private slashPool: Phaser.GameObjects.Graphics[] = [];
+  private arrowPool: Phaser.GameObjects.Graphics[] = [];
   private devCommandHandler = (event: Event) => {
     const command = (event as CustomEvent).detail?.command;
     if (command === "restart") {
       this.scene.restart();
     }
   };
+
+  private px(percent: number) {
+    return (Config.gameWidth * percent) / 100;
+  }
+
+  private py(percent: number) {
+    return (Config.gameHeight * percent) / 100;
+  }
 
   constructor(key = "GamePlayScene") {
     super(key);
@@ -313,7 +329,7 @@ export class GamePlayScene extends Phaser.Scene {
   }
 
   private createUI() {
-    this.mantouText = this.add.text(24, 20, "", {
+    this.mantouText = this.add.text(this.px(2.5), this.py(3), "", {
       fontFamily: Config.fontFamily,
       fontSize: "22px",
       color: "#facc15",
@@ -321,7 +337,7 @@ export class GamePlayScene extends Phaser.Scene {
     });
 
     this.waveText = this.add
-      .text(Config.gameWidth / 2, 20, "", {
+      .text(this.px(50), this.py(3), "", {
         fontFamily: Config.fontFamily,
         fontSize: "22px",
         color: "#f87171",
@@ -329,21 +345,21 @@ export class GamePlayScene extends Phaser.Scene {
       })
       .setOrigin(0.5);
 
-    this.messageText = this.add.text(Config.gameWidth / 2, 50, "", {
+    this.messageText = this.add.text(this.px(50), this.py(8), "", {
       fontFamily: Config.fontFamily,
       fontSize: "18px",
       color: "#d1d5db",
     }).setOrigin(0.5);
 
-    this.selectedText = this.add.text(24, 600, "", {
+    this.selectedText = this.add.text(this.px(2.5), this.py(94), "", {
       fontFamily: Config.fontFamily,
       fontSize: "18px",
       color: "#a78bfa",
     });
 
-    this.drawRoundedPanel(790, 582, 140, 44, 0xfbbf24, 0.95, 0xb45309);
+    this.drawRoundedPanel(this.px(82), this.py(91), this.px(15), this.py(7), 0xfbbf24, 0.95, 0xb45309);
     this.drawButton = this.add
-      .text(Config.gameWidth - 30, Config.gameHeight - 36, "", {
+      .text(this.px(97), this.py(94), "", {
         fontFamily: Config.fontFamily,
         fontSize: "20px",
         color: "#111",
@@ -355,13 +371,13 @@ export class GamePlayScene extends Phaser.Scene {
     this.createRecycleBin();
 
     this.add
-      .text(24, Config.gameHeight - 40, "R：重新开局", {
+      .text(this.px(2.5), this.py(94), "R：重新开局", {
         fontFamily: Config.fontFamily,
         fontSize: "16px",
         color: "#6b7280",
       });
 
-    this.drawRoundedPanel(0, Config.gameHeight - 102, Config.gameWidth, 80, 0x111318, 0.92, 0x3a3f48);
+    this.drawRoundedPanel(0, this.py(84), Config.gameWidth, this.py(12), 0x111318, 0.92, 0x3a3f48);
 
     this.updateMantouText();
     this.updateDrawButton();
@@ -416,6 +432,8 @@ export class GamePlayScene extends Phaser.Scene {
     const graphics = this.add.graphics();
     graphics.fillStyle(fill, alpha);
     graphics.fillRoundedRect(x, y, width, height, 8);
+    graphics.lineStyle(1, 0x000000, 0.95);
+    graphics.strokeRoundedRect(x + 0.5, y + 0.5, width - 1, height - 1, 8);
     graphics.lineStyle(1, stroke, 0.7);
     graphics.strokeRoundedRect(x, y, width, height, 8);
   }
@@ -426,7 +444,7 @@ export class GamePlayScene extends Phaser.Scene {
 
     this.hand.forEach((card, index) => {
       const text = this.add
-        .text(Config.boardX + 24 + index * 64, Config.gameHeight - 70, card, {
+        .text(this.px(16) + index * this.px(6.6), this.py(89), card, {
           fontFamily: Config.fontFamily,
           fontSize: "26px",
           color: this.getCardColor(card),
@@ -438,12 +456,55 @@ export class GamePlayScene extends Phaser.Scene {
         .setData("card", card)
         .setData("handIndex", index);
 
+      text.on("pointerover", () => this.showCardTooltip(card, text));
+      text.on("pointerout", () => this.hideCardTooltip());
+
       this.handTexts.push(text);
     });
 
     if (!this.selectedCard) {
       this.selectedText.setText("");
     }
+  }
+
+  private showCardTooltip(card: CardType, fromText: Phaser.GameObjects.Text) {
+    this.hideCardTooltip();
+    let content = "";
+
+    if (card in SoldierStats) {
+      const stats = SoldierStats[card as keyof typeof SoldierStats];
+      content = [
+        `血量：${stats.hp}`,
+        `攻击：${stats.damage}`,
+        `冷却：${stats.cooldown}ms`,
+        `范围：${stats.range}`,
+      ].join("\n");
+    } else if (card === "农") {
+      content = [
+        "资源单位",
+        `产出：${Config.farmProduceNum} 馒头`,
+        `间隔：${Config.farmProduceInterval}ms`,
+      ].join("\n");
+    } else {
+      content = ["武将碎片", "横向相邻配对可合成武将"].join("\n");
+    }
+
+    this.cardTooltip = this.add
+      .text(fromText.x, fromText.y - 42, content, {
+        fontFamily: Config.fontFamily,
+        fontSize: "12px",
+        color: "#f3f4f6",
+        backgroundColor: "#111318",
+        padding: { x: 8, y: 6 },
+        align: "left",
+      })
+      .setOrigin(0.5, 1)
+      .setDepth(110);
+  }
+
+  private hideCardTooltip() {
+    this.cardTooltip?.destroy();
+    this.cardTooltip = undefined;
   }
 
   private handlePointerDown(pointer: Phaser.Input.Pointer) {
@@ -654,8 +715,8 @@ export class GamePlayScene extends Phaser.Scene {
   }
 
   private snapHandCardBack(cardText: Phaser.GameObjects.Text, handIndex: number) {
-    const x = Config.boardX + 24 + handIndex * 64;
-    cardText.setPosition(x, Config.gameHeight - 70);
+    const x = this.px(16) + handIndex * this.px(6.6);
+    cardText.setPosition(x, this.py(89));
   }
 
   private isInBin(x: number, y: number) {
@@ -858,12 +919,14 @@ export class GamePlayScene extends Phaser.Scene {
   }
 
   shootArrow(fromX: number, fromY: number, target: Zombie, damage: number) {
-    const arrow = this.add.text(fromX, fromY, "箭", {
-      fontFamily: Config.fontFamily,
-      fontSize: "20px",
-      color: "#60a5fa",
-      fontStyle: "bold",
-    }).setOrigin(0.5).setDepth(80);
+    const arrow = this.arrowPool.shift() ?? this.add.graphics();
+    arrow.clear();
+    arrow.setPosition(fromX, fromY);
+    arrow.setVisible(true);
+    arrow.setDepth(80);
+    arrow.fillStyle(0x93c5fd, 1);
+    arrow.fillRect(-5, -1, 10, 2);
+    arrow.fillRect(3, -3, 3, 6);
 
     this.tweens.add({
       targets: arrow,
@@ -874,7 +937,12 @@ export class GamePlayScene extends Phaser.Scene {
         if (!target.dead) {
           target.takeDamage(damage);
         }
-        arrow.destroy();
+        arrow.setVisible(false);
+        if (this.arrowPool.length < 12) {
+          this.arrowPool.push(arrow);
+        } else {
+          arrow.destroy();
+        }
       },
     });
   }
@@ -896,7 +964,7 @@ export class GamePlayScene extends Phaser.Scene {
   }
 
   animateDaoSlash(unit: Unit, target: Zombie) {
-    playSlashDownSwing(unit.x, unit.y, this);
+    playSlashDownSwing(unit.x, unit.y, this, this.slashPool);
   }
 
   animateCavalrySlash(unit: Unit) {

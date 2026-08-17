@@ -16,6 +16,8 @@ export abstract class Unit extends Phaser.GameObjects.Text {
   protected levelText?: Phaser.GameObjects.Text;
   protected hitFlashTimer?: Phaser.Time.TimerEvent;
   protected isFriendly = false;
+  protected outlineGraphics?: Phaser.GameObjects.Graphics;
+  protected outlineColor = 0xffffff;
 
   constructor(
     scene: Phaser.Scene,
@@ -62,6 +64,38 @@ export abstract class Unit extends Phaser.GameObjects.Text {
     const ratio = Math.max(0, this.hp / this.maxHp);
     this.healthBar?.setDisplaySize(this.healthBarWidth * ratio, 5);
     this.syncLevelText();
+    this.syncOutline();
+  }
+
+  attachOutline(color: number) {
+    this.outlineColor = color;
+    this.outlineGraphics = this.scene.add.graphics();
+    this.outlineGraphics.setDepth(40);
+    this.syncOutline();
+  }
+
+  syncOutline() {
+    if (!this.outlineGraphics) {
+      return;
+    }
+
+    this.outlineGraphics.clear();
+    this.outlineGraphics.setPosition(this.x, this.y);
+    const lowHp = this.hp / this.maxHp < 0.3;
+    const color = lowHp ? 0xef4444 : this.outlineColor;
+    this.outlineGraphics.lineStyle(1, color, 0.9);
+    this.outlineGraphics.strokeRect(
+      -Config.cellWidth / 2 + 2,
+      -Config.cellHeight / 2 + 2,
+      Config.cellWidth - 4,
+      Config.cellHeight - 4,
+    );
+
+    if (lowHp) {
+      this.outlineGraphics.setAlpha(0.5 + 0.5 * Math.sin(this.scene.time.now / 90));
+    } else {
+      this.outlineGraphics.setAlpha(1);
+    }
   }
 
   syncLevelText() {
@@ -152,6 +186,7 @@ export abstract class Unit extends Phaser.GameObjects.Text {
     this.healthBarBackground?.destroy();
     this.levelText?.destroy();
     this.hitFlashTimer?.remove();
+    this.outlineGraphics?.destroy();
   }
 
   override destroy(fromScene?: boolean) {

@@ -29,6 +29,7 @@ export class General extends Unit {
     this.generalName = generalName;
     this.isFriendly = true;
     this.attachHealthBar(36, 0x22c55e);
+    this.attachOutline(0xfbbf24);
   }
 
   override update(scene: GamePlayScene, _time: number, delta: number) {

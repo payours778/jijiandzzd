@@ -15,6 +15,7 @@ export class Farm extends Unit {
     super(scene, x, y, "农", { color: "#16a34a" }, row, col, 80);
     this.isFriendly = true;
     this.attachHealthBar(32, 0x22c55e);
+    this.attachOutline(0x22c55e);
     this.nextProduceAt = scene.time.now + this.getProduceInterval();
     this.startHoe();
   }

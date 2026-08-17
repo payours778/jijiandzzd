@@ -62,6 +62,7 @@ export function TowerDefenseGame({
         开发者控制台
       </button>
       <div ref={containerRef} className="tower-defense-container" />
+      <div className="crt-overlay" aria-hidden="true" />
       <DevConsole open={consoleOpen} onClose={() => setConsoleOpen(false)} />
     </div>
   );

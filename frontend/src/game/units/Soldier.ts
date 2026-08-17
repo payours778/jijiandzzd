@@ -18,6 +18,7 @@ export class Soldier extends Unit {
     this.soldierType = soldierType;
     this.isFriendly = true;
     this.attachHealthBar(32, 0x22c55e);
+    this.attachOutline(0xffffff);
   }
 
   override update(scene: GamePlayScene, _time: number, delta: number) {
