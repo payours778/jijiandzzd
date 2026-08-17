@@ -409,13 +409,9 @@ export class GamePlayScene extends Phaser.Scene {
           padding: { x: 12, y: 8 },
         })
         .setOrigin(0.5)
-        .setInteractive({ useHandCursor: true });
-
-      text.on("pointerdown", () => {
-        if (this.gameOver) return;
-        this.selectedCard = card;
-        this.selectedText.setText(`已选中：${card}`);
-      });
+        .setInteractive({ useHandCursor: true, draggable: true })
+        .setData("card", card)
+        .setData("handIndex", index);
 
       this.handTexts.push(text);
     });
@@ -441,19 +437,7 @@ export class GamePlayScene extends Phaser.Scene {
       return;
     }
 
-    const row = Math.floor((pointer.y - Config.boardY) / Config.cellHeight);
-    const col = Math.floor((pointer.x - Config.boardX) / Config.cellWidth);
-
-    if (row < 0 || row >= this.board.length || col < 0 || col >= Config.cols) {
-      return;
-    }
-
-    if (!this.selectedCard) {
-      this.messageText.setText("请先点击手牌中的文字卡牌");
-      return;
-    }
-
-    this.placeCard(this.selectedCard, row, col);
+    this.messageText.setText("请将手牌拖动到棋盘");
   }
 
   private drawCard() {
@@ -537,12 +521,21 @@ export class GamePlayScene extends Phaser.Scene {
   }
 
   private handleDrag(_pointer: Phaser.Input.Pointer, gameObject: Phaser.GameObjects.GameObject, dragX: number, dragY: number) {
-    const unit = gameObject as Unit;
-    unit.setPosition(dragX, dragY);
-    unit.syncHealthBar();
+    if (gameObject instanceof Unit) {
+      gameObject.setPosition(dragX, dragY);
+      gameObject.syncHealthBar();
+      return;
+    }
+
+    (gameObject as Phaser.GameObjects.Text).setPosition(dragX, dragY);
   }
 
   private handleDragEnd(pointer: Phaser.Input.Pointer, gameObject: Phaser.GameObjects.GameObject) {
+    if (!(gameObject instanceof Unit)) {
+      this.handleHandCardDragEnd(pointer, gameObject as Phaser.GameObjects.Text);
+      return;
+    }
+
     const unit = gameObject as Unit;
 
     if (this.isInBin(pointer.x, pointer.y)) {
@@ -600,6 +593,39 @@ export class GamePlayScene extends Phaser.Scene {
     unit.setPosition(center.x, center.y);
     unit.syncHealthBar();
     this.messageText.setText(`${unit.baseText} 已移动`);
+  }
+
+  private handleHandCardDragEnd(pointer: Phaser.Input.Pointer, cardText: Phaser.GameObjects.Text) {
+    const card = cardText.getData("card") as CardType;
+    const handIndex = cardText.getData("handIndex") as number;
+
+    if (this.isInBin(pointer.x, pointer.y)) {
+      this.hand.splice(this.hand.indexOf(card), 1);
+      if (card in FragmentPool) {
+        this.fragmentPool[card] += 1;
+      }
+      this.renderHand();
+      this.messageText.setText(`${card} 已回收`);
+      return;
+    }
+
+    const row = Math.floor((pointer.y - Config.boardY) / Config.cellHeight);
+    const col = Math.floor((pointer.x - Config.boardX) / Config.cellWidth);
+
+    if (row < 0 || row >= this.board.length || col < 0 || col >= Config.cols) {
+      this.snapHandCardBack(cardText, handIndex);
+      return;
+    }
+
+    this.placeCard(card, row, col);
+    if (this.hand.includes(card)) {
+      this.snapHandCardBack(cardText, handIndex);
+    }
+  }
+
+  private snapHandCardBack(cardText: Phaser.GameObjects.Text, handIndex: number) {
+    const x = Config.boardX + 24 + handIndex * 64;
+    cardText.setPosition(x, Config.gameHeight - 70);
   }
 
   private isInBin(x: number, y: number) {
