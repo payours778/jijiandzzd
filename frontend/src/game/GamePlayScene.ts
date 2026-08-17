@@ -29,6 +29,7 @@ export class GamePlayScene extends Phaser.Scene {
   private mantou = Config.startingMantou;
   private selectedCard: CardType | null = null;
   private gameOver = false;
+  private gameOverShown = false;
   private wave = 1;
   private zombiesSpawnedInWave = 0;
   private waveSize = 5;
@@ -40,6 +41,8 @@ export class GamePlayScene extends Phaser.Scene {
   private drawButton!: Phaser.GameObjects.Text;
   private selectedText!: Phaser.GameObjects.Text;
   private waveText!: Phaser.GameObjects.Text;
+  private gameOverPanel?: Phaser.GameObjects.Graphics;
+  private gameOverButton?: Phaser.GameObjects.Text;
   private binBounds = {
     x: 0.89 * 960,
     y: 0.23 * 640,
@@ -80,6 +83,7 @@ export class GamePlayScene extends Phaser.Scene {
 
   create() {
     this.gameOver = false;
+    this.gameOverShown = false;
     this.wave = 1;
     this.zombiesSpawnedInWave = 0;
     this.mantou = Config.startingMantou;
@@ -856,8 +860,66 @@ export class GamePlayScene extends Phaser.Scene {
     const rightBoundary = Config.boardX + Config.cols * Config.cellWidth + 20;
     if (this.zombies.some((zombie) => zombie.x >= rightBoundary)) {
       this.gameOver = true;
-      this.messageText.setText("阿斗失败，僵尸抵达终点，按 R 重新开局");
+      if (!this.gameOverShown) {
+        this.gameOverShown = true;
+        this.showGameOverPanel();
+      }
     }
+  }
+
+  private showGameOverPanel() {
+    const cx = this.px(50);
+    const cy = this.py(50);
+    this.gameOverPanel = this.add.graphics();
+    this.gameOverPanel.fillStyle(0x15171b, 0.97);
+    this.gameOverPanel.fillRoundedRect(cx - 180, cy - 110, 360, 220, 10);
+    this.gameOverPanel.lineStyle(1, 0x000000, 1);
+    this.gameOverPanel.strokeRoundedRect(cx - 179, cy - 109, 358, 218, 10);
+    this.gameOverPanel.lineStyle(2, 0xef4444, 0.9);
+    this.gameOverPanel.strokeRoundedRect(cx - 180, cy - 110, 360, 220, 10);
+    this.gameOverPanel.setDepth(140);
+
+    this.add
+      .text(cx, cy - 60, "游戏失败", {
+        fontFamily: Config.fontFamily,
+        fontSize: "34px",
+        color: "#f87171",
+        fontStyle: "bold",
+      })
+      .setOrigin(0.5)
+      .setDepth(141);
+
+    this.add
+      .text(cx, cy, "僵尸抵达终点", {
+        fontFamily: Config.fontFamily,
+        fontSize: "18px",
+        color: "#d1d5db",
+      })
+      .setOrigin(0.5)
+      .setDepth(141);
+
+    this.add
+      .text(cx, cy + 30, "按 R 重新开始", {
+        fontFamily: Config.fontFamily,
+        fontSize: "14px",
+        color: "#9ca3af",
+      })
+      .setOrigin(0.5)
+      .setDepth(141);
+
+    this.gameOverButton = this.add
+      .text(cx, cy + 70, "重新开始", {
+        fontFamily: Config.fontFamily,
+        fontSize: "18px",
+        color: "#111",
+        backgroundColor: "#fbbf24",
+        padding: { x: 16, y: 10 },
+      })
+      .setOrigin(0.5)
+      .setDepth(142)
+      .setInteractive({ useHandCursor: true });
+
+    this.gameOverButton.on("pointerdown", () => this.scene.restart());
   }
 
   private updateMantouText() {
