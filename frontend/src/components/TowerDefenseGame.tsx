@@ -5,6 +5,7 @@ import { FxTestScene } from "../game/FxTestScene";
 import { GamePlayScene } from "../game/GamePlayScene";
 import { DevConsole } from "./DevConsole";
 import { GameStartScreen } from "./GameStartScreen";
+import { loadDevConfig } from "../game/devConfig";
 
 export function TowerDefenseGame({
   mode = "game",
@@ -18,6 +19,8 @@ export function TowerDefenseGame({
   const [started, setStarted] = useState(false);
 
   useEffect(() => {
+    loadDevConfig();
+
     if (mode === "game" && !started) {
       return;
     }

@@ -1,6 +1,7 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Config, LuBuStats, SoldierStats, ZombieStats } from "../game/config";
 import { GeneralConfig } from "../game/units/General";
+import { saveDevConfig } from "../game/devConfig";
 
 type Tab = "global" | "soldier" | "general" | "zombie";
 
@@ -70,6 +71,12 @@ const defaults = {
 export function DevConsole({ open, onClose }: { open: boolean; onClose: () => void }) {
   const [tab, setTab] = useState<Tab>("global");
   const [version, setVersion] = useState(0);
+
+  useEffect(() => {
+    if (open) {
+      saveDevConfig();
+    }
+  }, [open, version]);
 
   if (!open) {
     return null;
