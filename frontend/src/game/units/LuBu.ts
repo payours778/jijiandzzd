@@ -35,8 +35,16 @@ export class LuBu extends Zombie {
     this.syncHealthBar();
     this.normalCooldown -= delta;
     this.skillCooldown -= delta;
+    const col = scene.getColFromX(this.x);
 
     if (this.charging) {
+      const frontUnit = scene.getUnitAt(this.row, Math.min(Config.cols - 1, col + 1));
+      if (!frontUnit || frontUnit.dead) {
+        this.charging = false;
+        this.skillCooldown = 600;
+        return;
+      }
+
       this.chargeRemaining -= delta;
       if (this.chargeRemaining <= 0) {
         this.firePrecisionArrow(scene);
@@ -46,7 +54,6 @@ export class LuBu extends Zombie {
       return;
     }
 
-    const col = scene.getColFromX(this.x);
     const unit = scene.getUnitAt(this.row, Math.min(Config.cols - 1, col + 1));
 
     if (unit && !unit.dead) {
@@ -104,6 +111,11 @@ export class LuBu extends Zombie {
   }
 
   private skillCharge(scene: GamePlayScene) {
+    if (!scene.getRightmostUnitInRow(this.row)) {
+      this.skillCooldown = 600;
+      return;
+    }
+
     this.charging = true;
     this.chargeRemaining = 3000;
     scene.showLuBuCharge(this);
