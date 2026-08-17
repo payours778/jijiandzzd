@@ -36,6 +36,13 @@ export class GamePlayScene extends Phaser.Scene {
     super("GamePlayScene");
   }
 
+  preload() {
+    this.load.image("slash", "effects/slash.png");
+    this.load.image("slash-tiny", "effects/slash-tiny.png");
+    this.load.image("blades-green", "effects/blades-green.png");
+    this.load.image("blades-red", "effects/blades-red.png");
+  }
+
   create() {
     this.gameOver = false;
     this.wave = 0;
@@ -538,19 +545,17 @@ export class GamePlayScene extends Phaser.Scene {
   }
 
   animateSlash(x: number, y: number) {
-    const slash = this.add.text(x, y, "斩", {
-      fontFamily: Config.fontFamily,
-      fontSize: "26px",
-      color: "#fbbf24",
-      fontStyle: "bold",
-    }).setOrigin(0.5).setDepth(80).setScale(0.6);
+    const slash = this.add.image(x, y, "slash")
+      .setOrigin(0.5)
+      .setDepth(80)
+      .setScale(1.3);
 
     this.tweens.add({
       targets: slash,
-      scale: 2.1,
-      angle: 18,
+      scale: 2.0,
+      angle: 22,
       alpha: 0,
-      duration: 260,
+      duration: 240,
       onComplete: () => slash.destroy(),
     });
   }
@@ -561,39 +566,32 @@ export class GamePlayScene extends Phaser.Scene {
 
     for (let i = 0; i < 8; i += 1) {
       const angle = (Math.PI * 2 * i) / 8;
-      const slash = this.add
-        .text(
-          center.x + Math.cos(angle) * radius * 0.6,
-          center.y + Math.sin(angle) * radius * 0.6,
-          "刀",
-          {
-            fontFamily: Config.fontFamily,
-            fontSize: "22px",
-            color: "#ef4444",
-            fontStyle: "bold",
-          },
-        )
+      const slash = this.add.image(
+        center.x + Math.cos(angle) * radius * 0.6,
+        center.y + Math.sin(angle) * radius * 0.6,
+        "slash-tiny",
+      )
         .setOrigin(0.5)
         .setDepth(80)
-        .setScale(0.4);
+        .setScale(1.8)
+        .setAngle((angle * 180) / Math.PI);
 
       this.tweens.add({
         targets: slash,
         x: center.x + Math.cos(angle) * radius,
         y: center.y + Math.sin(angle) * radius,
-        scale: 1.3,
+        scale: 2.6,
         alpha: 0,
         duration: 260,
         onComplete: () => slash.destroy(),
       });
     }
 
-    const sweep = this.add.text(center.x, center.y, "斩", {
-      fontFamily: Config.fontFamily,
-      fontSize: "34px",
-      color: "#f87171",
-      fontStyle: "bold",
-    }).setOrigin(0.5).setDepth(80).setScale(0.6);
+    const sweep = this.add.image(center.x, center.y, "slash")
+      .setOrigin(0.5)
+      .setDepth(80)
+      .setScale(1.6)
+      .setAngle(-30);
 
     this.tweens.add({
       targets: sweep,
@@ -609,17 +607,16 @@ export class GamePlayScene extends Phaser.Scene {
     const startX = unit.x;
     const safeTargetCol = Math.max(0, targetCol);
     const endX = Config.boardX + safeTargetCol * Config.cellWidth + Config.cellWidth / 2;
-    const thrust = this.add.text(unit.x, unit.y, "刺", {
-      fontFamily: Config.fontFamily,
-      fontSize: "26px",
-      color: "#60a5fa",
-      fontStyle: "bold",
-    }).setOrigin(0.5).setDepth(80).setScale(0.7);
+    const thrust = this.add.image(unit.x, unit.y, "slash")
+      .setOrigin(0.5)
+      .setDepth(80)
+      .setScale(1.2)
+      .setAngle(-18);
 
     this.tweens.add({
       targets: thrust,
       x: endX,
-      scale: 1.7,
+      scale: 1.6,
       alpha: 0,
       duration: 240,
       onComplete: () => thrust.destroy(),
