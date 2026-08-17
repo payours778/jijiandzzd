@@ -1,4 +1,4 @@
-import { Config, LuBuStats, SoldierStats, ZombieStats } from "./config";
+import { Config, DiaoChanStats, LuBuStats, SoldierStats, ZombieStats } from "./config";
 import { GeneralConfig } from "./units/General";
 
 const KEY = "mini-playbox-dev-config";
@@ -14,6 +14,7 @@ export function loadDevConfig() {
     if (data.general) Object.assign(GeneralConfig, data.general);
     if (data.zombie) Object.assign(ZombieStats, data.zombie);
     if (data.lubu) Object.assign(LuBuStats, data.lubu);
+    if (data.diaochan) Object.assign(DiaoChanStats, data.diaochan);
   } catch {
     // Invalid saved config is ignored.
   }
@@ -41,6 +42,7 @@ export function saveDevConfig() {
         general: GeneralConfig,
         zombie: ZombieStats,
         lubu: LuBuStats,
+        diaochan: DiaoChanStats,
       }),
     );
   } catch {

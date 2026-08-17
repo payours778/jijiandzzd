@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Config, LuBuStats, SoldierStats, ZombieStats } from "../game/config";
+import { Config, DiaoChanStats, LuBuStats, SoldierStats, ZombieStats } from "../game/config";
 import { GeneralConfig } from "../game/units/General";
 import { saveDevConfig } from "../game/devConfig";
 
@@ -66,6 +66,18 @@ const defaults = {
     slashRest: 500,
     skill2FullScreen: true,
   },
+  diaochan: {
+    hp: 800,
+    normalDamage: 35,
+    fanDamage: 60,
+    moonlightDamage: 90,
+    fanCooldown: 10000,
+    moonlightCooldown: 20000,
+    restTime: 4000,
+    charmDuration: 2000,
+    charmEnabled: true,
+    moonlightFullScreen: true,
+  },
 };
 
 export function DevConsole({ open, onClose }: { open: boolean; onClose: () => void }) {
@@ -120,6 +132,16 @@ export function DevConsole({ open, onClose }: { open: boolean; onClose: () => vo
     LuBuStats.normalCooldown = defaults.lubu.normalCooldown;
     LuBuStats.slashRest = defaults.lubu.slashRest;
     LuBuStats.skill2FullScreen = defaults.lubu.skill2FullScreen;
+    DiaoChanStats.hp = defaults.diaochan.hp;
+    DiaoChanStats.normalDamage = defaults.diaochan.normalDamage;
+    DiaoChanStats.fanDamage = defaults.diaochan.fanDamage;
+    DiaoChanStats.moonlightDamage = defaults.diaochan.moonlightDamage;
+    DiaoChanStats.fanCooldown = defaults.diaochan.fanCooldown;
+    DiaoChanStats.moonlightCooldown = defaults.diaochan.moonlightCooldown;
+    DiaoChanStats.restTime = defaults.diaochan.restTime;
+    DiaoChanStats.charmDuration = defaults.diaochan.charmDuration;
+    DiaoChanStats.charmEnabled = defaults.diaochan.charmEnabled;
+    DiaoChanStats.moonlightFullScreen = defaults.diaochan.moonlightFullScreen;
     setVersion(version + 1);
   };
 
@@ -356,6 +378,89 @@ export function DevConsole({ open, onClose }: { open: boolean; onClose: () => vo
                 value={LuBuStats.skill2FullScreen}
                 onChange={(value) => {
                   LuBuStats.skill2FullScreen = value;
+                  setVersion(version + 1);
+                }}
+              />
+            </fieldset>
+            <fieldset>
+              <legend>貂蝉</legend>
+              <NumberField
+                label="血量"
+                value={DiaoChanStats.hp}
+                onChange={(value) => {
+                  DiaoChanStats.hp = value;
+                  setVersion(version + 1);
+                }}
+              />
+              <NumberField
+                label="普攻"
+                value={DiaoChanStats.normalDamage}
+                onChange={(value) => {
+                  DiaoChanStats.normalDamage = value;
+                  setVersion(version + 1);
+                }}
+              />
+              <NumberField
+                label="魅惑之舞"
+                value={DiaoChanStats.fanDamage}
+                onChange={(value) => {
+                  DiaoChanStats.fanDamage = value;
+                  setVersion(version + 1);
+                }}
+              />
+              <NumberField
+                label="闭月流光"
+                value={DiaoChanStats.moonlightDamage}
+                onChange={(value) => {
+                  DiaoChanStats.moonlightDamage = value;
+                  setVersion(version + 1);
+                }}
+              />
+              <NumberField
+                label="技能1CDms"
+                value={DiaoChanStats.fanCooldown}
+                onChange={(value) => {
+                  DiaoChanStats.fanCooldown = value;
+                  setVersion(version + 1);
+                }}
+              />
+              <NumberField
+                label="技能2CDms"
+                value={DiaoChanStats.moonlightCooldown}
+                onChange={(value) => {
+                  DiaoChanStats.moonlightCooldown = value;
+                  setVersion(version + 1);
+                }}
+              />
+              <NumberField
+                label="休整ms"
+                value={DiaoChanStats.restTime}
+                onChange={(value) => {
+                  DiaoChanStats.restTime = value;
+                  setVersion(version + 1);
+                }}
+              />
+              <NumberField
+                label="魅惑时长ms"
+                value={DiaoChanStats.charmDuration}
+                onChange={(value) => {
+                  DiaoChanStats.charmDuration = value;
+                  setVersion(version + 1);
+                }}
+              />
+              <BooleanField
+                label="魅惑开关"
+                value={DiaoChanStats.charmEnabled}
+                onChange={(value) => {
+                  DiaoChanStats.charmEnabled = value;
+                  setVersion(version + 1);
+                }}
+              />
+              <BooleanField
+                label="全屏溅射"
+                value={DiaoChanStats.moonlightFullScreen}
+                onChange={(value) => {
+                  DiaoChanStats.moonlightFullScreen = value;
                   setVersion(version + 1);
                 }}
               />

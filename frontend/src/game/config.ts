@@ -138,6 +138,22 @@ export const LuBuStats = {
   skill2FullScreen: true,
 };
 
+export const DiaoChanStats = {
+  hp: 800,
+  speed: 9,
+  normalDamage: 35,
+  fanDamage: 60,
+  moonlightDamage: 90,
+  fanCooldown: 10000,
+  moonlightCooldown: 20000,
+  restTime: 4000,
+  charmDuration: 2000,
+  moonlightCharge: 2500,
+  wanderAmplitude: 10,
+  charmEnabled: true,
+  moonlightFullScreen: true,
+};
+
 export const RefreshProbability = {
   soldier: 0.65,
   farm: 0.2,

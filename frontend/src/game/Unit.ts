@@ -163,6 +163,22 @@ export abstract class Unit extends Phaser.GameObjects.Text {
     this.scene.time.delayedCall(duration, () => marker.destroy());
   }
 
+  charm(duration: number) {
+    this.stunUntil = this.scene.time.now + duration;
+    const marker = this.scene.add
+      .text(this.x, this.y - 20, "魅", {
+        fontFamily: Config.fontFamily,
+        fontSize: "16px",
+        color: "#e879f9",
+        fontStyle: "bold",
+        stroke: "#111",
+        strokeThickness: 2,
+      })
+      .setOrigin(0.5)
+      .setDepth(100);
+    this.scene.time.delayedCall(duration, () => marker.destroy());
+  }
+
   private shakeOnHit() {
     const startX = this.x;
     this.scene.tweens.add({

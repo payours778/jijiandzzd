@@ -16,6 +16,7 @@ import { GeneralFragment } from "./units/GeneralFragment";
 import { Soldier } from "./units/Soldier";
 import { Zombie } from "./units/Zombie";
 import { LuBu } from "./units/LuBu";
+import { DiaoChan } from "./units/DiaoChan";
 import { playSlashDownSwing } from "./effects/playSlashDownSwing";
 
 const TEST_GENERALS = ["刘备", "赵云", "黄忠", "关羽", "张飞", "黄祖", "张苞", "关平", "马超"];
@@ -189,6 +190,7 @@ export class GamePlayScene extends Phaser.Scene {
       "尸",
       "障",
       "吕",
+      "貂",
       "刘", "备", "赵", "云", "黄", "忠", "关", "羽", "张", "飞",
       "祖", "苞", "平", "马", "超",
       ...TEST_GENERALS,
@@ -752,6 +754,12 @@ export class GamePlayScene extends Phaser.Scene {
       return;
     }
 
+    if (type === "貂") {
+      this.zombies.push(new DiaoChan(this, center.x, center.y, row, 1));
+      this.messageText.setText("已放置貂蝉");
+      return;
+    }
+
     if (type === "尸" || type === "障") {
       this.zombies.push(
         new Zombie(
@@ -879,7 +887,9 @@ export class GamePlayScene extends Phaser.Scene {
     const y = Config.boardY + row * Config.cellHeight + Config.cellHeight / 2;
     const strengthMultiplier = Math.pow(1.2, this.wave - 1);
     const zombie = isBossWave
-      ? new LuBu(this, Config.boardX - 16, y, row, strengthMultiplier)
+      ? this.wave % 10 === 0
+        ? new DiaoChan(this, Config.boardX - 16, y, row, strengthMultiplier)
+        : new LuBu(this, Config.boardX - 16, y, row, strengthMultiplier)
       : new Zombie(this, Config.boardX - 16, y, row, type, strengthMultiplier);
     this.zombies.push(zombie);
   }
@@ -1219,6 +1229,84 @@ export class GamePlayScene extends Phaser.Scene {
       hold: 900,
       repeat: 1,
       onComplete: () => warning.destroy(),
+    });
+  }
+
+  hasPlayerUnit() {
+    for (let row = 0; row < this.board.length; row += 1) {
+      for (let col = 0; col < Config.cols; col += 1) {
+        const unit = this.board[row][col];
+        if (unit && !unit.dead) return true;
+      }
+    }
+    return false;
+  }
+
+  diaoChanMoonlight(damage: number) {
+    for (let row = 0; row < this.board.length; row += 1) {
+      for (let col = 0; col < Config.cols; col += 1) {
+        const unit = this.board[row][col];
+        if (unit && !unit.dead) {
+          unit.takeDamage(damage);
+        }
+      }
+    }
+
+    for (let i = 0; i < 8; i += 1) {
+      const x = this.px(10 + i * 11);
+      const moon = this.add.text(x, this.py(30 + (i % 4) * 12), "月", {
+        fontFamily: Config.fontFamily,
+        fontSize: "26px",
+        color: "#e879f9",
+        fontStyle: "bold",
+        stroke: "#111",
+        strokeThickness: 3,
+      }).setOrigin(0.5).setDepth(90).setAlpha(0);
+
+      this.tweens.add({
+        targets: moon,
+        alpha: 1,
+        scale: 2,
+        duration: 600,
+        onComplete: () => moon.destroy(),
+      });
+    }
+  }
+
+  showDiaoChanFan(unit: Unit) {
+    const fan = this.add.text(unit.x, unit.y, "舞", {
+      fontFamily: Config.fontFamily,
+      fontSize: "36px",
+      color: "#f0abfc",
+      fontStyle: "bold",
+      stroke: "#111",
+      strokeThickness: 3,
+    }).setOrigin(0.5).setDepth(86).setScale(0.8);
+
+    this.tweens.add({
+      targets: fan,
+      scale: 1.8,
+      alpha: 0,
+      duration: 360,
+      onComplete: () => fan.destroy(),
+    });
+  }
+
+  showDiaoChanCharge(unit: Unit) {
+    const charge = this.add.text(unit.x, unit.y - 34, "蓄力", {
+      fontFamily: Config.fontFamily,
+      fontSize: "18px",
+      color: "#e879f9",
+      fontStyle: "bold",
+      stroke: "#111",
+      strokeThickness: 3,
+    }).setOrigin(0.5).setDepth(86);
+
+    this.tweens.add({
+      targets: charge,
+      alpha: 0,
+      duration: 2400,
+      onComplete: () => charge.destroy(),
     });
   }
 
