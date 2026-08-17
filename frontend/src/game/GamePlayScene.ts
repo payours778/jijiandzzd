@@ -15,6 +15,7 @@ import { General } from "./units/General";
 import { GeneralFragment } from "./units/GeneralFragment";
 import { Soldier } from "./units/Soldier";
 import { Zombie } from "./units/Zombie";
+import { playSlashDownSwing } from "./effects/playSlashDownSwing";
 
 const TEST_GENERALS = ["刘备", "赵云", "黄忠", "关羽", "张飞", "黄祖", "张苞", "关平", "马超"];
 const TEST_SOLDIERS = ["刀", "枪", "骑", "弓"];
@@ -861,26 +862,7 @@ export class GamePlayScene extends Phaser.Scene {
   }
 
   animateDaoSlash(target: Zombie) {
-    const startY = target.y - 38;
-    const endY = target.y + 38;
-
-    const slash = this.add
-      .image(target.x, startY, "slash-tiny")
-      .setOrigin(0.5)
-      .setDepth(82)
-      .setScale(4)
-      .setAlpha(0.95)
-      .setTint(0xffe0c0);
-
-    this.tweens.add({
-      targets: slash,
-      y: endY,
-      scale: 5.2,
-      angle: 18,
-      alpha: 0,
-      duration: 240,
-      onComplete: () => slash.destroy(),
-    });
+    playSlashDownSwing(target.x, target.y, this);
   }
 
   animateCavalrySlash(unit: Unit) {
