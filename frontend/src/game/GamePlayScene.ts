@@ -15,6 +15,7 @@ import { General } from "./units/General";
 import { GeneralFragment } from "./units/GeneralFragment";
 import { Soldier } from "./units/Soldier";
 import { Zombie } from "./units/Zombie";
+import { LuBu } from "./units/LuBu";
 import { playSlashDownSwing } from "./effects/playSlashDownSwing";
 
 const TEST_GENERALS = ["刘备", "赵云", "黄忠", "关羽", "张飞", "黄祖", "张苞", "关平", "马超"];
@@ -185,6 +186,7 @@ export class GamePlayScene extends Phaser.Scene {
       "农",
       "尸",
       "障",
+      "吕",
       "刘", "备", "赵", "云", "黄", "忠", "关", "羽", "张", "飞",
       "祖", "苞", "平", "马", "超",
       ...TEST_GENERALS,
@@ -290,7 +292,7 @@ export class GamePlayScene extends Phaser.Scene {
     for (let row = 0; row < this.board.length; row += 1) {
       for (let col = 0; col < Config.cols; col += 1) {
         const unit = this.board[row][col];
-        if (unit && !unit.dead) {
+        if (unit && !unit.dead && this.time.now >= unit.stunUntil) {
           unit.update(this, time, delta);
         }
       }
@@ -742,6 +744,12 @@ export class GamePlayScene extends Phaser.Scene {
   private placeTestUnit(type: string, row: number, col: number) {
     const center = this.getCellCenter(row, col);
 
+    if (type === "吕") {
+      this.zombies.push(new LuBu(this, center.x, center.y, row, 1));
+      this.messageText.setText("已放置吕布");
+      return;
+    }
+
     if (type === "尸" || type === "障") {
       this.zombies.push(
         new Zombie(
@@ -850,6 +858,9 @@ export class GamePlayScene extends Phaser.Scene {
         this.wave += 1;
         this.updateWaveText();
         this.messageText.setText(`进入第 ${this.wave} 波`);
+        if (this.wave % 5 === 0) {
+          this.showBossWarning();
+        }
       }
       this.scheduleNextZombie();
     });
@@ -857,17 +868,13 @@ export class GamePlayScene extends Phaser.Scene {
 
   private spawnZombie() {
     const row = Phaser.Math.Between(0, this.board.length - 1);
-    const type = this.wave % 5 === 0 ? "cone" : "normal";
+    const isBossWave = this.wave % 5 === 0;
+    const type = isBossWave ? "cone" : "normal";
     const y = Config.boardY + row * Config.cellHeight + Config.cellHeight / 2;
     const strengthMultiplier = Math.pow(1.2, this.wave - 1);
-    const zombie = new Zombie(
-      this,
-      Config.boardX - 16,
-      y,
-      row,
-      type,
-      strengthMultiplier,
-    );
+    const zombie = isBossWave
+      ? new LuBu(this, Config.boardX - 16, y, row, strengthMultiplier)
+      : new Zombie(this, Config.boardX - 16, y, row, type, strengthMultiplier);
     this.zombies.push(zombie);
   }
 
@@ -1068,6 +1075,130 @@ export class GamePlayScene extends Phaser.Scene {
           arrow.destroy();
         }
       },
+    });
+  }
+
+  shootUnitArrow(fromX: number, fromY: number, target: Unit, damage: number) {
+    const arrow = this.arrowPool.shift() ?? this.add.graphics();
+    arrow.clear();
+    arrow.setPosition(fromX, fromY);
+    arrow.setVisible(true);
+    arrow.setDepth(80);
+    arrow.fillStyle(0xfbbf24, 1);
+    arrow.fillRect(-5, -1, 10, 2);
+    arrow.fillRect(3, -3, 3, 6);
+
+    this.tweens.add({
+      targets: arrow,
+      x: target.x,
+      y: target.y,
+      duration: 520,
+      onComplete: () => {
+        if (!target.dead) {
+          target.takeDamage(damage);
+        }
+        arrow.setVisible(false);
+        if (this.arrowPool.length < 12) {
+          this.arrowPool.push(arrow);
+        } else {
+          arrow.destroy();
+        }
+      },
+    });
+  }
+
+  getRightmostUnitInRow(row: number) {
+    for (let col = Config.cols - 1; col >= 0; col -= 1) {
+      const unit = this.board[row]?.[col];
+      if (unit && !unit.dead) {
+        return unit;
+      }
+    }
+    return null;
+  }
+
+  showLuBuStab(unit: Unit, target: Unit) {
+    const stab = this.add.text(target.x, target.y, "戳", {
+      fontFamily: Config.fontFamily,
+      fontSize: "30px",
+      color: "#fca5a5",
+      fontStyle: "bold",
+      stroke: "#111",
+      strokeThickness: 3,
+    }).setOrigin(0.5).setDepth(84);
+
+    this.tweens.add({
+      targets: stab,
+      scale: 1.6,
+      alpha: 0,
+      duration: 240,
+      onComplete: () => stab.destroy(),
+    });
+  }
+
+  showLuBuSlash(unit: Unit, col: number) {
+    const center = this.getCellCenter(unit.row, col);
+    const slash = this.add.text(center.x, center.y, "斩", {
+      fontFamily: Config.fontFamily,
+      fontSize: "46px",
+      color: "#ef4444",
+      fontStyle: "bold",
+      stroke: "#111",
+      strokeThickness: 4,
+    }).setOrigin(0.5).setDepth(84).setScale(1.4);
+
+    this.tweens.add({
+      targets: slash,
+      scale: 2.6,
+      angle: 12,
+      alpha: 0,
+      duration: 420,
+      onComplete: () => slash.destroy(),
+    });
+  }
+
+  showLuBuCharge(unit: Unit) {
+    const charge = this.add.text(unit.x, unit.y - 34, "充能", {
+      fontFamily: Config.fontFamily,
+      fontSize: "20px",
+      color: "#fbbf24",
+      fontStyle: "bold",
+      stroke: "#111",
+      strokeThickness: 3,
+    }).setOrigin(0.5).setDepth(84);
+
+    this.tweens.add({
+      targets: charge,
+      alpha: 0,
+      duration: 2900,
+      onComplete: () => charge.destroy(),
+    });
+  }
+
+  showBossWarning() {
+    const warning = this.add
+      .text(this.px(50), this.py(38), "BOSS 来临", {
+        fontFamily: Config.fontFamily,
+        fontSize: "58px",
+        color: "#ef4444",
+        fontStyle: "bold",
+        stroke: "#000",
+        strokeThickness: 6,
+      })
+      .setOrigin(0.5)
+      .setDepth(150)
+      .setAlpha(0)
+      .setScale(0.4);
+
+    this.tweens.add({
+      targets: warning,
+      alpha: 1,
+      scale: 1.1,
+      duration: 260,
+      yoyo: true,
+      hold: 900,
+      repeat: 1,
+      onComplete: () => warning.destroy(),
     });
   }
 

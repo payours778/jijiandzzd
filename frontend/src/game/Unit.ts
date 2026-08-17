@@ -8,6 +8,7 @@ export abstract class Unit extends Phaser.GameObjects.Text {
   maxHp: number;
   attackTimer = 0;
   dead = false;
+  stunUntil = 0;
   level = 1;
   baseText: string;
   protected healthBar?: Phaser.GameObjects.Rectangle;
@@ -144,6 +145,22 @@ export abstract class Unit extends Phaser.GameObjects.Text {
     }
 
     this.syncHealthBar();
+  }
+
+  stun(duration: number) {
+    this.stunUntil = this.scene.time.now + duration;
+    const marker = this.scene.add
+      .text(this.x, this.y - 20, "晕", {
+        fontFamily: Config.fontFamily,
+        fontSize: "16px",
+        color: "#fbbf24",
+        fontStyle: "bold",
+        stroke: "#111",
+        strokeThickness: 2,
+      })
+      .setOrigin(0.5)
+      .setDepth(100);
+    this.scene.time.delayedCall(duration, () => marker.destroy());
   }
 
   private shakeOnHit() {
