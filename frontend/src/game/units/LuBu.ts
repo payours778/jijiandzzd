@@ -43,8 +43,10 @@ export class LuBu extends Zombie {
     const col = scene.getColFromX(this.x);
 
     if (this.charging) {
-      const frontUnit = scene.getUnitAt(this.row, Math.min(Config.cols - 1, col + 1));
-      if (!frontUnit || frontUnit.dead) {
+      const hasTarget = LuBuStats.skill2FullScreen
+        ? !!scene.getRightmostUnit()
+        : !!scene.getRightmostUnitInRow(this.row);
+      if (!hasTarget) {
         this.charging = false;
         this.skillCooldown = 600;
         return;
