@@ -1858,3 +1858,256 @@ img { max-width: 100%; display: block; }
   border-top: 1px solid #2a2e35;
   border-bottom: 0;
 }
+
+/* 游戏开始界面 */
+.game-start-screen {
+  position: relative;
+  display: flex;
+  min-height: 100vh;
+  flex-direction: column;
+  background:
+    linear-gradient(180deg, rgba(20, 24, 34, 0.92), rgba(10, 12, 18, 0.98)),
+    repeating-linear-gradient(0deg, #1b1f29 0 2px, transparent 2px 6px);
+  color: #f3f4f6;
+  padding: 20px;
+}
+
+.game-start-back {
+  position: fixed;
+  top: 16px;
+  right: 16px;
+  z-index: 10;
+  border: 1px solid #3a3f48;
+  border-radius: 6px;
+  background: #15171b;
+  color: #f3f4f6;
+  padding: 8px 12px;
+  cursor: pointer;
+}
+
+.game-start-header {
+  display: grid;
+  grid-template-columns: 220px 1fr 220px;
+  align-items: center;
+  gap: 20px;
+  width: min(1080px, 100%);
+  margin: 20px auto 10px;
+}
+
+.game-start-user,
+.game-mode-card,
+.game-start-weapons,
+.game-start-leaderboard {
+  border: 1px solid #3a3f48;
+  border-radius: 10px;
+  background: rgba(26, 30, 40, 0.92);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+}
+
+.game-start-user {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+}
+
+.game-start-user img {
+  width: 52px;
+  height: 52px;
+  border: 2px solid #f59e0b;
+  border-radius: 8px;
+  background: #000;
+  image-rendering: pixelated;
+}
+
+.game-start-user div {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+}
+
+.game-start-user small {
+  margin-top: 4px;
+  overflow: hidden;
+  color: #9ca3af;
+  font-size: 11px;
+  text-overflow: ellipsis;
+}
+
+.game-start-title {
+  text-align: center;
+}
+
+.game-start-title h1 {
+  margin: 0;
+  font-size: 42px;
+  letter-spacing: 0;
+}
+
+.game-start-title p {
+  margin: 6px 0 0;
+  color: #9ca3af;
+}
+
+.game-start-avatar-picker {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.game-start-avatar-picker button {
+  width: 44px;
+  height: 44px;
+  border: 1px solid #3a3f48;
+  border-radius: 8px;
+  background: #111318;
+  padding: 3px;
+  cursor: pointer;
+}
+
+.game-start-avatar-picker button.is-active {
+  border-color: #f59e0b;
+  box-shadow: 0 0 0 2px rgba(245, 158, 11, 0.35);
+}
+
+.game-start-avatar-picker img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  image-rendering: pixelated;
+}
+
+.game-start-main {
+  display: grid;
+  grid-template-columns: 1fr 1.2fr 0.8fr;
+  gap: 16px;
+  width: min(1080px, 100%);
+  margin: 0 auto;
+}
+
+.game-start-modes {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.game-mode-card {
+  display: flex;
+  min-height: 120px;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 8px;
+  padding: 18px;
+  color: #f3f4f6;
+  text-align: left;
+  cursor: pointer;
+}
+
+.game-mode-card.is-active {
+  border-color: #f59e0b;
+  box-shadow: 0 0 0 2px rgba(245, 158, 11, 0.35);
+}
+
+.game-mode-card.is-disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.game-mode-card strong {
+  font-size: 22px;
+}
+
+.game-mode-card span {
+  color: #9ca3af;
+  font-size: 13px;
+}
+
+.game-start-weapons,
+.game-start-leaderboard {
+  padding: 14px;
+}
+
+.game-start-section-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.game-start-section-heading h2 {
+  margin: 0;
+  font-size: 18px;
+}
+
+.game-start-section-heading span {
+  color: #9ca3af;
+  font-size: 11px;
+}
+
+.weapon-list {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.weapon-item {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  padding: 8px;
+  border: 1px solid #2a2e35;
+  border-radius: 6px;
+  background: #1c1f25;
+  font-size: 12px;
+}
+
+.weapon-item span {
+  color: #9ca3af;
+}
+
+.weapon-item strong {
+  font-size: 13px;
+}
+
+.leaderboard-item {
+  display: grid;
+  grid-template-columns: 30px 1fr auto;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 0;
+  border-bottom: 1px solid #2a2e35;
+  font-size: 13px;
+}
+
+.leaderboard-item span {
+  color: #9ca3af;
+}
+
+.game-start-footer {
+  display: flex;
+  justify-content: center;
+  padding: 24px 0 8px;
+}
+
+.game-start-button {
+  min-width: 220px;
+  min-height: 48px;
+  font-size: 16px;
+}
+
+.game-start-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+@media (max-width: 900px) {
+  .game-start-header,
+  .game-start-main {
+    grid-template-columns: 1fr;
+  }
+
+  .game-start-avatar-picker {
+    justify-content: flex-start;
+  }
+}

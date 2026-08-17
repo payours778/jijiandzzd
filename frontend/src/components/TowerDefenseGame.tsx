@@ -4,6 +4,7 @@ import { Config } from "../game/config";
 import { FxTestScene } from "../game/FxTestScene";
 import { GamePlayScene } from "../game/GamePlayScene";
 import { DevConsole } from "./DevConsole";
+import { GameStartScreen } from "./GameStartScreen";
 
 export function TowerDefenseGame({
   mode = "game",
@@ -14,8 +15,13 @@ export function TowerDefenseGame({
 }) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [consoleOpen, setConsoleOpen] = useState(false);
+  const [started, setStarted] = useState(false);
 
   useEffect(() => {
+    if (mode === "game" && !started) {
+      return;
+    }
+
     const game = new Phaser.Game({
       type: Phaser.AUTO,
       parent: containerRef.current!,
@@ -32,7 +38,16 @@ export function TowerDefenseGame({
     return () => {
       game.destroy(true);
     };
-  }, [mode]);
+  }, [mode, started]);
+
+  if (mode === "game" && !started) {
+    return (
+      <GameStartScreen
+        onStart={() => setStarted(true)}
+        onBack={onBack}
+      />
+    );
+  }
 
   return (
     <div className="tower-defense-page">
