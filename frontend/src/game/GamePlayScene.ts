@@ -16,7 +16,11 @@ import { GeneralFragment } from "./units/GeneralFragment";
 import { Soldier } from "./units/Soldier";
 import { Zombie } from "./units/Zombie";
 
+const TEST_GENERALS = ["刘备", "赵云", "黄忠", "关羽", "张飞", "黄祖", "张苞", "关平", "马超"];
+const TEST_SOLDIERS = ["刀", "枪", "骑", "弓"];
+
 export class GamePlayScene extends Phaser.Scene {
+  testMode = false;
   private board: (Unit | null)[][] = [];
   private zombies: Zombie[] = [];
   private hand: CardType[] = [];
@@ -34,9 +38,11 @@ export class GamePlayScene extends Phaser.Scene {
   private selectedText!: Phaser.GameObjects.Text;
   private binBounds = { x: 856, y: 150, width: 90, height: 260 };
   private binText!: Phaser.GameObjects.Text;
+  private selectedTestType: string | null = null;
+  private testButtons: Phaser.GameObjects.Text[] = [];
 
-  constructor() {
-    super("GamePlayScene");
+  constructor(key = "GamePlayScene") {
+    super(key);
   }
 
   preload() {
@@ -54,6 +60,20 @@ export class GamePlayScene extends Phaser.Scene {
     this.handTexts = [];
     this.zombies = [];
     this.selectedCard = null;
+    this.board = Array.from(
+      { length: this.testMode ? 1 : Config.rows },
+      () => new Array<Unit | null>(Config.cols).fill(null),
+    );
+
+    if (this.testMode) {
+      this.createTestBoard();
+      this.createTestUI();
+      this.updateMantouText();
+      this.input.on("pointerdown", this.handlePointerDown, this);
+      this.input.on("drag", this.handleDrag, this);
+      this.input.on("dragend", this.handleDragEnd, this);
+      return;
+    }
 
     this.createBoard();
     this.createUI();
@@ -81,6 +101,132 @@ export class GamePlayScene extends Phaser.Scene {
     this.messageText.setText("点击抽卡获取文字卡牌，再点击格子放置");
   }
 
+  private createTestBoard() {
+    for (let col = 0; col < Config.cols; col += 1) {
+      const center = this.getCellCenter(0, col);
+      this.add.rectangle(center.x, center.y, Config.cellWidth - 4, Config.cellHeight - 4, 0x1c1f24, 0.92);
+      this.add.rectangle(center.x, center.y, Config.cellWidth - 4, Config.cellHeight - 4, undefined)
+        .setStrokeStyle(1, 0x3a3f48);
+    }
+  }
+
+  private createTestUI() {
+    this.mantouText = this.add.text(20, 18, "特效测试", {
+      fontFamily: Config.fontFamily,
+      fontSize: "22px",
+      color: "#facc15",
+      fontStyle: "bold",
+    });
+
+    this.messageText = this.add.text(220, 20, "点击下方文字，再点击棋盘放置", {
+      fontFamily: Config.fontFamily,
+      fontSize: "16px",
+      color: "#d1d5db",
+    });
+
+    this.selectedText = this.add.text(20, 48, "", {
+      fontFamily: Config.fontFamily,
+      fontSize: "18px",
+      color: "#a78bfa",
+    });
+
+    const labels = [
+      ...TEST_SOLDIERS,
+      "农",
+      "尸",
+      "障",
+      "刘", "备", "赵", "云", "黄", "忠", "关", "羽", "张", "飞",
+      "祖", "苞", "平", "马", "超",
+      ...TEST_GENERALS,
+    ];
+
+    const startX = 20;
+    const startY = 360;
+    const colWidth = 92;
+    const rowHeight = 44;
+
+    labels.forEach((label, index) => {
+      const button = this.add
+        .text(
+          startX + (index % 10) * colWidth,
+          startY + Math.floor(index / 10) * rowHeight,
+          label,
+          {
+            fontFamily: Config.fontFamily,
+            fontSize: "18px",
+            color: "#e5e7eb",
+            backgroundColor: "#252a33",
+            padding: { x: 8, y: 6 },
+          },
+        )
+        .setOrigin(0, 0)
+        .setInteractive({ useHandCursor: true });
+
+      button.on("pointerdown", () => {
+        this.selectedTestType = label;
+        this.selectedText.setText(`已选择：${label}`);
+      });
+      this.testButtons.push(button);
+    });
+  }
+
+  private handleTestPointerDown(pointer: Phaser.Input.Pointer) {
+    if (!this.selectedTestType) {
+      this.messageText.setText("请先点击下方文字选择单位");
+      return;
+    }
+
+    const row = Math.floor((pointer.y - Config.boardY) / Config.cellHeight);
+    const col = Math.floor((pointer.x - Config.boardX) / Config.cellWidth);
+
+    if (row < 0 || row >= this.board.length || col < 0 || col >= Config.cols) {
+      return;
+    }
+
+    const center = this.getCellCenter(row, col);
+
+    if (this.selectedTestType === "尸" || this.selectedTestType === "障") {
+      const zombie = new Zombie(
+        this,
+        center.x,
+        center.y,
+        row,
+        this.selectedTestType === "障" ? "cone" : "normal",
+      );
+      this.zombies.push(zombie);
+      this.messageText.setText(`已放置僵尸：${this.selectedTestType}`);
+      return;
+    }
+
+    if (this.board[row][col]) {
+      this.messageText.setText("该格子已有文字");
+      return;
+    }
+
+    let unit: Unit;
+
+    if (TEST_GENERALS.includes(this.selectedTestType)) {
+      unit = new General(
+        this,
+        center.x,
+        center.y,
+        row,
+        col,
+        this.selectedTestType as GeneralKey,
+      );
+    } else if (TEST_SOLDIERS.includes(this.selectedTestType)) {
+      unit = new Soldier(this, center.x, center.y, row, col, this.selectedTestType as CardType);
+    } else if (this.selectedTestType === "农") {
+      unit = new Farm(this, center.x, center.y, row, col);
+    } else {
+      unit = new GeneralFragment(this, center.x, center.y, row, col, this.selectedTestType);
+    }
+
+    this.board[row][col] = unit;
+    unit.setInteractive({ draggable: true });
+    this.messageText.setText(`已放置：${this.selectedTestType}`);
+  }
+
   override update(time: number, delta: number) {
     if (this.gameOver) {
       return;
@@ -88,7 +234,7 @@ export class GamePlayScene extends Phaser.Scene {
 
     this.checkSynthesis();
 
-    for (let row = 0; row < Config.rows; row += 1) {
+    for (let row = 0; row < this.board.length; row += 1) {
       for (let col = 0; col < Config.cols; col += 1) {
         const unit = this.board[row][col];
         if (unit && !unit.dead) {
@@ -110,7 +256,7 @@ export class GamePlayScene extends Phaser.Scene {
   }
 
   private createBoard() {
-    for (let row = 0; row < Config.rows; row += 1) {
+    for (let row = 0; row < this.board.length; row += 1) {
       this.board[row] = [];
       for (let col = 0; col < Config.cols; col += 1) {
         this.board[row][col] = null;
@@ -231,6 +377,11 @@ export class GamePlayScene extends Phaser.Scene {
       return;
     }
 
+    if (this.testMode) {
+      this.handleTestPointerDown(pointer);
+      return;
+    }
+
     const drawBounds = this.drawButton.getBounds();
     if (drawBounds.contains(pointer.x, pointer.y)) {
       this.drawCard();
@@ -240,7 +391,7 @@ export class GamePlayScene extends Phaser.Scene {
     const row = Math.floor((pointer.y - Config.boardY) / Config.cellHeight);
     const col = Math.floor((pointer.x - Config.boardX) / Config.cellWidth);
 
-    if (row < 0 || row >= Config.rows || col < 0 || col >= Config.cols) {
+    if (row < 0 || row >= this.board.length || col < 0 || col >= Config.cols) {
       return;
     }
 
@@ -349,7 +500,7 @@ export class GamePlayScene extends Phaser.Scene {
     const targetRow = Math.floor((pointer.y - Config.boardY) / Config.cellHeight);
     const targetCol = Math.floor((pointer.x - Config.boardX) / Config.cellWidth);
 
-    if (targetRow < 0 || targetRow >= Config.rows || targetCol < 0 || targetCol >= Config.cols) {
+    if (targetRow < 0 || targetRow >= this.board.length || targetCol < 0 || targetCol >= Config.cols) {
       this.snapUnitBack(unit);
       return;
     }
@@ -434,7 +585,7 @@ export class GamePlayScene extends Phaser.Scene {
   private produceFarms() {
     if (this.gameOver) return;
 
-    for (let row = 0; row < Config.rows; row += 1) {
+    for (let row = 0; row < this.board.length; row += 1) {
       for (let col = 0; col < Config.cols; col += 1) {
         const unit = this.board[row][col];
         if (unit instanceof Farm && !unit.dead && this.time.now >= unit.nextProduceAt) {
@@ -463,7 +614,7 @@ export class GamePlayScene extends Phaser.Scene {
   }
 
   private spawnZombie() {
-    const row = Phaser.Math.Between(0, Config.rows - 1);
+    const row = Phaser.Math.Between(0, this.board.length - 1);
     const type = this.wave % 5 === 0 ? "cone" : "normal";
     const y = Config.boardY + row * Config.cellHeight + Config.cellHeight / 2;
     const zombie = new Zombie(this, Config.boardX - 16, y, row, type);
@@ -471,7 +622,7 @@ export class GamePlayScene extends Phaser.Scene {
   }
 
   private checkSynthesis() {
-    for (let row = 0; row < Config.rows; row += 1) {
+    for (let row = 0; row < this.board.length; row += 1) {
       for (let col = 0; col < Config.cols - 1; col += 1) {
         const left = this.board[row][col];
         const right = this.board[row][col + 1];
@@ -507,7 +658,7 @@ export class GamePlayScene extends Phaser.Scene {
   }
 
   private cleanupBoard() {
-    for (let row = 0; row < Config.rows; row += 1) {
+    for (let row = 0; row < this.board.length; row += 1) {
       for (let col = 0; col < Config.cols; col += 1) {
         const unit = this.board[row][col];
         if (unit?.dead) {

@@ -18,7 +18,9 @@ export default function App() {
   const setUser = useAppStore((state) => state.setUser);
   const setAuthOpen = useAppStore((state) => state.setAuthOpen);
   const user = useAppStore((state) => state.user);
-  const [gameOpen, setGameOpen] = useState(() => window.location.hash === "#/game");
+  const [gameOpen, setGameOpen] = useState(
+    () => window.location.hash === "#/game" || window.location.hash === "#/fx-test",
+  );
 
   useEffect(() => {
     document.documentElement.dataset.theme = theme;
@@ -63,7 +65,7 @@ export default function App() {
 
   useEffect(() => {
     const handleHashChange = () => {
-      const open = window.location.hash === "#/game";
+      const open = window.location.hash === "#/game" || window.location.hash === "#/fx-test";
       setGameOpen(open);
       if (open && !useAppStore.getState().user) {
         setAuthOpen(true);
@@ -74,7 +76,16 @@ export default function App() {
   }, [setAuthOpen]);
 
   if (gameOpen && user) {
-    return <TowerDefenseGame onBack={() => { window.location.hash = ""; setGameOpen(false); }} />;
+    const mode = window.location.hash === "#/fx-test" ? "fx-test" : "game";
+    return (
+      <TowerDefenseGame
+        mode={mode}
+        onBack={() => {
+          window.location.hash = "";
+          setGameOpen(false);
+        }}
+      />
+    );
   }
 
   return (

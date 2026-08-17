@@ -1,9 +1,16 @@
 import { useEffect, useRef } from "react";
 import Phaser from "phaser";
 import { Config } from "../game/config";
+import { FxTestScene } from "../game/FxTestScene";
 import { GamePlayScene } from "../game/GamePlayScene";
 
-export function TowerDefenseGame({ onBack }: { onBack: () => void }) {
+export function TowerDefenseGame({
+  mode = "game",
+  onBack,
+}: {
+  mode?: "game" | "fx-test";
+  onBack: () => void;
+}) {
   const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -13,7 +20,7 @@ export function TowerDefenseGame({ onBack }: { onBack: () => void }) {
       width: Config.gameWidth,
       height: Config.gameHeight,
       backgroundColor: "#0f1114",
-      scene: [GamePlayScene],
+      scene: mode === "fx-test" ? [FxTestScene] : [GamePlayScene],
       scale: {
         mode: Phaser.Scale.FIT,
         autoCenter: Phaser.Scale.CENTER_BOTH,
@@ -23,7 +30,7 @@ export function TowerDefenseGame({ onBack }: { onBack: () => void }) {
     return () => {
       game.destroy(true);
     };
-  }, []);
+  }, [mode]);
 
   return (
     <div className="tower-defense-page">

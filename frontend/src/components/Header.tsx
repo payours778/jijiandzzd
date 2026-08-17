@@ -85,6 +85,7 @@ export function Header() {
             </button>
           ))}
           <a className="category-link" href="#/game">塔防</a>
+          <a className="category-link" href="#/fx-test">特效测试</a>
         </nav>
 
         <div className="header-actions">
