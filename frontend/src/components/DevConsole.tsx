@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Config, SoldierStats, ZombieStats } from "../game/config";
+import { Config, LuBuStats, SoldierStats, ZombieStats } from "../game/config";
 import { GeneralConfig } from "../game/units/General";
 
 type Tab = "global" | "soldier" | "general" | "zombie";
@@ -55,6 +55,14 @@ const defaults = {
     biteDamage: 8,
     biteInterval: 900,
   },
+  lubu: {
+    hp: 900,
+    normalDamage: 42,
+    slashDamage: 95,
+    arrowDamage: 180,
+    skillCooldown: 2600,
+    normalCooldown: 1100,
+  },
 };
 
 export function DevConsole({ open, onClose }: { open: boolean; onClose: () => void }) {
@@ -89,6 +97,12 @@ export function DevConsole({ open, onClose }: { open: boolean; onClose: () => vo
     ZombieStats.cone.speed = defaults.zombie.coneSpeed;
     ZombieStats.biteDamage = defaults.zombie.biteDamage;
     ZombieStats.biteInterval = defaults.zombie.biteInterval;
+    LuBuStats.hp = defaults.lubu.hp;
+    LuBuStats.normalDamage = defaults.lubu.normalDamage;
+    LuBuStats.slashDamage = defaults.lubu.slashDamage;
+    LuBuStats.arrowDamage = defaults.lubu.arrowDamage;
+    LuBuStats.skillCooldown = defaults.lubu.skillCooldown;
+    LuBuStats.normalCooldown = defaults.lubu.normalCooldown;
     setVersion(version + 1);
   };
 
@@ -258,6 +272,57 @@ export function DevConsole({ open, onClose }: { open: boolean; onClose: () => vo
                 value={ZombieStats.biteInterval}
                 onChange={(value) => {
                   ZombieStats.biteInterval = value;
+                  setVersion(version + 1);
+                }}
+              />
+            </fieldset>
+            <fieldset>
+              <legend>吕布</legend>
+              <NumberField
+                label="血量"
+                value={LuBuStats.hp}
+                onChange={(value) => {
+                  LuBuStats.hp = value;
+                  setVersion(version + 1);
+                }}
+              />
+              <NumberField
+                label="普攻"
+                value={LuBuStats.normalDamage}
+                onChange={(value) => {
+                  LuBuStats.normalDamage = value;
+                  setVersion(version + 1);
+                }}
+              />
+              <NumberField
+                label="斩击"
+                value={LuBuStats.slashDamage}
+                onChange={(value) => {
+                  LuBuStats.slashDamage = value;
+                  setVersion(version + 1);
+                }}
+              />
+              <NumberField
+                label="箭矢"
+                value={LuBuStats.arrowDamage}
+                onChange={(value) => {
+                  LuBuStats.arrowDamage = value;
+                  setVersion(version + 1);
+                }}
+              />
+              <NumberField
+                label="技能CDms"
+                value={LuBuStats.skillCooldown}
+                onChange={(value) => {
+                  LuBuStats.skillCooldown = value;
+                  setVersion(version + 1);
+                }}
+              />
+              <NumberField
+                label="普攻CDms"
+                value={LuBuStats.normalCooldown}
+                onChange={(value) => {
+                  LuBuStats.normalCooldown = value;
                   setVersion(version + 1);
                 }}
               />

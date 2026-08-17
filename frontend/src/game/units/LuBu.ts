@@ -1,5 +1,6 @@
 import { Unit } from "../Unit";
 import { Zombie } from "./Zombie";
+import { Config, LuBuStats } from "../config";
 import type { GamePlayScene } from "../GamePlayScene";
 
 export class LuBu extends Zombie {
@@ -19,11 +20,11 @@ export class LuBu extends Zombie {
   ) {
     super(scene, x, y, row, "normal", strengthMultiplier);
     this.setText("吕");
-    this.setFontSize(34);
-    this.maxHp = 900 * strengthMultiplier;
+    this.setFontSize(30);
+    this.setOrigin(0.5);
+    this.maxHp = LuBuStats.hp * strengthMultiplier;
     this.hp = this.maxHp;
-    this.speed = 13;
-    this.attachHealthBar(40, 0xef4444);
+    this.speed = LuBuStats.speed;
   }
 
   override update(scene: GamePlayScene, _time: number, delta: number) {
@@ -40,7 +41,7 @@ export class LuBu extends Zombie {
       if (this.chargeRemaining <= 0) {
         this.firePrecisionArrow(scene);
         this.charging = false;
-        this.skillCooldown = 3600;
+        this.skillCooldown = LuBuStats.skillCooldown;
       }
       return;
     }
@@ -65,7 +66,7 @@ export class LuBu extends Zombie {
 
     // 吕布采用短促突进的独特行走方式，避免一路冲到底。
     this.moveAccumulator += delta;
-    if (this.moveAccumulator >= 1100) {
+    if (this.moveAccumulator >= LuBuStats.moveInterval) {
       this.moveAccumulator = 0;
       this.x += this.speed * 0.7;
       this.setX(this.x);
@@ -77,14 +78,14 @@ export class LuBu extends Zombie {
       return;
     }
 
-    const damage = 42 * this.strengthMultiplier;
+    const damage = LuBuStats.normalDamage * this.strengthMultiplier;
     unit.takeDamage(damage);
     scene.showLuBuStab(this, unit);
-    this.normalCooldown = 1100;
+    this.normalCooldown = LuBuStats.normalCooldown;
   }
 
   private skillSlash(scene: GamePlayScene, unit: Unit) {
-    const damage = 95 * this.strengthMultiplier;
+    const damage = LuBuStats.slashDamage * this.strengthMultiplier;
     const col = unit.col;
 
     for (let row = Math.max(0, this.row - 1); row <= Math.min(Config.rows - 1, this.row + 1); row += 1) {
@@ -97,7 +98,7 @@ export class LuBu extends Zombie {
 
     scene.showLuBuSlash(this, col);
     this.skillPhase += 1;
-    this.skillCooldown = 5200;
+    this.skillCooldown = LuBuStats.skillCooldown;
   }
 
   private skillCharge(scene: GamePlayScene) {
@@ -110,10 +111,8 @@ export class LuBu extends Zombie {
   private firePrecisionArrow(scene: GamePlayScene) {
     const target = scene.getRightmostUnitInRow(this.row);
     if (target) {
-      const damage = 180 * this.strengthMultiplier;
+      const damage = LuBuStats.arrowDamage * this.strengthMultiplier;
       scene.shootUnitArrow(this.x, this.y, target, damage);
     }
   }
 }
-
-import { Config } from "../config";

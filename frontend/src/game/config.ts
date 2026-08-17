@@ -125,6 +125,17 @@ export const ZombieStats = {
   biteInterval: 900,
 };
 
+export const LuBuStats = {
+  hp: 900,
+  speed: 13,
+  normalDamage: 42,
+  slashDamage: 95,
+  arrowDamage: 180,
+  normalCooldown: 1100,
+  skillCooldown: 2600,
+  moveInterval: 1100,
+};
+
 export const RefreshProbability = {
   soldier: 0.65,
   farm: 0.2,
