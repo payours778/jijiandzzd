@@ -40,6 +40,7 @@ export function GameStartScreen({
   const [avatar, setAvatar] = useState(
     () => localStorage.getItem("mini-playbox-avatar") || avatars[0],
   );
+  const [avatarPickerOpen, setAvatarPickerOpen] = useState(false);
 
   const selectAvatar = (path: string) => {
     setAvatar(path);
@@ -54,7 +55,12 @@ export function GameStartScreen({
 
       <header className="game-start-header">
         <div className="game-start-user">
-          <img src={avatar} alt="用户头像" />
+          <img
+            className="game-start-user-avatar"
+            src={avatar}
+            alt="用户头像"
+            onClick={() => setAvatarPickerOpen(true)}
+          />
           <div>
             <strong>{user?.displayName || "游客"}</strong>
             <small>ID: {(user?.id || "local").slice(0, 8)}</small>
@@ -63,18 +69,6 @@ export function GameStartScreen({
         <div className="game-start-title">
           <h1>阿斗大战僵尸</h1>
           <p>选择模式开始你的守卫</p>
-        </div>
-        <div className="game-start-avatar-picker">
-          {avatars.map((path) => (
-            <button
-              className={avatar === path ? "is-active" : ""}
-              type="button"
-              key={path}
-              onClick={() => selectAvatar(path)}
-            >
-              <img src={path} alt="头像选项" />
-            </button>
-          ))}
         </div>
       </header>
 
@@ -138,6 +132,35 @@ export function GameStartScreen({
           开始游戏
         </button>
       </footer>
+
+      {avatarPickerOpen && (
+        <div className="avatar-picker-modal">
+          <div className="avatar-picker-backdrop" onClick={() => setAvatarPickerOpen(false)} />
+          <div className="avatar-picker-card" role="dialog" aria-modal="true">
+            <h2>选择头像</h2>
+            <img className="avatar-picker-preview" src={avatar} alt="当前头像" />
+            <div className="avatar-picker-options">
+              {avatars.map((path) => (
+                <button
+                  className={avatar === path ? "is-active" : ""}
+                  type="button"
+                  key={path}
+                  onClick={() => selectAvatar(path)}
+                >
+                  <img src={path} alt="头像选项" />
+                </button>
+              ))}
+            </div>
+            <button
+              className="button button-primary"
+              type="button"
+              onClick={() => setAvatarPickerOpen(false)}
+            >
+              完成
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
