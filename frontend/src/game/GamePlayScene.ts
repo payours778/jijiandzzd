@@ -221,6 +221,8 @@ export class GamePlayScene extends Phaser.Scene {
       );
       this.zombies.push(zombie);
       this.messageText.setText(`已放置僵尸：${this.selectedTestType}`);
+      this.selectedTestType = null;
+      this.selectedText.setText("");
       return;
     }
 
@@ -251,6 +253,8 @@ export class GamePlayScene extends Phaser.Scene {
     this.board[row][col] = unit;
     unit.setInteractive({ draggable: true });
     this.messageText.setText(`已放置：${this.selectedTestType}`);
+    this.selectedTestType = null;
+    this.selectedText.setText("");
   }
 
   override update(time: number, delta: number) {
@@ -485,9 +489,14 @@ export class GamePlayScene extends Phaser.Scene {
   private placeCard(card: CardType, row: number, col: number) {
     const center = this.getCellCenter(row, col);
     const existing = this.board[row][col];
+    const incomingLevel = 1;
 
     if (existing) {
-      if (existing.baseText === card && existing.level < Config.maxLevel) {
+      if (
+        existing.baseText === card &&
+        existing.level === incomingLevel &&
+        existing.level < Config.maxLevel
+      ) {
         existing.setLevel(existing.level + 1);
         if (existing instanceof Farm) {
           existing.nextProduceAt = this.time.now + existing.getProduceInterval();
