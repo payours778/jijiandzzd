@@ -1,8 +1,8 @@
 import { useEffect, useRef, useState } from "react";
 import Phaser from "phaser";
-import { Config } from "../game/config";
-import { FxTestScene } from "../game/FxTestScene";
-import { GamePlayScene } from "../game/GamePlayScene";
+import { Config } from "../config";
+import { FxTestScene } from "../FxTestScene";
+import { GamePlayScene } from "../GamePlayScene";
 import { DevConsole } from "./DevConsole";
 import { GameStartScreen } from "./GameStartScreen";
 

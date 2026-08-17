@@ -1,5 +1,6 @@
-import { useState } from "react";
-import { useAppStore } from "../store/useAppStore";
+import { useMemo, useState } from "react";
+import { useAppStore } from "../../../store/useAppStore";
+import { listWeapons } from "../weapons";
 
 const avatars = [
   "/avatars/avatar-01.png",
@@ -16,18 +17,6 @@ const leaderboard = [
   { name: "刘备", score: 555 },
 ];
 
-const weapons: Record<string, string> = {
-  刘备: "仁德剑",
-  赵云: "龙胆亮银枪",
-  黄忠: "烈弓",
-  关羽: "青龙偃月刀",
-  张飞: "蛇矛",
-  黄祖: "毒弓",
-  张苞: "铁枪",
-  关平: "大刀",
-  马超: "虎头枪",
-};
-
 export function GameStartScreen({
   onStart,
   onBack,
@@ -41,6 +30,15 @@ export function GameStartScreen({
     () => localStorage.getItem("mini-playbox-avatar") || avatars[0],
   );
   const [avatarPickerOpen, setAvatarPickerOpen] = useState(false);
+
+  /** 武器列表：从独立 weapons 模块动态读取，保留按 defaultHolder 排序 */
+  const weapons = useMemo(
+    () =>
+      listWeapons()
+        .filter((w) => w.defaultHolder)
+        .sort((a, b) => a.defaultHolder!.localeCompare(b.defaultHolder!, "zh-Hans-CN")),
+    [],
+  );
 
   const selectAvatar = (path: string) => {
     setAvatar(path);
@@ -98,10 +96,15 @@ export function GameStartScreen({
             <span>开发中</span>
           </div>
           <div className="weapon-list">
-            {Object.entries(weapons).map(([name, weapon]) => (
-              <div className="weapon-item" key={name}>
-                <span>{name}</span>
-                <strong>{weapon}</strong>
+            {weapons.map((weapon) => (
+              <div
+                className="weapon-item"
+                key={weapon.id}
+                data-rarity={weapon.rarity}
+                data-status={weapon.status}
+              >
+                <span>{weapon.defaultHolder}</span>
+                <strong title={weapon.description}>{weapon.name}</strong>
               </div>
             ))}
           </div>

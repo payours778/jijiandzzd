@@ -1,6 +1,6 @@
 import { useState } from "react";
-import { Config, LuBuStats, SoldierStats, ZombieStats } from "../game/config";
-import { GeneralConfig } from "../game/units/General";
+import { Config, LuBuStats, SoldierStats, ZombieStats } from "../config";
+import { GeneralConfig } from "../units/General";
 
 type Tab = "global" | "soldier" | "general" | "zombie";
 
