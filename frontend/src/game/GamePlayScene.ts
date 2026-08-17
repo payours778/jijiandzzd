@@ -115,6 +115,16 @@ export class GamePlayScene extends Phaser.Scene {
   }
 
   private createTestBoard() {
+    this.drawRoundedPanel(
+      Config.boardX - 12,
+      Config.boardY - 12,
+      Config.cols * Config.cellWidth + 24,
+      this.board.length * Config.cellHeight + 24,
+      0x15181d,
+      0.96,
+      0x3a3f48,
+    );
+
     for (let col = 0; col < Config.cols; col += 1) {
       const center = this.getCellCenter(0, col);
       this.add.rectangle(center.x, center.y, Config.cellWidth - 4, Config.cellHeight - 4, 0x1c1f24, 0.92);
@@ -161,20 +171,21 @@ export class GamePlayScene extends Phaser.Scene {
     const rowHeight = 42;
 
     labels.forEach((label, index) => {
+      const buttonX = startX + (index % 10) * colWidth;
+      const buttonY = startY + Math.floor(index / 10) * rowHeight;
+      this.drawRoundedPanel(buttonX, buttonY, 86, 34, 0x252a33, 0.9, 0x3a3f48);
       const button = this.add
         .text(
-          startX + (index % 10) * colWidth,
-          startY + Math.floor(index / 10) * rowHeight,
+          buttonX + 43,
+          buttonY + 17,
           label,
           {
             fontFamily: Config.fontFamily,
             fontSize: "18px",
             color: "#e5e7eb",
-            backgroundColor: "#252a33",
-            padding: { x: 8, y: 6 },
           },
         )
-        .setOrigin(0, 0)
+        .setOrigin(0.5)
         .setInteractive({ useHandCursor: true });
 
       button.on("pointerdown", () => {
@@ -271,6 +282,16 @@ export class GamePlayScene extends Phaser.Scene {
   }
 
   private createBoard() {
+    this.drawRoundedPanel(
+      Config.boardX - 12,
+      Config.boardY - 12,
+      Config.cols * Config.cellWidth + 24,
+      this.board.length * Config.cellHeight + 24,
+      0x15181d,
+      0.96,
+      0x3a3f48,
+    );
+
     for (let row = 0; row < this.board.length; row += 1) {
       this.board[row] = [];
       for (let col = 0; col < Config.cols; col += 1) {
@@ -302,13 +323,13 @@ export class GamePlayScene extends Phaser.Scene {
       color: "#a78bfa",
     });
 
+    this.drawRoundedPanel(790, 582, 140, 44, 0xfbbf24, 0.95, 0xb45309);
     this.drawButton = this.add
       .text(Config.gameWidth - 30, Config.gameHeight - 36, "", {
         fontFamily: Config.fontFamily,
         fontSize: "20px",
         color: "#111",
-        backgroundColor: "#fbbf24",
-        padding: { x: 14, y: 8 },
+        fontStyle: "bold",
       })
       .setOrigin(1, 0.5)
       .setInteractive({ useHandCursor: true });
@@ -322,9 +343,7 @@ export class GamePlayScene extends Phaser.Scene {
         color: "#6b7280",
       });
 
-    this.add
-      .rectangle(Config.gameWidth / 2, Config.gameHeight - 70, Config.gameWidth, 64, 0x111318, 0.82)
-      .setOrigin(0.5);
+    this.drawRoundedPanel(0, Config.gameHeight - 102, Config.gameWidth, 80, 0x111318, 0.92, 0x3a3f48);
 
     this.updateMantouText();
     this.updateDrawButton();
@@ -335,16 +354,15 @@ export class GamePlayScene extends Phaser.Scene {
   }
 
   private createRecycleBin() {
-    this.add
-      .rectangle(
-        this.binBounds.x + this.binBounds.width / 2,
-        this.binBounds.y + this.binBounds.height / 2,
-        this.binBounds.width,
-        this.binBounds.height,
-        0x1a1d24,
-        0.9,
-      )
-      .setStrokeStyle(2, 0x6b7280);
+    this.drawRoundedPanel(
+      this.binBounds.x,
+      this.binBounds.y,
+      this.binBounds.width,
+      this.binBounds.height,
+      0x1a1d24,
+      0.92,
+      0x6b7280,
+    );
 
     this.binText = this.add
       .text(
@@ -359,6 +377,22 @@ export class GamePlayScene extends Phaser.Scene {
         },
       )
       .setOrigin(0.5);
+  }
+
+  private drawRoundedPanel(
+    x: number,
+    y: number,
+    width: number,
+    height: number,
+    fill: number,
+    alpha: number,
+    stroke: number,
+  ) {
+    const graphics = this.add.graphics();
+    graphics.fillStyle(fill, alpha);
+    graphics.fillRoundedRect(x, y, width, height, 8);
+    graphics.lineStyle(1, stroke, 0.7);
+    graphics.strokeRoundedRect(x, y, width, height, 8);
   }
 
   private renderHand() {
