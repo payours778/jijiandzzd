@@ -3,7 +3,7 @@ import { Config, DiaoChanStats, LuBuStats, SoldierStats, ZombieStats } from "../
 import { GeneralConfig } from "../game/units/General";
 import { saveDevConfig } from "../game/devConfig";
 
-type Tab = "global" | "soldier" | "general" | "zombie";
+type Tab = "global" | "soldier" | "general" | "zombie" | "boss";
 
 const globalFields = [
   ["startingMantou", "初始馒头"],
@@ -156,14 +156,14 @@ export function DevConsole({ open, onClose }: { open: boolean; onClose: () => vo
         <button type="button" onClick={onClose}>关闭</button>
       </div>
       <div className="dev-console-tabs">
-        {(["global", "soldier", "general", "zombie"] as Tab[]).map((item) => (
+        {(["global", "soldier", "general", "zombie", "boss"] as Tab[]).map((item) => (
           <button
             className={tab === item ? "is-active" : ""}
             type="button"
             key={item}
             onClick={() => setTab(item)}
           >
-            {{ global: "全局", soldier: "士兵", general: "武将", zombie: "僵尸" }[item]}
+            {{ global: "全局", soldier: "士兵", general: "武将", zombie: "僵尸", boss: "BOSS" }[item]}
           </button>
         ))}
       </div>
@@ -260,6 +260,37 @@ export function DevConsole({ open, onClose }: { open: boolean; onClose: () => vo
           </div>
         )}
 
+        {tab === "boss" && (
+          <div className="dev-field-grid">
+            <fieldset>
+              <legend>吕布</legend>
+              <NumberField label="血量" value={LuBuStats.hp} onChange={(value) => { LuBuStats.hp = value; setVersion(version + 1); }} />
+              <NumberField label="移速" value={LuBuStats.speed} onChange={(value) => { LuBuStats.speed = value; setVersion(version + 1); }} />
+              <NumberField label="普攻" value={LuBuStats.normalDamage} onChange={(value) => { LuBuStats.normalDamage = value; setVersion(version + 1); }} />
+              <NumberField label="斩击" value={LuBuStats.slashDamage} onChange={(value) => { LuBuStats.slashDamage = value; setVersion(version + 1); }} />
+              <NumberField label="箭矢" value={LuBuStats.arrowDamage} onChange={(value) => { LuBuStats.arrowDamage = value; setVersion(version + 1); }} />
+              <NumberField label="技能CDms" value={LuBuStats.skillCooldown} onChange={(value) => { LuBuStats.skillCooldown = value; setVersion(version + 1); }} />
+              <NumberField label="普攻CDms" value={LuBuStats.normalCooldown} onChange={(value) => { LuBuStats.normalCooldown = value; setVersion(version + 1); }} />
+              <NumberField label="技能1休整ms" value={LuBuStats.slashRest} onChange={(value) => { LuBuStats.slashRest = value; setVersion(version + 1); }} />
+              <BooleanField label="技能2全屏" value={LuBuStats.skill2FullScreen} onChange={(value) => { LuBuStats.skill2FullScreen = value; setVersion(version + 1); }} />
+            </fieldset>
+            <fieldset>
+              <legend>貂蝉</legend>
+              <NumberField label="血量" value={DiaoChanStats.hp} onChange={(value) => { DiaoChanStats.hp = value; setVersion(version + 1); }} />
+              <NumberField label="移速" value={DiaoChanStats.speed} onChange={(value) => { DiaoChanStats.speed = value; setVersion(version + 1); }} />
+              <NumberField label="普攻" value={DiaoChanStats.normalDamage} onChange={(value) => { DiaoChanStats.normalDamage = value; setVersion(version + 1); }} />
+              <NumberField label="魅惑之舞" value={DiaoChanStats.fanDamage} onChange={(value) => { DiaoChanStats.fanDamage = value; setVersion(version + 1); }} />
+              <NumberField label="闭月流光" value={DiaoChanStats.moonlightDamage} onChange={(value) => { DiaoChanStats.moonlightDamage = value; setVersion(version + 1); }} />
+              <NumberField label="技能1CDms" value={DiaoChanStats.fanCooldown} onChange={(value) => { DiaoChanStats.fanCooldown = value; setVersion(version + 1); }} />
+              <NumberField label="技能2CDms" value={DiaoChanStats.moonlightCooldown} onChange={(value) => { DiaoChanStats.moonlightCooldown = value; setVersion(version + 1); }} />
+              <NumberField label="休整ms" value={DiaoChanStats.restTime} onChange={(value) => { DiaoChanStats.restTime = value; setVersion(version + 1); }} />
+              <NumberField label="魅惑时长ms" value={DiaoChanStats.charmDuration} onChange={(value) => { DiaoChanStats.charmDuration = value; setVersion(version + 1); }} />
+              <BooleanField label="魅惑开关" value={DiaoChanStats.charmEnabled} onChange={(value) => { DiaoChanStats.charmEnabled = value; setVersion(version + 1); }} />
+              <BooleanField label="全屏溅射" value={DiaoChanStats.moonlightFullScreen} onChange={(value) => { DiaoChanStats.moonlightFullScreen = value; setVersion(version + 1); }} />
+            </fieldset>
+          </div>
+        )}
+
         {tab === "zombie" && (
           <div className="dev-field-grid">
             <fieldset>
@@ -315,172 +346,6 @@ export function DevConsole({ open, onClose }: { open: boolean; onClose: () => vo
                 value={ZombieStats.biteInterval}
                 onChange={(value) => {
                   ZombieStats.biteInterval = value;
-                  setVersion(version + 1);
-                }}
-              />
-            </fieldset>
-            <fieldset>
-              <legend>吕布</legend>
-              <NumberField
-                label="血量"
-                value={LuBuStats.hp}
-                onChange={(value) => {
-                  LuBuStats.hp = value;
-                  setVersion(version + 1);
-                }}
-              />
-              <NumberField
-                label="移速"
-                value={LuBuStats.speed}
-                onChange={(value) => {
-                  LuBuStats.speed = value;
-                  setVersion(version + 1);
-                }}
-              />
-              <NumberField
-                label="普攻"
-                value={LuBuStats.normalDamage}
-                onChange={(value) => {
-                  LuBuStats.normalDamage = value;
-                  setVersion(version + 1);
-                }}
-              />
-              <NumberField
-                label="斩击"
-                value={LuBuStats.slashDamage}
-                onChange={(value) => {
-                  LuBuStats.slashDamage = value;
-                  setVersion(version + 1);
-                }}
-              />
-              <NumberField
-                label="箭矢"
-                value={LuBuStats.arrowDamage}
-                onChange={(value) => {
-                  LuBuStats.arrowDamage = value;
-                  setVersion(version + 1);
-                }}
-              />
-              <NumberField
-                label="技能CDms"
-                value={LuBuStats.skillCooldown}
-                onChange={(value) => {
-                  LuBuStats.skillCooldown = value;
-                  setVersion(version + 1);
-                }}
-              />
-              <NumberField
-                label="普攻CDms"
-                value={LuBuStats.normalCooldown}
-                onChange={(value) => {
-                  LuBuStats.normalCooldown = value;
-                  setVersion(version + 1);
-                }}
-              />
-              <NumberField
-                label="技能1休整ms"
-                value={LuBuStats.slashRest}
-                onChange={(value) => {
-                  LuBuStats.slashRest = value;
-                  setVersion(version + 1);
-                }}
-              />
-              <BooleanField
-                label="技能2全屏"
-                value={LuBuStats.skill2FullScreen}
-                onChange={(value) => {
-                  LuBuStats.skill2FullScreen = value;
-                  setVersion(version + 1);
-                }}
-              />
-            </fieldset>
-            <fieldset>
-              <legend>貂蝉</legend>
-              <NumberField
-                label="血量"
-                value={DiaoChanStats.hp}
-                onChange={(value) => {
-                  DiaoChanStats.hp = value;
-                  setVersion(version + 1);
-                }}
-              />
-              <NumberField
-                label="移速"
-                value={DiaoChanStats.speed}
-                onChange={(value) => {
-                  DiaoChanStats.speed = value;
-                  setVersion(version + 1);
-                }}
-              />
-              <NumberField
-                label="普攻"
-                value={DiaoChanStats.normalDamage}
-                onChange={(value) => {
-                  DiaoChanStats.normalDamage = value;
-                  setVersion(version + 1);
-                }}
-              />
-              <NumberField
-                label="魅惑之舞"
-                value={DiaoChanStats.fanDamage}
-                onChange={(value) => {
-                  DiaoChanStats.fanDamage = value;
-                  setVersion(version + 1);
-                }}
-              />
-              <NumberField
-                label="闭月流光"
-                value={DiaoChanStats.moonlightDamage}
-                onChange={(value) => {
-                  DiaoChanStats.moonlightDamage = value;
-                  setVersion(version + 1);
-                }}
-              />
-              <NumberField
-                label="技能1CDms"
-                value={DiaoChanStats.fanCooldown}
-                onChange={(value) => {
-                  DiaoChanStats.fanCooldown = value;
-                  setVersion(version + 1);
-                }}
-              />
-              <NumberField
-                label="技能2CDms"
-                value={DiaoChanStats.moonlightCooldown}
-                onChange={(value) => {
-                  DiaoChanStats.moonlightCooldown = value;
-                  setVersion(version + 1);
-                }}
-              />
-              <NumberField
-                label="休整ms"
-                value={DiaoChanStats.restTime}
-                onChange={(value) => {
-                  DiaoChanStats.restTime = value;
-                  setVersion(version + 1);
-                }}
-              />
-              <NumberField
-                label="魅惑时长ms"
-                value={DiaoChanStats.charmDuration}
-                onChange={(value) => {
-                  DiaoChanStats.charmDuration = value;
-                  setVersion(version + 1);
-                }}
-              />
-              <BooleanField
-                label="魅惑开关"
-                value={DiaoChanStats.charmEnabled}
-                onChange={(value) => {
-                  DiaoChanStats.charmEnabled = value;
-                  setVersion(version + 1);
-                }}
-              />
-              <BooleanField
-                label="全屏溅射"
-                value={DiaoChanStats.moonlightFullScreen}
-                onChange={(value) => {
-                  DiaoChanStats.moonlightFullScreen = value;
                   setVersion(version + 1);
                 }}
               />
