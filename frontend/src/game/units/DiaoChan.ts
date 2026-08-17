@@ -85,7 +85,7 @@ export class DiaoChan extends Zombie {
   private walkWithSway(time: number, delta: number) {
     this.pauseTimer -= delta;
     if (this.pauseTimer <= 0) {
-      this.x += this.speed * 0.35;
+      this.x += DiaoChanStats.speed * 0.35;
       this.homeX = this.x;
       this.pauseTimer = 900;
     }

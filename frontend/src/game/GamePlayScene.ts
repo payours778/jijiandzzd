@@ -184,13 +184,31 @@ export class GamePlayScene extends Phaser.Scene {
 
     this.createRecycleBin();
 
+    const bossLabels = ["吕布", "貂蝉"];
+    bossLabels.forEach((label, index) => {
+      const buttonX = 20 + index * 100;
+      const buttonY = 380;
+      this.drawRoundedPanel(buttonX, buttonY, 92, 36, 0x3a1220, 0.9, 0xf43f5e);
+      const button = this.add
+        .text(buttonX + 46, buttonY + 18, label, {
+          fontFamily: Config.fontFamily,
+          fontSize: "18px",
+          color: "#fda4af",
+          fontStyle: "bold",
+        })
+        .setOrigin(0.5)
+        .setInteractive({ useHandCursor: true, draggable: true })
+        .setData("testType", label)
+        .setData("originX", buttonX + 46)
+        .setData("originY", buttonY + 18);
+      this.testButtons.push(button);
+    });
+
     const labels = [
       ...TEST_SOLDIERS,
       "农",
       "尸",
       "障",
-      "吕",
-      "貂",
       "刘", "备", "赵", "云", "黄", "忠", "关", "羽", "张", "飞",
       "祖", "苞", "平", "马", "超",
       ...TEST_GENERALS,
@@ -748,13 +766,13 @@ export class GamePlayScene extends Phaser.Scene {
   private placeTestUnit(type: string, row: number, col: number) {
     const center = this.getCellCenter(row, col);
 
-    if (type === "吕") {
+    if (type === "吕" || type === "吕布") {
       this.zombies.push(new LuBu(this, center.x, center.y, row, 1));
       this.messageText.setText("已放置吕布");
       return;
     }
 
-    if (type === "貂") {
+    if (type === "貂" || type === "貂蝉") {
       this.zombies.push(new DiaoChan(this, center.x, center.y, row, 1));
       this.messageText.setText("已放置貂蝉");
       return;

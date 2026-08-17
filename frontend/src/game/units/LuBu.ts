@@ -82,7 +82,7 @@ export class LuBu extends Zombie {
     this.moveAccumulator += delta;
     if (this.moveAccumulator >= LuBuStats.moveInterval) {
       this.moveAccumulator = 0;
-      this.x += this.speed * 0.7;
+      this.x += LuBuStats.speed * 0.7;
       this.setX(this.x);
     }
   }

@@ -58,6 +58,7 @@ const defaults = {
   },
   lubu: {
     hp: 900,
+    speed: 13,
     normalDamage: 42,
     slashDamage: 95,
     arrowDamage: 180,
@@ -68,6 +69,7 @@ const defaults = {
   },
   diaochan: {
     hp: 800,
+    speed: 9,
     normalDamage: 35,
     fanDamage: 60,
     moonlightDamage: 90,
@@ -125,6 +127,7 @@ export function DevConsole({ open, onClose }: { open: boolean; onClose: () => vo
     ZombieStats.biteDamage = defaults.zombie.biteDamage;
     ZombieStats.biteInterval = defaults.zombie.biteInterval;
     LuBuStats.hp = defaults.lubu.hp;
+    LuBuStats.speed = defaults.lubu.speed;
     LuBuStats.normalDamage = defaults.lubu.normalDamage;
     LuBuStats.slashDamage = defaults.lubu.slashDamage;
     LuBuStats.arrowDamage = defaults.lubu.arrowDamage;
@@ -133,6 +136,7 @@ export function DevConsole({ open, onClose }: { open: boolean; onClose: () => vo
     LuBuStats.slashRest = defaults.lubu.slashRest;
     LuBuStats.skill2FullScreen = defaults.lubu.skill2FullScreen;
     DiaoChanStats.hp = defaults.diaochan.hp;
+    DiaoChanStats.speed = defaults.diaochan.speed;
     DiaoChanStats.normalDamage = defaults.diaochan.normalDamage;
     DiaoChanStats.fanDamage = defaults.diaochan.fanDamage;
     DiaoChanStats.moonlightDamage = defaults.diaochan.moonlightDamage;
@@ -326,6 +330,14 @@ export function DevConsole({ open, onClose }: { open: boolean; onClose: () => vo
                 }}
               />
               <NumberField
+                label="移速"
+                value={LuBuStats.speed}
+                onChange={(value) => {
+                  LuBuStats.speed = value;
+                  setVersion(version + 1);
+                }}
+              />
+              <NumberField
                 label="普攻"
                 value={LuBuStats.normalDamage}
                 onChange={(value) => {
@@ -389,6 +401,14 @@ export function DevConsole({ open, onClose }: { open: boolean; onClose: () => vo
                 value={DiaoChanStats.hp}
                 onChange={(value) => {
                   DiaoChanStats.hp = value;
+                  setVersion(version + 1);
+                }}
+              />
+              <NumberField
+                label="移速"
+                value={DiaoChanStats.speed}
+                onChange={(value) => {
+                  DiaoChanStats.speed = value;
                   setVersion(version + 1);
                 }}
               />
