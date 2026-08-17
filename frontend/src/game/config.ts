@@ -19,7 +19,7 @@ export const Config = {
   zombieSpawnStep: 260,
   zombieSpawnMin: 1200,
   fontFamily: "'Microsoft YaHei', 'PingFang SC', sans-serif",
-} as const;
+};
 
 export type CardType =
   | "刀"
@@ -112,10 +112,17 @@ export const GeneralPieces: Record<string, [string, string]> = {
 };
 
 export const SoldierStats = {
-  刀: { hp: 120, damage: 30, cooldown: 700, color: "#d97706" },
-  枪: { hp: 130, damage: 15, cooldown: 700, color: "#2563eb" },
-  骑: { hp: 240, damage: 15, cooldown: 700, color: "#dc2626" },
-  弓: { hp: 100, damage: 10, cooldown: 1000, color: "#059669" },
+  刀: { hp: 120, damage: 30, cooldown: 700, range: 1, color: "#d97706" },
+  枪: { hp: 130, damage: 15, cooldown: 700, range: 3, color: "#2563eb" },
+  骑: { hp: 240, damage: 15, cooldown: 700, range: 1.5, color: "#dc2626" },
+  弓: { hp: 100, damage: 10, cooldown: 1000, range: 999, color: "#059669" },
+};
+
+export const ZombieStats = {
+  normal: { hp: 100, speed: 22 },
+  cone: { hp: 200, speed: 16 },
+  biteDamage: 8,
+  biteInterval: 900,
 };
 
 export const RefreshProbability = {

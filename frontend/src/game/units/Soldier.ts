@@ -35,7 +35,11 @@ export class Soldier extends Unit {
     const cooldownMultiplier = Math.max(0.2, 1 - (this.level - 1) * 0.2);
 
     if (this.soldierType === "刀") {
-      const target = scene.getFrontZombieInRange(this.row, this.col - 1, this.col - 1);
+      const target = scene.getFrontZombieInRange(
+        this.row,
+        this.col - stats.range,
+        this.col - 1,
+      );
       if (target) {
         target.takeDamage(stats.damage * damageMultiplier);
         scene.animateDaoSlash(target);
@@ -45,7 +49,11 @@ export class Soldier extends Unit {
     }
 
     if (this.soldierType === "枪") {
-      const targets = scene.getZombiesInRange(this.row, this.col - 3, this.col - 1);
+      const targets = scene.getZombiesInRange(
+        this.row,
+        this.col - stats.range,
+        this.col - 1,
+      );
       if (targets.length > 0) {
         targets.forEach((zombie) => zombie.takeDamage(stats.damage * damageMultiplier));
         scene.animateThrust(this, this.col - 3);
@@ -64,7 +72,7 @@ export class Soldier extends Unit {
     }
 
     if (this.soldierType === "骑") {
-      const targets = scene.getZombiesInCircle(this.row, this.col, 1.5);
+      const targets = scene.getZombiesInCircle(this.row, this.col, stats.range);
       if (targets.length > 0) {
         targets.forEach((zombie) => zombie.takeDamage(stats.damage * damageMultiplier));
         scene.animateCavalrySlash(this);

@@ -1,8 +1,9 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import Phaser from "phaser";
 import { Config } from "../game/config";
 import { FxTestScene } from "../game/FxTestScene";
 import { GamePlayScene } from "../game/GamePlayScene";
+import { DevConsole } from "./DevConsole";
 
 export function TowerDefenseGame({
   mode = "game",
@@ -12,6 +13,7 @@ export function TowerDefenseGame({
   onBack: () => void;
 }) {
   const containerRef = useRef<HTMLDivElement>(null);
+  const [consoleOpen, setConsoleOpen] = useState(false);
 
   useEffect(() => {
     const game = new Phaser.Game({
@@ -37,7 +39,15 @@ export function TowerDefenseGame({
       <button className="tower-defense-back" type="button" onClick={onBack}>
         返回网站
       </button>
+      <button
+        className="tower-defense-dev"
+        type="button"
+        onClick={() => setConsoleOpen(true)}
+      >
+        开发者控制台
+      </button>
       <div ref={containerRef} className="tower-defense-container" />
+      <DevConsole open={consoleOpen} onClose={() => setConsoleOpen(false)} />
     </div>
   );
 }

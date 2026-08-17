@@ -40,6 +40,12 @@ export class GamePlayScene extends Phaser.Scene {
   private binText!: Phaser.GameObjects.Text;
   private selectedTestType: string | null = null;
   private testButtons: Phaser.GameObjects.Text[] = [];
+  private devCommandHandler = (event: Event) => {
+    const command = (event as CustomEvent).detail?.command;
+    if (command === "restart") {
+      this.scene.restart();
+    }
+  };
 
   constructor(key = "GamePlayScene") {
     super(key);
@@ -73,6 +79,7 @@ export class GamePlayScene extends Phaser.Scene {
       this.input.on("pointerdown", this.handlePointerDown, this);
       this.input.on("drag", this.handleDrag, this);
       this.input.on("dragend", this.handleDragEnd, this);
+      window.addEventListener("mini-playbox-dev-command", this.devCommandHandler);
       return;
     }
 
@@ -83,6 +90,7 @@ export class GamePlayScene extends Phaser.Scene {
     this.input.on("pointerdown", this.handlePointerDown, this);
     this.input.on("drag", this.handleDrag, this);
     this.input.on("dragend", this.handleDragEnd, this);
+    window.addEventListener("mini-playbox-dev-command", this.devCommandHandler);
     this.input.keyboard?.on("keydown-R", () => this.scene.restart());
 
     this.time.addEvent({
@@ -100,6 +108,10 @@ export class GamePlayScene extends Phaser.Scene {
     this.renderHand();
     this.updateMantouText();
     this.messageText.setText("点击抽卡获取文字卡牌，再点击格子放置");
+  }
+
+  shutdown() {
+    window.removeEventListener("mini-playbox-dev-command", this.devCommandHandler);
   }
 
   private createTestBoard() {

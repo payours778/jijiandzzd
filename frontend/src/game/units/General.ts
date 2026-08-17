@@ -1,7 +1,7 @@
 import { Unit } from "../Unit";
 import type { GamePlayScene } from "../GamePlayScene";
 
-const GeneralConfig = {
+export const GeneralConfig = {
   刘备: { hp: 340, damage: 22, cooldown: 1800, color: "#f59e0b" },
   赵云: { hp: 360, damage: 16, cooldown: 420, color: "#38bdf8" },
   黄忠: { hp: 260, damage: 26, cooldown: 1800, color: "#fbbf24" },
@@ -11,7 +11,7 @@ const GeneralConfig = {
   张苞: { hp: 360, damage: 28, cooldown: 1400, color: "#22d3ee" },
   关平: { hp: 330, damage: 26, cooldown: 1300, color: "#fb7185" },
   马超: { hp: 320, damage: 30, cooldown: 1800, color: "#60a5fa" },
-} as const;
+};
 
 export class General extends Unit {
   generalName: keyof typeof GeneralConfig;

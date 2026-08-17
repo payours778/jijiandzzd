@@ -1,3 +1,4 @@
+import { ZombieStats } from "../config";
 import { Unit } from "../Unit";
 import type { GamePlayScene } from "../GamePlayScene";
 
@@ -13,10 +14,11 @@ export class Zombie extends Unit {
     row: number,
     zombieType: "normal" | "cone" = "normal",
   ) {
-    const hp = zombieType === "cone" ? 200 : 100;
+    const stats = ZombieStats[zombieType];
+    const hp = stats.hp;
     super(scene, x, y, zombieType === "cone" ? "障" : "尸", { color: "#65a30d" }, row, 0, hp);
     this.zombieType = zombieType;
-    this.speed = zombieType === "cone" ? 16 : 22;
+    this.speed = stats.speed;
     this.setFontSize(30);
     this.attachHealthBar(36);
   }
@@ -30,17 +32,18 @@ export class Zombie extends Unit {
     this.syncHealthBar();
     const col = scene.getColFromX(this.x);
     const unit = scene.getUnitAt(this.row, col);
+    const stats = ZombieStats[this.zombieType];
 
     if (unit && !unit.dead) {
       if (this.biteTimer <= 0) {
-        unit.takeDamage(8);
+        unit.takeDamage(ZombieStats.biteDamage);
         this.tiltToward(unit);
-        this.biteTimer = 900;
+        this.biteTimer = ZombieStats.biteInterval;
       }
       return;
     }
 
-    this.x += (this.speed * delta) / 1000;
+    this.x += (stats.speed * delta) / 1000;
     this.setX(this.x);
   }
 

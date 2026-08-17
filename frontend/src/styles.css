@@ -1732,3 +1732,121 @@ img { max-width: 100%; display: block; }
   border-color: #78a5f7;
   color: #78a5f7;
 }
+
+.tower-defense-dev {
+  position: fixed;
+  top: 16px;
+  right: 16px;
+  z-index: 10;
+  border: 1px solid #3a3f48;
+  border-radius: 6px;
+  background: #15171b;
+  color: #f3f4f6;
+  padding: 8px 12px;
+  cursor: pointer;
+}
+
+.tower-defense-dev:hover {
+  border-color: #78a5f7;
+  color: #78a5f7;
+}
+
+.dev-console {
+  position: fixed;
+  top: 60px;
+  right: 16px;
+  z-index: 200;
+  width: min(520px, calc(100vw - 32px));
+  max-height: calc(100vh - 90px);
+  overflow: auto;
+  border: 1px solid #3a3f48;
+  border-radius: 10px;
+  background: #111318;
+  color: #f3f4f6;
+  box-shadow: 0 18px 50px rgba(0, 0, 0, 0.5);
+}
+
+.dev-console-header,
+.dev-console-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 12px 14px;
+  border-bottom: 1px solid #2a2e35;
+}
+
+.dev-console-header button,
+.dev-console-footer button,
+.dev-console-tabs button {
+  border: 1px solid #3a3f48;
+  border-radius: 6px;
+  background: #1c1f25;
+  color: #f3f4f6;
+  padding: 6px 10px;
+  cursor: pointer;
+}
+
+.dev-console-header button:hover,
+.dev-console-footer button:hover,
+.dev-console-tabs button:hover,
+.dev-console-tabs button.is-active {
+  border-color: #78a5f7;
+  color: #78a5f7;
+}
+
+.dev-console-tabs {
+  display: flex;
+  gap: 6px;
+  padding: 10px 14px;
+  border-bottom: 1px solid #2a2e35;
+}
+
+.dev-console-body {
+  padding: 14px;
+}
+
+.dev-field-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.dev-field-grid fieldset {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 0;
+  padding: 10px;
+  border: 1px solid #2a2e35;
+  border-radius: 8px;
+}
+
+.dev-field-grid legend {
+  padding: 0 6px;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.dev-number-field {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: 12px;
+}
+
+.dev-number-field input {
+  width: 86px;
+  height: 30px;
+  border: 1px solid #3a3f48;
+  border-radius: 6px;
+  background: #1c1f25;
+  color: #f3f4f6;
+  padding: 0 8px;
+}
+
+.dev-console-footer {
+  border-top: 1px solid #2a2e35;
+  border-bottom: 0;
+}
