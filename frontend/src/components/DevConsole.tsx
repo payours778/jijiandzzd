@@ -78,6 +78,12 @@ export function DevConsole({ open, onClose }: { open: boolean; onClose: () => vo
     }
   }, [open, version]);
 
+  useEffect(() => {
+    const saveBeforeUnload = () => saveDevConfig();
+    window.addEventListener("beforeunload", saveBeforeUnload);
+    return () => window.removeEventListener("beforeunload", saveBeforeUnload);
+  }, []);
+
   if (!open) {
     return null;
   }

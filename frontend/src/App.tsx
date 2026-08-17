@@ -10,6 +10,7 @@ import { Sidebar } from "./components/Sidebar";
 import { Toast } from "./components/Toast";
 import { TowerDefenseGame } from "./components/TowerDefenseGame";
 import { useAppStore } from "./store/useAppStore";
+import { loadDevConfig } from "./game/devConfig";
 
 export default function App() {
   const theme = useAppStore((state) => state.theme);
@@ -25,6 +26,10 @@ export default function App() {
   useEffect(() => {
     document.documentElement.dataset.theme = theme;
   }, [theme]);
+
+  useEffect(() => {
+    loadDevConfig();
+  }, []);
 
   useEffect(() => {
     document.body.classList.toggle("modal-open", modalOpen);
