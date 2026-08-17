@@ -566,32 +566,39 @@ export class GamePlayScene extends Phaser.Scene {
 
     for (let i = 0; i < 8; i += 1) {
       const angle = (Math.PI * 2 * i) / 8;
-      const slash = this.add.image(
-        center.x + Math.cos(angle) * radius * 0.6,
-        center.y + Math.sin(angle) * radius * 0.6,
-        "slash-tiny",
-      )
+      const slash = this.add
+        .text(
+          center.x + Math.cos(angle) * radius * 0.6,
+          center.y + Math.sin(angle) * radius * 0.6,
+          "刀",
+          {
+            fontFamily: Config.fontFamily,
+            fontSize: "22px",
+            color: "#ef4444",
+            fontStyle: "bold",
+          },
+        )
         .setOrigin(0.5)
         .setDepth(80)
-        .setScale(1.8)
-        .setAngle((angle * 180) / Math.PI);
+        .setScale(0.4);
 
       this.tweens.add({
         targets: slash,
         x: center.x + Math.cos(angle) * radius,
         y: center.y + Math.sin(angle) * radius,
-        scale: 2.6,
+        scale: 1.3,
         alpha: 0,
         duration: 260,
         onComplete: () => slash.destroy(),
       });
     }
 
-    const sweep = this.add.image(center.x, center.y, "slash")
-      .setOrigin(0.5)
-      .setDepth(80)
-      .setScale(1.6)
-      .setAngle(-30);
+    const sweep = this.add.text(center.x, center.y, "斩", {
+      fontFamily: Config.fontFamily,
+      fontSize: "34px",
+      color: "#f87171",
+      fontStyle: "bold",
+    }).setOrigin(0.5).setDepth(80).setScale(0.6);
 
     this.tweens.add({
       targets: sweep,
