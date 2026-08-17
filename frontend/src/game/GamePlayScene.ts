@@ -3,6 +3,7 @@ import {
   Config,
   RefreshProbability,
   FragmentPool,
+  GeneralPieces,
   SoldierStats,
   findGeneral,
   type CardType,
@@ -31,6 +32,8 @@ export class GamePlayScene extends Phaser.Scene {
   private messageText!: Phaser.GameObjects.Text;
   private drawButton!: Phaser.GameObjects.Text;
   private selectedText!: Phaser.GameObjects.Text;
+  private binBounds = { x: 856, y: 150, width: 90, height: 260 };
+  private binText!: Phaser.GameObjects.Text;
 
   constructor() {
     super("GamePlayScene");
@@ -148,6 +151,31 @@ export class GamePlayScene extends Phaser.Scene {
       })
       .setOrigin(1, 0.5)
       .setInteractive({ useHandCursor: true });
+
+    this.add
+      .rectangle(
+        this.binBounds.x + this.binBounds.width / 2,
+        this.binBounds.y + this.binBounds.height / 2,
+        this.binBounds.width,
+        this.binBounds.height,
+        0x1a1d24,
+        0.9,
+      )
+      .setStrokeStyle(2, 0x6b7280);
+
+    this.binText = this.add
+      .text(
+        this.binBounds.x + this.binBounds.width / 2,
+        this.binBounds.y + this.binBounds.height / 2,
+        "回收站",
+        {
+          fontFamily: Config.fontFamily,
+          fontSize: "18px",
+          color: "#9ca3af",
+          fontStyle: "bold",
+        },
+      )
+      .setOrigin(0.5);
 
     this.add
       .text(24, Config.gameHeight - 40, "R：重新开局", {
@@ -312,6 +340,12 @@ export class GamePlayScene extends Phaser.Scene {
 
   private handleDragEnd(pointer: Phaser.Input.Pointer, gameObject: Phaser.GameObjects.GameObject) {
     const unit = gameObject as Unit;
+
+    if (this.isInBin(pointer.x, pointer.y)) {
+      this.recycleUnit(unit);
+      return;
+    }
+
     const targetRow = Math.floor((pointer.y - Config.boardY) / Config.cellHeight);
     const targetCol = Math.floor((pointer.x - Config.boardX) / Config.cellWidth);
 
@@ -362,6 +396,33 @@ export class GamePlayScene extends Phaser.Scene {
     unit.setPosition(center.x, center.y);
     unit.syncHealthBar();
     this.messageText.setText(`${unit.baseText} 已移动`);
+  }
+
+  private isInBin(x: number, y: number) {
+    return (
+      x >= this.binBounds.x &&
+      x <= this.binBounds.x + this.binBounds.width &&
+      y >= this.binBounds.y &&
+      y <= this.binBounds.y + this.binBounds.height
+    );
+  }
+
+  private recycleUnit(unit: Unit) {
+    this.board[unit.row][unit.col] = null;
+
+    if (unit.baseText in FragmentPool) {
+      this.fragmentPool[unit.baseText] += 1;
+    }
+
+    const pieces = GeneralPieces[unit.baseText];
+    if (pieces) {
+      this.fragmentPool[pieces[0]] += 1;
+      this.fragmentPool[pieces[1]] += 1;
+    }
+
+    unit.destroy();
+    this.cleanupBoard();
+    this.messageText.setText(`${unit.baseText} 已回收`);
   }
 
   private snapUnitBack(unit: Unit) {
@@ -695,6 +756,86 @@ export class GamePlayScene extends Phaser.Scene {
         onComplete: () => arrow.destroy(),
       });
     }
+  }
+
+  showHealRing(unit: Unit) {
+    this.spawnSymbol(unit.x - 34, unit.y, "仁", "#4ade80", 0.9);
+  }
+
+  showZhaoyunStab(unit: Unit) {
+    for (let i = 0; i < 3; i += 1) {
+      this.spawnSymbol(
+        unit.x - (i + 1) * 28,
+        unit.y + (i - 1) * 12,
+        "刺",
+        "#7dd3fc",
+        0.8,
+        260,
+      );
+    }
+  }
+
+  showHuangzhongBow(unit: Unit) {
+    this.spawnSymbol(unit.x - 24, unit.y, "弓", "#fbbf24", 0.9);
+  }
+
+  showGuanyuSlash(unit: Unit) {
+    this.spawnSymbol(unit.x - 48, unit.y, "斩", "#ef4444", 3.2, 420);
+    this.spawnSymbol(unit.x - 96, unit.y, "刀", "#f87171", 1.6, 320);
+  }
+
+  showZhangfeiShock(unit: Unit) {
+    this.spawnSymbol(unit.x - 44, unit.y, "震", "#a855f7", 2.8, 460);
+    this.spawnSymbol(unit.x - 80, unit.y, "吼", "#f0abfc", 1.4, 360);
+  }
+
+  showPoisonEffect(unit: Unit) {
+    this.spawnSymbol(unit.x - 32, unit.y - 12, "毒", "#84cc16", 1.2);
+  }
+
+  showHeavyThrust(unit: Unit) {
+    this.spawnSymbol(unit.x - 36, unit.y, "重", "#22d3ee", 1.4);
+  }
+
+  showArcSlash(unit: Unit) {
+    this.spawnSymbol(unit.x - 42, unit.y, "斩", "#fb7185", 2.4, 380);
+  }
+
+  showChargeEffect(unit: Unit) {
+    this.spawnSymbol(unit.x - 36, unit.y, "冲", "#60a5fa", 1.6, 360);
+    for (let i = 0; i < 3; i += 1) {
+      this.spawnSymbol(unit.x - (i + 2) * 30, unit.y + 14, "骑", "#93c5fd", 0.7, 300);
+    }
+  }
+
+  private spawnSymbol(
+    x: number,
+    y: number,
+    symbol: string,
+    color: string,
+    scale = 1,
+    duration = 320,
+  ) {
+    const text = this.add
+      .text(x, y, symbol, {
+        fontFamily: Config.fontFamily,
+        fontSize: "34px",
+        color,
+        fontStyle: "bold",
+        stroke: "#111",
+        strokeThickness: 3,
+      })
+      .setOrigin(0.5)
+      .setDepth(82)
+      .setScale(scale * 0.5);
+
+    this.tweens.add({
+      targets: text,
+      scale,
+      alpha: 0,
+      duration,
+      onComplete: () => text.destroy(),
+    });
   }
 
   rainArrowsAll(damage: number) {

@@ -99,6 +99,18 @@ export const FragmentPool: Record<string, number> = {
   超: 2,
 };
 
+export const GeneralPieces: Record<string, [string, string]> = {
+  刘备: ["刘", "备"],
+  赵云: ["赵", "云"],
+  黄忠: ["黄", "忠"],
+  关羽: ["关", "羽"],
+  张飞: ["张", "飞"],
+  黄祖: ["黄", "祖"],
+  张苞: ["张", "苞"],
+  关平: ["关", "平"],
+  马超: ["马", "超"],
+};
+
 export const SoldierStats = {
   刀: { hp: 120, damage: 30, cooldown: 700, color: "#d97706" },
   枪: { hp: 130, damage: 15, cooldown: 700, color: "#2563eb" },

@@ -49,6 +49,7 @@ export class General extends Unit {
       const targets = scene.getZombiesInRange(this.row, this.col - 3, this.col - 1);
       if (targets.length > 0) {
         targets.forEach((zombie) => zombie.takeDamage(config.damage * damageMultiplier));
+        scene.showHealRing(this);
         this.attackTimer = config.cooldown * cooldownMultiplier;
       }
       return;
@@ -58,6 +59,7 @@ export class General extends Unit {
       const targets = scene.getZombiesInRange(this.row, this.col - 2, this.col - 1);
       if (targets.length > 0) {
         targets.forEach((zombie) => zombie.takeDamage(config.damage * damageMultiplier));
+        scene.showZhaoyunStab(this);
         this.attackTimer = config.cooldown * cooldownMultiplier;
       }
       return;
@@ -68,6 +70,7 @@ export class General extends Unit {
       if (targets.length > 0) {
         targets.forEach((zombie) => zombie.takeDamage(config.damage * damageMultiplier));
         scene.huangzhongArrowRow(this.row, config.damage * damageMultiplier);
+        scene.showHuangzhongBow(this);
         if (Math.random() < 0.1) {
           scene.rainArrowsAll(config.damage * damageMultiplier);
         }
@@ -80,6 +83,7 @@ export class General extends Unit {
       const targets = scene.getZombiesInRange(this.row, this.col - 4, this.col - 1);
       if (targets.length > 0) {
         targets.forEach((zombie) => zombie.takeDamage(config.damage * damageMultiplier));
+        scene.showGuanyuSlash(this);
         this.attackTimer = config.cooldown * cooldownMultiplier;
       }
       return;
@@ -92,6 +96,7 @@ export class General extends Unit {
           zombie.takeDamage(config.damage * damageMultiplier);
           zombie.setX(zombie.x - 42);
         });
+        scene.showZhangfeiShock(this);
         this.attackTimer = config.cooldown * cooldownMultiplier;
       }
       return;
@@ -101,6 +106,7 @@ export class General extends Unit {
       const targets = scene.getZombiesInRange(this.row, this.col - 4, this.col - 1);
       if (targets.length > 0) {
         targets.forEach((zombie) => zombie.takeDamage(config.damage * damageMultiplier));
+        scene.showPoisonEffect(this);
         this.attackTimer = config.cooldown * cooldownMultiplier;
       }
       return;
@@ -110,6 +116,7 @@ export class General extends Unit {
       const targets = scene.getZombiesInRange(this.row, this.col - 2, this.col - 1);
       if (targets.length > 0) {
         targets.forEach((zombie) => zombie.takeDamage(config.damage * damageMultiplier));
+        scene.showHeavyThrust(this);
         this.attackTimer = config.cooldown * cooldownMultiplier;
       }
       return;
@@ -119,6 +126,7 @@ export class General extends Unit {
       const targets = scene.getZombiesInRange(this.row, this.col - 4, this.col - 1);
       if (targets.length > 0) {
         targets.forEach((zombie) => zombie.takeDamage(config.damage * damageMultiplier));
+        scene.showArcSlash(this);
         this.attackTimer = config.cooldown * cooldownMultiplier;
       }
       return;
@@ -129,6 +137,7 @@ export class General extends Unit {
       if (targets.length > 0) {
         targets.forEach((zombie) => zombie.takeDamage(config.damage * damageMultiplier));
         scene.animateCharge(this, this.col - 2);
+        scene.showChargeEffect(this);
         this.attackTimer = config.cooldown * cooldownMultiplier;
       }
     }
