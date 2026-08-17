@@ -211,12 +211,10 @@ export class GamePlayScene extends Phaser.Scene {
           },
         )
         .setOrigin(0.5)
-        .setInteractive({ useHandCursor: true });
-
-      button.on("pointerdown", () => {
-        this.selectedTestType = label;
-        this.selectedText.setText(`已选择：${label}`);
-      });
+        .setInteractive({ useHandCursor: true, draggable: true })
+        .setData("testType", label)
+        .setData("originX", buttonX + 43)
+        .setData("originY", buttonY + 17);
       this.testButtons.push(button);
     });
   }
@@ -627,6 +625,10 @@ export class GamePlayScene extends Phaser.Scene {
 
   private handleDragEnd(pointer: Phaser.Input.Pointer, gameObject: Phaser.GameObjects.GameObject) {
     if (!(gameObject instanceof Unit)) {
+      if (this.testMode) {
+        this.handleTestButtonDragEnd(pointer, gameObject as Phaser.GameObjects.Text);
+        return;
+      }
       this.handleHandCardDragEnd(pointer, gameObject as Phaser.GameObjects.Text);
       return;
     }
@@ -721,6 +723,66 @@ export class GamePlayScene extends Phaser.Scene {
   private snapHandCardBack(cardText: Phaser.GameObjects.Text, handIndex: number) {
     const x = this.px(16) + handIndex * this.px(6.6);
     cardText.setPosition(x, this.py(89));
+  }
+
+  private handleTestButtonDragEnd(pointer: Phaser.Input.Pointer, button: Phaser.GameObjects.Text) {
+    const type = button.getData("testType") as string;
+    const row = Math.floor((pointer.y - Config.boardY) / Config.cellHeight);
+    const col = Math.floor((pointer.x - Config.boardX) / Config.cellWidth);
+
+    if (row < 0 || row >= this.board.length || col < 0 || col >= Config.cols) {
+      this.snapTestButtonBack(button);
+      return;
+    }
+
+    this.placeTestUnit(type, row, col);
+    this.snapTestButtonBack(button);
+  }
+
+  private placeTestUnit(type: string, row: number, col: number) {
+    const center = this.getCellCenter(row, col);
+
+    if (type === "尸" || type === "障") {
+      this.zombies.push(
+        new Zombie(
+          this,
+          center.x,
+          center.y,
+          row,
+          type === "障" ? "cone" : "normal",
+        ),
+      );
+      this.messageText.setText(`已放置僵尸：${type}`);
+      return;
+    }
+
+    if (this.board[row][col]) {
+      this.messageText.setText("该格子已有文字");
+      return;
+    }
+
+    let unit: Unit;
+
+    if (TEST_GENERALS.includes(type)) {
+      unit = new General(this, center.x, center.y, row, col, type as GeneralKey);
+    } else if (TEST_SOLDIERS.includes(type)) {
+      unit = new Soldier(this, center.x, center.y, row, col, type as CardType);
+    } else if (type === "农") {
+      unit = new Farm(this, center.x, center.y, row, col);
+    } else {
+      unit = new GeneralFragment(this, center.x, center.y, row, col, type);
+    }
+
+    this.board[row][col] = unit;
+    unit.setInteractive({ draggable: true });
+    this.messageText.setText(`已放置：${type}`);
+  }
+
+  private snapTestButtonBack(button: Phaser.GameObjects.Text) {
+    button.setPosition(
+      button.getData("originX") as number,
+      button.getData("originY") as number,
+    );
   }
 
   private isInBin(x: number, y: number) {
