@@ -38,7 +38,7 @@ export class Soldier extends Unit {
       const target = scene.getFrontZombieInRange(this.row, this.col - 1, this.col - 1);
       if (target) {
         target.takeDamage(stats.damage * damageMultiplier);
-        scene.animateSlash(target.x, target.y);
+        scene.animateDaoSlash(target);
         this.attackTimer = stats.cooldown * cooldownMultiplier;
       }
       return;

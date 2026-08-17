@@ -779,6 +779,54 @@ export class GamePlayScene extends Phaser.Scene {
     });
   }
 
+  animateDaoSlash(target: Zombie) {
+    const startY = target.y - 38;
+    const endY = target.y + 38;
+
+    const slash = this.add
+      .text(target.x, startY, "斩", {
+        fontFamily: Config.fontFamily,
+        fontSize: "44px",
+        color: "#f8fafc",
+        fontStyle: "bold",
+        stroke: "#ef4444",
+        strokeThickness: 4,
+      })
+      .setOrigin(0.5)
+      .setDepth(82)
+      .setScale(1.1);
+
+    const blade = this.add
+      .text(target.x - 18, startY + 8, "刀", {
+        fontFamily: Config.fontFamily,
+        fontSize: "28px",
+        color: "#fca5a5",
+        fontStyle: "bold",
+        stroke: "#111",
+        strokeThickness: 3,
+      })
+      .setOrigin(0.5)
+      .setDepth(82)
+      .setScale(0.8);
+
+    this.tweens.add({
+      targets: slash,
+      y: endY,
+      angle: 8,
+      alpha: 0,
+      duration: 260,
+      onComplete: () => slash.destroy(),
+    });
+
+    this.tweens.add({
+      targets: blade,
+      y: endY + 6,
+      alpha: 0,
+      duration: 280,
+      onComplete: () => blade.destroy(),
+    });
+  }
+
   animateCavalrySlash(unit: Unit) {
     const center = this.getCellCenter(unit.row, unit.col);
     const radius = Config.cellWidth * 1.5;
