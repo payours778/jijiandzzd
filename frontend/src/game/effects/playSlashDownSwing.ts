@@ -1,19 +1,21 @@
+import { SoldierStats } from "../config";
+
 /**
- * 纯 Graphics 劈砍刀光：右上 → 中心 → 右下。
+ * 纯 Graphics 劈砍刀光：左上 → 中心 → 左下。
  * 参数全部集中在此函数内部，方便调整大小、时长与颜色。
  */
 export function playSlashDownSwing(x: number, y: number, scene: Phaser.Scene): void {
   const size = 56;
   const radius = size * 0.5;
-  const startX = x + size * 0.42;
-  const startY = y - size * 0.58;
-  const endX = x + size * 0.72;
-  const endY = y + size * 0.6;
-  const controlX = x + size * 0.16;
+  const startX = x - size * 0.62;
+  const startY = y - size * 0.62;
+  const endX = x - size * 0.78;
+  const endY = y + size * 0.58;
+  const controlX = x - size * 0.15;
   const controlY = y - size * 0.05;
   const mainColor = 0xffffff;
   const edgeColor = 0xc9cdd6;
-  const mainDuration = 450;
+  const mainDuration = SoldierStats.刀.cooldown;
 
   const slash = scene.add.graphics();
   slash.setDepth(90);
@@ -57,7 +59,7 @@ export function playSlashDownSwing(x: number, y: number, scene: Phaser.Scene): v
     ease: "Quad.easeOut",
   });
 
-  // 阶段2：沿弧线从右上挥向右下，中间时刻可插入伤害判定。
+  // 阶段2：沿弧线从左上挥向左下，中间时刻可插入伤害判定。
   scene.tweens.add({
     targets: slash,
     progress: 1,

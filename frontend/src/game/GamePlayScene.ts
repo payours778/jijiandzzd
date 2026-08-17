@@ -861,8 +861,8 @@ export class GamePlayScene extends Phaser.Scene {
     });
   }
 
-  animateDaoSlash(target: Zombie) {
-    playSlashDownSwing(target.x, target.y, this);
+  animateDaoSlash(unit: Unit, target: Zombie) {
+    playSlashDownSwing(unit.x, unit.y, this);
   }
 
   animateCavalrySlash(unit: Unit) {

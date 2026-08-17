@@ -42,7 +42,7 @@ export class Soldier extends Unit {
       );
       if (target) {
         target.takeDamage(stats.damage * damageMultiplier);
-        scene.animateDaoSlash(target);
+        scene.animateDaoSlash(this, target);
         this.attackTimer = stats.cooldown * cooldownMultiplier;
       }
       return;
