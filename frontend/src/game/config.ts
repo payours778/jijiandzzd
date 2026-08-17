@@ -134,6 +134,8 @@ export const LuBuStats = {
   normalCooldown: 1100,
   skillCooldown: 2600,
   moveInterval: 1100,
+  slashRest: 500,
+  skill2FullScreen: true,
 };
 
 export const RefreshProbability = {

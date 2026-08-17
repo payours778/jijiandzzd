@@ -62,6 +62,8 @@ const defaults = {
     arrowDamage: 180,
     skillCooldown: 2600,
     normalCooldown: 1100,
+    slashRest: 500,
+    skill2FullScreen: true,
   },
 };
 
@@ -103,6 +105,8 @@ export function DevConsole({ open, onClose }: { open: boolean; onClose: () => vo
     LuBuStats.arrowDamage = defaults.lubu.arrowDamage;
     LuBuStats.skillCooldown = defaults.lubu.skillCooldown;
     LuBuStats.normalCooldown = defaults.lubu.normalCooldown;
+    LuBuStats.slashRest = defaults.lubu.slashRest;
+    LuBuStats.skill2FullScreen = defaults.lubu.skill2FullScreen;
     setVersion(version + 1);
   };
 
@@ -326,6 +330,22 @@ export function DevConsole({ open, onClose }: { open: boolean; onClose: () => vo
                   setVersion(version + 1);
                 }}
               />
+              <NumberField
+                label="技能1休整ms"
+                value={LuBuStats.slashRest}
+                onChange={(value) => {
+                  LuBuStats.slashRest = value;
+                  setVersion(version + 1);
+                }}
+              />
+              <BooleanField
+                label="技能2全屏"
+                value={LuBuStats.skill2FullScreen}
+                onChange={(value) => {
+                  LuBuStats.skill2FullScreen = value;
+                  setVersion(version + 1);
+                }}
+              />
             </fieldset>
           </div>
         )}
@@ -363,6 +383,27 @@ function NumberField({
         type="number"
         value={value}
         onChange={(event) => onChange(Number(event.target.value))}
+      />
+    </label>
+  );
+}
+
+function BooleanField({
+  label,
+  value,
+  onChange,
+}: {
+  label: string;
+  value: boolean;
+  onChange: (value: boolean) => void;
+}) {
+  return (
+    <label className="dev-number-field">
+      <span>{label}</span>
+      <input
+        type="checkbox"
+        checked={value}
+        onChange={(event) => onChange(event.target.checked)}
       />
     </label>
   );

@@ -9,6 +9,7 @@ export class LuBu extends Zombie {
   private skillCooldown = 0;
   private chargeRemaining = 0;
   private charging = false;
+  private restTimer = 0;
 
   constructor(
     scene: GamePlayScene,
@@ -18,8 +19,9 @@ export class LuBu extends Zombie {
     strengthMultiplier = 1,
   ) {
     super(scene, x, y, row, "normal", strengthMultiplier);
-    this.setText("吕");
-    this.setFontSize(30);
+    this.setText("吕布");
+    this.setFontSize(22);
+    this.setColor("#ef4444");
     this.setOrigin(0.5);
     this.maxHp = LuBuStats.hp * strengthMultiplier;
     this.hp = this.maxHp;
@@ -34,6 +36,10 @@ export class LuBu extends Zombie {
     this.syncHealthBar();
     this.normalCooldown -= delta;
     this.skillCooldown -= delta;
+    if (this.restTimer > 0) {
+      this.restTimer -= delta;
+      return;
+    }
     const col = scene.getColFromX(this.x);
 
     if (this.charging) {
@@ -106,10 +112,14 @@ export class LuBu extends Zombie {
 
     scene.showLuBuSlash(this, col);
     this.skillCooldown = LuBuStats.skillCooldown;
+    this.restTimer = LuBuStats.slashRest;
   }
 
   private skillCharge(scene: GamePlayScene) {
-    if (!scene.getRightmostUnitInRow(this.row)) {
+    const hasTarget = LuBuStats.skill2FullScreen
+      ? !!scene.getRightmostUnit()
+      : !!scene.getRightmostUnitInRow(this.row);
+    if (!hasTarget) {
       this.skillCooldown = 600;
       return;
     }
@@ -120,7 +130,9 @@ export class LuBu extends Zombie {
   }
 
   private firePrecisionArrow(scene: GamePlayScene) {
-    const target = scene.getRightmostUnitInRow(this.row);
+    const target = LuBuStats.skill2FullScreen
+      ? scene.getRightmostUnit()
+      : scene.getRightmostUnitInRow(this.row);
     if (target) {
       const damage = LuBuStats.arrowDamage * this.strengthMultiplier;
       scene.shootUnitArrow(this.x, this.y, target, damage);

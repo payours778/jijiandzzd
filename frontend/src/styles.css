@@ -1870,6 +1870,11 @@ img { max-width: 100%; display: block; }
   padding: 0 8px;
 }
 
+.dev-number-field input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+}
+
 .dev-console-footer {
   border-top: 1px solid #2a2e35;
   border-bottom: 0;

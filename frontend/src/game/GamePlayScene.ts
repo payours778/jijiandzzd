@@ -1117,6 +1117,20 @@ export class GamePlayScene extends Phaser.Scene {
     return null;
   }
 
+  getRightmostUnit() {
+    let rightmost: Unit | null = null;
+    for (let row = 0; row < this.board.length; row += 1) {
+      const candidate = this.getRightmostUnitInRow(row);
+      if (
+        candidate &&
+        (!rightmost || candidate.col > rightmost.col)
+      ) {
+        rightmost = candidate;
+      }
+    }
+    return rightmost;
+  }
+
   showLuBuStab(unit: Unit, target: Unit) {
     const stab = this.add.text(target.x, target.y, "戳", {
       fontFamily: Config.fontFamily,
