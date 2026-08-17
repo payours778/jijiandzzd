@@ -6,6 +6,7 @@ export class Zombie extends Unit {
   zombieType: "normal" | "cone";
   speed: number;
   biteTimer = 0;
+  strengthMultiplier: number;
 
   constructor(
     scene: GamePlayScene,
@@ -13,12 +14,14 @@ export class Zombie extends Unit {
     y: number,
     row: number,
     zombieType: "normal" | "cone" = "normal",
+    strengthMultiplier = 1,
   ) {
     const stats = ZombieStats[zombieType];
-    const hp = stats.hp;
+    const hp = stats.hp * strengthMultiplier;
     super(scene, x, y, zombieType === "cone" ? "障" : "尸", { color: "#65a30d" }, row, 0, hp);
     this.zombieType = zombieType;
     this.speed = stats.speed;
+    this.strengthMultiplier = strengthMultiplier;
     this.setFontSize(30);
     this.attachHealthBar(36);
   }
@@ -36,7 +39,7 @@ export class Zombie extends Unit {
 
     if (unit && !unit.dead) {
       if (this.biteTimer <= 0) {
-        unit.takeDamage(ZombieStats.biteDamage);
+        unit.takeDamage(ZombieStats.biteDamage * this.strengthMultiplier);
         this.tiltToward(unit);
         this.biteTimer = ZombieStats.biteInterval;
       }

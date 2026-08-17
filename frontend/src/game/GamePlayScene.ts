@@ -29,7 +29,9 @@ export class GamePlayScene extends Phaser.Scene {
   private mantou = Config.startingMantou;
   private selectedCard: CardType | null = null;
   private gameOver = false;
-  private wave = 0;
+  private wave = 1;
+  private zombiesSpawnedInWave = 0;
+  private waveSize = 5;
   private refreshCost = Config.refreshStartCost;
   private fragmentPool: Record<string, number> = {};
 
@@ -37,6 +39,7 @@ export class GamePlayScene extends Phaser.Scene {
   private messageText!: Phaser.GameObjects.Text;
   private drawButton!: Phaser.GameObjects.Text;
   private selectedText!: Phaser.GameObjects.Text;
+  private waveText!: Phaser.GameObjects.Text;
   private binBounds = { x: 856, y: 150, width: 90, height: 260 };
   private binText!: Phaser.GameObjects.Text;
   private selectedTestType: string | null = null;
@@ -61,7 +64,8 @@ export class GamePlayScene extends Phaser.Scene {
 
   create() {
     this.gameOver = false;
-    this.wave = 0;
+    this.wave = 1;
+    this.zombiesSpawnedInWave = 0;
     this.mantou = Config.startingMantou;
     this.hand = [];
     this.handTexts = [];
@@ -316,6 +320,15 @@ export class GamePlayScene extends Phaser.Scene {
       fontStyle: "bold",
     });
 
+    this.waveText = this.add
+      .text(Config.gameWidth / 2, 20, "", {
+        fontFamily: Config.fontFamily,
+        fontSize: "22px",
+        color: "#f87171",
+        fontStyle: "bold",
+      })
+      .setOrigin(0.5);
+
     this.messageText = this.add.text(Config.gameWidth / 2, 50, "", {
       fontFamily: Config.fontFamily,
       fontSize: "18px",
@@ -352,10 +365,17 @@ export class GamePlayScene extends Phaser.Scene {
 
     this.updateMantouText();
     this.updateDrawButton();
+    this.updateWaveText();
   }
 
   private updateDrawButton() {
     this.drawButton.setText(`刷新 ${this.refreshCost} 馒头`);
+  }
+
+  private updateWaveText() {
+    if (this.waveText) {
+      this.waveText.setText(`第 ${this.wave} 波`);
+    }
   }
 
   private createRecycleBin() {
@@ -691,13 +711,19 @@ export class GamePlayScene extends Phaser.Scene {
   private scheduleNextZombie() {
     const delay = Math.max(
       Config.zombieSpawnMin,
-      Config.zombieSpawnStart - this.wave * Config.zombieSpawnStep,
+      Config.zombieSpawnStart - (this.wave - 1) * Config.zombieSpawnStep,
     );
 
     this.time.delayedCall(delay, () => {
       if (this.gameOver) return;
-      this.wave += 1;
       this.spawnZombie();
+      this.zombiesSpawnedInWave += 1;
+      if (this.zombiesSpawnedInWave >= this.waveSize) {
+        this.zombiesSpawnedInWave = 0;
+        this.wave += 1;
+        this.updateWaveText();
+        this.messageText.setText(`进入第 ${this.wave} 波`);
+      }
       this.scheduleNextZombie();
     });
   }
@@ -706,7 +732,15 @@ export class GamePlayScene extends Phaser.Scene {
     const row = Phaser.Math.Between(0, this.board.length - 1);
     const type = this.wave % 5 === 0 ? "cone" : "normal";
     const y = Config.boardY + row * Config.cellHeight + Config.cellHeight / 2;
-    const zombie = new Zombie(this, Config.boardX - 16, y, row, type);
+    const strengthMultiplier = Math.pow(1.2, this.wave - 1);
+    const zombie = new Zombie(
+      this,
+      Config.boardX - 16,
+      y,
+      row,
+      type,
+      strengthMultiplier,
+    );
     this.zombies.push(zombie);
   }
 
