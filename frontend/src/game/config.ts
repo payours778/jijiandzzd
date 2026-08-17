@@ -27,6 +27,8 @@ export type CardType =
   | "骑"
   | "弓"
   | "农"
+  | "刘"
+  | "备"
   | "赵"
   | "云"
   | "黄"
@@ -34,24 +36,67 @@ export type CardType =
   | "关"
   | "羽"
   | "张"
-  | "飞";
+  | "飞"
+  | "祖"
+  | "苞"
+  | "平"
+  | "马"
+  | "超";
 
-export const FragmentMatch: Record<string, string> = {
-  赵: "云",
-  云: "赵",
-  黄: "忠",
-  忠: "黄",
-  关: "羽",
-  羽: "关",
-  张: "飞",
-  飞: "张",
-};
+export type GeneralKey =
+  | "刘备"
+  | "赵云"
+  | "黄忠"
+  | "关羽"
+  | "张飞"
+  | "黄祖"
+  | "张苞"
+  | "关平"
+  | "马超";
 
-export const GeneralName: Record<string, string> = {
-  赵云: "赵云",
-  黄忠: "黄忠",
-  关羽: "关羽",
-  张飞: "张飞",
+export interface FragmentPair {
+  first: string;
+  second: string;
+  general: GeneralKey;
+}
+
+export const FragmentPairs: FragmentPair[] = [
+  { first: "刘", second: "备", general: "刘备" },
+  { first: "赵", second: "云", general: "赵云" },
+  { first: "黄", second: "忠", general: "黄忠" },
+  { first: "关", second: "羽", general: "关羽" },
+  { first: "张", second: "飞", general: "张飞" },
+  { first: "黄", second: "祖", general: "黄祖" },
+  { first: "张", second: "苞", general: "张苞" },
+  { first: "关", second: "平", general: "关平" },
+  { first: "马", second: "超", general: "马超" },
+];
+
+export function findGeneral(first: string, second: string): GeneralKey | null {
+  const pair = FragmentPairs.find(
+    (item) =>
+      (item.first === first && item.second === second) ||
+      (item.first === second && item.second === first),
+  );
+  return pair?.general ?? null;
+}
+
+export const FragmentPool: Record<string, number> = {
+  刘: 2,
+  备: 2,
+  赵: 2,
+  云: 2,
+  黄: 4,
+  忠: 2,
+  关: 4,
+  羽: 2,
+  张: 4,
+  飞: 2,
+  祖: 2,
+  苞: 2,
+  平: 2,
+  马: 2,
+  超: 2,
 };
 
 export const SoldierStats = {

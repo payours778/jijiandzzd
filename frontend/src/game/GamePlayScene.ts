@@ -2,10 +2,11 @@ import Phaser from "phaser";
 import {
   Config,
   RefreshProbability,
-  FragmentMatch,
-  GeneralName,
+  FragmentPool,
   SoldierStats,
+  findGeneral,
   type CardType,
+  type GeneralKey,
 } from "./config";
 import { Unit } from "./Unit";
 import { Farm } from "./units/Farm";
@@ -24,6 +25,7 @@ export class GamePlayScene extends Phaser.Scene {
   private gameOver = false;
   private wave = 0;
   private refreshCost = Config.refreshStartCost;
+  private fragmentPool: Record<string, number> = {};
 
   private mantouText!: Phaser.GameObjects.Text;
   private messageText!: Phaser.GameObjects.Text;
@@ -63,6 +65,7 @@ export class GamePlayScene extends Phaser.Scene {
 
     this.hand = Array.from({ length: Config.refreshCardCount }, () => this.randomCard());
     this.refreshCost = Config.refreshStartCost;
+    this.fragmentPool = { ...FragmentPool };
     this.renderHand();
     this.updateMantouText();
     this.messageText.setText("点击抽卡获取文字卡牌，再点击格子放置");
@@ -233,7 +236,9 @@ export class GamePlayScene extends Phaser.Scene {
   private randomCard(): CardType {
     const roll = Math.random();
     const soldierCards: CardType[] = ["刀", "枪", "骑", "弓"];
-    const fragmentCards: CardType[] = ["赵", "云", "黄", "忠", "关", "羽", "张", "飞"];
+    const availableFragments = Object.entries(this.fragmentPool)
+      .filter(([, count]) => count > 0)
+      .map(([text]) => text as CardType);
 
     if (roll < RefreshProbability.soldier) {
       return soldierCards[Math.floor(Math.random() * soldierCards.length)];
@@ -243,7 +248,15 @@ export class GamePlayScene extends Phaser.Scene {
       return "农";
     }
 
-    return fragmentCards[Math.floor(Math.random() * fragmentCards.length)];
+    if (availableFragments.length > 0) {
+      const fragment = availableFragments[Math.floor(Math.random() * availableFragments.length)];
+      this.fragmentPool[fragment] -= 1;
+      return fragment;
+    }
+
+    return Math.random() < 0.7
+      ? soldierCards[Math.floor(Math.random() * soldierCards.length)]
+      : "农";
   }
 
   private placeCard(card: CardType, row: number, col: number) {
@@ -400,9 +413,9 @@ export class GamePlayScene extends Phaser.Scene {
           right instanceof GeneralFragment &&
           !left.dead &&
           !right.dead &&
-          FragmentMatch[left.baseText] === right.baseText
+          findGeneral(left.baseText, right.baseText)
         ) {
-          const generalName = GeneralName[left.baseText + right.baseText];
+          const generalName = findGeneral(left.baseText, right.baseText);
           if (!generalName) continue;
           const center = this.getCellCenter(row, col);
           const general = new General(
@@ -411,7 +424,7 @@ export class GamePlayScene extends Phaser.Scene {
             center.y,
             row,
             col,
-            generalName as "赵云" | "黄忠" | "关羽" | "张飞",
+            generalName as GeneralKey,
           );
           general.setLevel(Math.max(left.level, right.level));
           general.setInteractive({ draggable: true });
@@ -656,6 +669,39 @@ export class GamePlayScene extends Phaser.Scene {
         duration: 260,
         onComplete: () => arrow.destroy(),
       });
+    }
+  }
+
+  huangzhongArrowRow(row: number, _damage: number) {
+    const y = Config.boardY + row * Config.cellHeight + Config.cellHeight / 2;
+    for (let col = 0; col < Config.cols; col += 1) {
+      const x = Config.boardX + col * Config.cellWidth + Config.cellWidth / 2;
+      const arrow = this.add.text(x, y, "箭", {
+        fontFamily: Config.fontFamily,
+        fontSize: "22px",
+        color: "#fbbf24",
+        fontStyle: "bold",
+      }).setOrigin(0.5).setDepth(80);
+
+      this.tweens.add({
+        targets: arrow,
+        x: Config.boardX - 20,
+        alpha: 0,
+        duration: 380,
+        onComplete: () => arrow.destroy(),
+      });
+    }
+  }
+
+  rainArrowsAll(damage: number) {
+    this.zombies.forEach((zombie) => {
+      if (!zombie.dead) {
+        zombie.takeDamage(damage);
+      }
+    });
+
+    for (let row = 0; row < Config.rows; row += 1) {
+      this.rainArrows(row);
     }
   }
 
