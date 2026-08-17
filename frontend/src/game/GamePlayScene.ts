@@ -64,6 +64,7 @@ export class GamePlayScene extends Phaser.Scene {
       { length: this.testMode ? 1 : Config.rows },
       () => new Array<Unit | null>(Config.cols).fill(null),
     );
+    this.fragmentPool = { ...FragmentPool };
 
     if (this.testMode) {
       this.createTestBoard();
@@ -130,6 +131,8 @@ export class GamePlayScene extends Phaser.Scene {
       color: "#a78bfa",
     });
 
+    this.createRecycleBin();
+
     const labels = [
       ...TEST_SOLDIERS,
       "农",
@@ -141,9 +144,9 @@ export class GamePlayScene extends Phaser.Scene {
     ];
 
     const startX = 20;
-    const startY = 360;
+    const startY = 430;
     const colWidth = 92;
-    const rowHeight = 44;
+    const rowHeight = 42;
 
     labels.forEach((label, index) => {
       const button = this.add
@@ -298,6 +301,28 @@ export class GamePlayScene extends Phaser.Scene {
       .setOrigin(1, 0.5)
       .setInteractive({ useHandCursor: true });
 
+    this.createRecycleBin();
+
+    this.add
+      .text(24, Config.gameHeight - 40, "R：重新开局", {
+        fontFamily: Config.fontFamily,
+        fontSize: "16px",
+        color: "#6b7280",
+      });
+
+    this.add
+      .rectangle(Config.gameWidth / 2, Config.gameHeight - 70, Config.gameWidth, 64, 0x111318, 0.82)
+      .setOrigin(0.5);
+
+    this.updateMantouText();
+    this.updateDrawButton();
+  }
+
+  private updateDrawButton() {
+    this.drawButton.setText(`刷新 ${this.refreshCost} 馒头`);
+  }
+
+  private createRecycleBin() {
     this.add
       .rectangle(
         this.binBounds.x + this.binBounds.width / 2,
@@ -322,24 +347,6 @@ export class GamePlayScene extends Phaser.Scene {
         },
       )
       .setOrigin(0.5);
-
-    this.add
-      .text(24, Config.gameHeight - 40, "R：重新开局", {
-        fontFamily: Config.fontFamily,
-        fontSize: "16px",
-        color: "#6b7280",
-      });
-
-    this.add
-      .rectangle(Config.gameWidth / 2, Config.gameHeight - 70, Config.gameWidth, 64, 0x111318, 0.82)
-      .setOrigin(0.5);
-
-    this.updateMantouText();
-    this.updateDrawButton();
-  }
-
-  private updateDrawButton() {
-    this.drawButton.setText(`刷新 ${this.refreshCost} 馒头`);
   }
 
   private renderHand() {
