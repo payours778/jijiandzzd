@@ -1292,7 +1292,11 @@ export class GamePlayScene extends Phaser.Scene {
   }
 
   showDiaoChanFan(unit: Unit) {
-    const fan = this.add.text(unit.x, unit.y, "舞", {
+    this.showDiaoChanFanAt(unit.x, unit.y);
+  }
+
+  showDiaoChanFanAt(x: number, y: number) {
+    const fan = this.add.text(x, y, "舞", {
       fontFamily: Config.fontFamily,
       fontSize: "36px",
       color: "#f0abfc",

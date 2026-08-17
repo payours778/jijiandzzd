@@ -45,11 +45,6 @@ export class DiaoChan extends Zombie {
     }
 
     if (this.charging) {
-      if (!scene.hasPlayerUnit()) {
-        this.charging = false;
-        this.moonlightCooldown = 600;
-        return;
-      }
       this.chargeRemaining -= delta;
       if (this.chargeRemaining <= 0) {
         scene.diaoChanMoonlight(DiaoChanStats.moonlightDamage * this.strengthMultiplier);
@@ -62,15 +57,26 @@ export class DiaoChan extends Zombie {
     const col = scene.getColFromX(this.x);
     const unit = scene.getUnitAt(this.row, Math.min(Config.cols - 1, col + 1));
 
-    if (unit && !unit.dead) {
-      if (this.fanCooldown <= 0) {
-        this.skillFan(scene, unit);
-        return;
-      }
-      if (this.moonlightCooldown <= 0 && scene.hasPlayerUnit()) {
+    if (this.fanCooldown <= 0 && this.moonlightCooldown <= 0) {
+      if (Math.random() < 0.5) {
+        this.skillFan(scene, unit?.col);
+      } else {
         this.skillMoonlight(scene);
-        return;
       }
+      return;
+    }
+
+    if (this.fanCooldown <= 0) {
+      this.skillFan(scene, unit?.col);
+      return;
+    }
+
+    if (this.moonlightCooldown <= 0) {
+      this.skillMoonlight(scene);
+      return;
+    }
+
+    if (unit && !unit.dead) {
       this.normalAttack(scene, unit);
       return;
     }
@@ -104,9 +110,9 @@ export class DiaoChan extends Zombie {
     this.normalCooldown = 1200;
   }
 
-  private skillFan(scene: GamePlayScene, unit: Unit) {
+  private skillFan(scene: GamePlayScene, targetCol?: number) {
     const damage = DiaoChanStats.fanDamage * this.strengthMultiplier;
-    const col = unit.col;
+    const col = targetCol ?? Math.min(Config.cols - 1, scene.getColFromX(this.x) + 1);
 
     for (let row = Math.max(0, this.row - 1); row <= Math.min(Config.rows - 1, this.row + 1); row += 1) {
       const target = scene.getUnitAt(row, col);
@@ -118,7 +124,8 @@ export class DiaoChan extends Zombie {
       }
     }
 
-    scene.showDiaoChanFan(unit);
+    const center = scene.getCellCenter(this.row, col);
+    scene.showDiaoChanFanAt(center.x, center.y);
     this.fanCooldown = DiaoChanStats.fanCooldown;
     this.restTimer = DiaoChanStats.restTime;
   }
