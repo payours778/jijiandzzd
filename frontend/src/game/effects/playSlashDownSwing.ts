@@ -6,8 +6,8 @@ import { SoldierStats } from "../config";
  */
 export function playSlashDownSwing(x: number, y: number, scene: Phaser.Scene): void {
   const radius = 42;
-  const sweepStart = -Math.PI * 0.76;
-  const sweepEnd = -Math.PI * 0.24;
+  const sweepStart = Math.PI * 0.72;
+  const sweepEnd = Math.PI * 1.28;
   const mainColor = 0xffffff;
   const edgeColor = 0xc9cdd6;
   const mainDuration = SoldierStats.刀.cooldown;
@@ -38,7 +38,7 @@ export function playSlashDownSwing(x: number, y: number, scene: Phaser.Scene): v
   const drawSparks = (graphics: Phaser.GameObjects.Graphics) => {
     graphics.fillStyle(mainColor, 1);
     for (let i = 0; i < 10; i += 1) {
-      const angle = -Math.PI * 0.7 + (i / 9) * Math.PI * 0.42;
+      const angle = Math.PI * 0.72 + (i / 9) * Math.PI * 0.56;
       const offset = radius + 8 + (i % 4) * 5;
       graphics.fillRect(
         Math.cos(angle) * offset,
