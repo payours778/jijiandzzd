@@ -6,9 +6,9 @@ import {
   LuBuStats,
   SoldierStats,
   ZombieStats,
-} from "../game/config";
-import { GeneralConfig } from "../game/units/General";
-import { saveDevConfig } from "../game/devConfig";
+} from "../config";
+import { GeneralConfig } from "../units/General";
+import { saveDevConfig } from "../devConfig";
 
 type Tab = "global" | "soldier" | "general" | "zombie" | "boss";
 

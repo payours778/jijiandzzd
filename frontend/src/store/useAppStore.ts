@@ -98,7 +98,7 @@ export const useAppStore = create<AppState>()(
         }
 
         if (activeGameId === "adou-defense") {
-          window.location.hash = "#/game";
+          window.location.hash = "#/training-ground";
           set({ activeGameId: null, modalOpen: false, menuOpen: false });
           return;
         }

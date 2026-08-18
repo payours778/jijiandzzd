@@ -2211,3 +2211,678 @@ img { max-width: 100%; display: block; }
     justify-content: flex-start;
   }
 }
+
+/* =========================================================
+   Training Ground (练兵场主菜单) — 暗色军旅 / 烛火摇曳
+   ========================================================= */
+.tg-root {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  display: grid;
+  grid-template-rows: 56px 1fr 40px;
+  background: #0a0c10;
+  color: #e5e7eb;
+  font-family: "PingFang SC", "Microsoft YaHei", "Segoe UI", Roboto, sans-serif;
+  overflow: hidden;
+}
+
+.tg-topbar {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 0 20px;
+  background: linear-gradient(180deg, rgba(15, 17, 20, 0.96), rgba(15, 17, 20, 0.82));
+  border-bottom: 1px solid rgba(251, 191, 36, 0.18);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+.tg-topbar__back {
+  display: inline-flex; align-items: center; gap: 6px;
+  border: 1px solid #2a2f37; border-radius: 8px;
+  padding: 6px 12px; background: #1a1d23; color: #e5e7eb;
+  font-size: 12px; font-weight: 600; cursor: pointer;
+  transition: border-color 0.18s, color 0.18s;
+}
+.tg-topbar__back:hover { border-color: #fbbf24; color: #fbbf24; }
+.tg-topbar__chapter { flex: 1; text-align: center; }
+.tg-topbar__chapter-name {
+  font-size: 18px; font-weight: 800; color: #fbbf24;
+  letter-spacing: 0.04em;
+}
+.tg-topbar__chapter-sub {
+  font-size: 11px; color: #9ca3af; margin-top: 2px;
+  letter-spacing: 0.06em;
+}
+.tg-topbar__right { display: flex; align-items: center; gap: 12px; }
+.tg-topbar__coins {
+  display: inline-flex; align-items: center; gap: 4px;
+  padding: 4px 10px; border-radius: 999px;
+  background: rgba(234, 179, 8, 0.14); color: #eab308;
+  font-size: 12px; font-weight: 700;
+  border: 1px solid rgba(234, 179, 8, 0.3);
+}
+.tg-topbar__user { display: inline-flex; align-items: center; gap: 8px; }
+.tg-topbar__avatar {
+  width: 30px; height: 30px; border-radius: 50%;
+  background: linear-gradient(135deg, #fbbf24, #a855f7);
+  display: grid; place-items: center; color: #0a0c10;
+}
+.tg-topbar__name { font-size: 13px; font-weight: 700; }
+.tg-topbar__icon-btn {
+  width: 28px; height: 28px;
+  border: 1px solid #2a2f37; border-radius: 50%;
+  background: #1a1d23; color: #9ca3af;
+  font-size: 12px; font-weight: 800; cursor: pointer;
+}
+.tg-topbar__icon-btn:hover { border-color: #fbbf24; color: #fbbf24; }
+
+.tg-body {
+  position: relative;
+  display: grid;
+  grid-template-columns: 240px 1fr;
+  min-height: 0;
+}
+
+.tg-leftmenu {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  padding: 16px 12px;
+  background: linear-gradient(180deg, rgba(15, 17, 20, 0.92), rgba(10, 12, 16, 0.98));
+  border-right: 1px solid rgba(251, 191, 36, 0.12);
+  z-index: 2;
+}
+.tg-leftmenu__title { padding: 8px 8px 16px; }
+.tg-leftmenu__title-cn {
+  font-size: 22px; font-weight: 800; color: #fbbf24;
+  letter-spacing: 0.16em;
+}
+.tg-leftmenu__title-en {
+  font-size: 10px; color: #6b7280; margin-top: 2px;
+  letter-spacing: 0.32em; font-weight: 700;
+}
+.tg-leftmenu__nav { display: flex; flex-direction: column; gap: 6px; flex: 1; }
+.tg-leftmenu__item {
+  position: relative;
+  display: grid;
+  grid-template-columns: 6px 28px 1fr;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px 10px 0;
+  border: 1px solid transparent;
+  border-radius: 10px;
+  background: transparent;
+  color: #9ca3af;
+  font-size: 14px;
+  text-align: left;
+  cursor: pointer;
+  transition: background 0.18s, color 0.18s, border-color 0.18s;
+}
+.tg-leftmenu__indicator {
+  width: 3px; height: 18px; border-radius: 0 3px 3px 0;
+  background: transparent;
+  margin-left: 4px;
+  transition: background 0.18s, height 0.18s;
+}
+.tg-leftmenu__icon {
+  display: grid; place-items: center;
+  width: 28px; height: 28px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.04);
+}
+.tg-leftmenu__text { display: flex; flex-direction: column; min-width: 0; }
+.tg-leftmenu__label { font-size: 14px; font-weight: 700; }
+.tg-leftmenu__subtitle { font-size: 11px; color: #6b7280; margin-top: 2px; }
+
+.tg-leftmenu__item:hover {
+  background: rgba(251, 191, 36, 0.06);
+  color: #e5e7eb;
+}
+.tg-leftmenu__item.is-active {
+  background: linear-gradient(90deg, rgba(251, 191, 36, 0.16), rgba(251, 191, 36, 0.04));
+  border-color: rgba(251, 191, 36, 0.28);
+  color: #fbbf24;
+  box-shadow: inset 0 0 24px rgba(251, 191, 36, 0.04);
+}
+.tg-leftmenu__item.is-active .tg-leftmenu__indicator {
+  background: #fbbf24; height: 22px;
+  box-shadow: 0 0 8px rgba(251, 191, 36, 0.7);
+}
+.tg-leftmenu__item.is-active .tg-leftmenu__icon {
+  background: rgba(251, 191, 36, 0.2);
+  color: #fbbf24;
+}
+.tg-leftmenu__item.is-disabled { opacity: 0.5; cursor: not-allowed; }
+.tg-leftmenu__item.is-disabled:hover { background: transparent; color: #9ca3af; }
+
+.tg-leftmenu__foot {
+  padding: 8px 4px 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  margin-top: 12px;
+}
+.tg-leftmenu__version { font-size: 10px; color: #6b7280; letter-spacing: 0.2em; }
+.tg-leftmenu__studio { font-size: 11px; color: #9ca3af; margin-top: 4px; }
+
+.tg-main { position: relative; min-width: 0; min-height: 0; overflow: hidden; }
+.tg-stage {
+  position: relative; width: 100%; height: 100%;
+  overflow: hidden;
+  background: #0a0c10;
+}
+.tg-stage__bg {
+  position: absolute; inset: -20px;
+  z-index: 1;
+  transition: transform 0.4s ease-out;
+  will-change: transform;
+}
+.tg-stage__bg img {
+  width: 100%; height: 100%;
+  object-fit: cover;
+  object-position: center 40%;
+}
+/* 暗角已关闭（暂时不要暗边处理） */
+.tg-stage__vignette {
+  display: none;
+}
+
+/* —— 武将容器（像素小人） —— */
+.tg-hero {
+  position: absolute;
+  cursor: pointer;
+  /* hitbox 居中对齐到点位；不再 -100% */
+  transform: translate(-50%, -100%);
+  transition: filter 0.3s ease, left 0.4s linear, top 0.4s linear;
+  will-change: transform, filter, left, top;
+}
+/* wander：纯水平移动 + 落地 drop-shadow 微微变深（走路节奏感） */
+.tg-hero.is-wander {
+  transition: filter 0.3s ease;
+}
+.tg-hero.is-wander .pixel-hero {
+  animation: pixelBreathe 3.6s ease-in-out infinite, pixelWalk 0.4s ease-in-out infinite;
+}
+@keyframes pixelWalk {
+  0%, 100% { filter: drop-shadow(0 2px 0 rgba(0, 0, 0, 0.45)); }
+  50%      { filter: drop-shadow(0 3px 0 rgba(0, 0, 0, 0.55)); }
+}
+
+@keyframes tgBreathe {
+  0%, 100% { filter: brightness(1) drop-shadow(0 4px 12px rgba(0, 0, 0, 0.5)); }
+  50%      { filter: brightness(1.05) drop-shadow(0 6px 16px rgba(0, 0, 0, 0.55)); }
+}
+@keyframes tgWalk {
+  0%, 100% { filter: brightness(1) drop-shadow(0 4px 12px rgba(0, 0, 0, 0.5)); }
+  25%      { filter: brightness(1.04) drop-shadow(0 7px 16px rgba(0, 0, 0, 0.55)); }
+  50%      { filter: brightness(1) drop-shadow(0 4px 12px rgba(0, 0, 0, 0.5)); }
+  75%      { filter: brightness(1.04) drop-shadow(0 7px 16px rgba(0, 0, 0, 0.55)); }
+}
+/* 说话：scale 微跳动（位置由 left/top 锁定） */
+@keyframes tgTalk {
+  0%, 100% { filter: brightness(1.1) drop-shadow(0 0 12px rgba(251, 191, 36, 0.4)); }
+  50%      { filter: brightness(1.18) drop-shadow(0 0 18px rgba(251, 191, 36, 0.55)); }
+}
+/* 点头：仅 drop-shadow 微微收缩光圈，位置不变 */
+@keyframes tgNod {
+  0%, 100% { filter: brightness(1.05) drop-shadow(0 4px 12px rgba(0, 0, 0, 0.5)); }
+  50%      { filter: brightness(1.15) drop-shadow(0 8px 14px rgba(0, 0, 0, 0.55)); }
+}
+.tg-hero.is-selected {
+  filter: brightness(1.15) drop-shadow(0 0 16px rgba(251, 191, 36, 0.6));
+}
+.tg-hero__hitbox {
+  position: relative;
+  display: block;
+  width: 100%; height: 100%;
+  padding: 0; border: 0; background: transparent;
+  cursor: pointer;
+}
+.tg-hero__img {
+  display: block;
+  width: 90px; height: auto;
+  user-select: none;
+  -webkit-user-drag: none;
+  pointer-events: none;
+  filter: drop-shadow(0 6px 14px rgba(0, 0, 0, 0.55));
+}
+.tg-hero__name {
+  position: absolute;
+  left: 50%;
+  bottom: -22px;
+  transform: translateX(-50%);
+  padding: 2px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 800;
+  background: rgba(10, 12, 16, 0.85);
+  white-space: nowrap;
+  border: 1px solid currentColor;
+  letter-spacing: 0.05em;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+.tg-hero:hover .tg-hero__name,
+.tg-hero.is-selected .tg-hero__name { opacity: 1; }
+.tg-hero__name--legendary { color: #fbbf24; }
+.tg-hero__name--epic { color: #a855f7; }
+.tg-hero__name--rare { color: #60a5fa; }
+.tg-hero__name--common { color: #9ca3af; }
+
+/* —— 台词气泡 —— */
+.tg-speech {
+  position: absolute;
+  bottom: 30px;
+  left: 60%;
+  z-index: 6;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  max-width: 220px;
+  pointer-events: none;
+  animation: tgSpeechIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+@keyframes tgSpeechIn {
+  from { opacity: 0; transform: translateY(8px) scale(0.9); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+.tg-speech__bubble {
+  padding: 8px 12px;
+  border-radius: 12px;
+  font-size: 13px;
+  line-height: 1.45;
+  font-weight: 600;
+  color: #e5e7eb;
+  background: rgba(20, 24, 32, 0.96);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+}
+.tg-speech__tail {
+  margin-left: 18px;
+  width: 0; height: 0;
+  border: 6px solid transparent;
+  border-top-color: rgba(20, 24, 32, 0.96);
+}
+.tg-speech--legendary .tg-speech__bubble { border-color: rgba(251, 191, 36, 0.5); }
+.tg-speech--legendary .tg-speech__tail { border-top-color: rgba(20, 24, 32, 0.96); }
+.tg-speech--epic .tg-speech__bubble { border-color: rgba(168, 85, 247, 0.5); }
+.tg-speech--rare .tg-speech__bubble { border-color: rgba(96, 165, 250, 0.5); }
+
+/* —— Bottom Bar —— */
+.tg-bottombar {
+  position: relative;
+  display: flex; align-items: center; gap: 16px;
+  padding: 0 20px;
+  background: rgba(10, 12, 16, 0.92);
+  border-top: 1px solid rgba(251, 191, 36, 0.12);
+  font-size: 12px;
+  color: #9ca3af;
+  z-index: 2;
+}
+.tg-bottombar__bgm {
+  display: inline-flex; align-items: center; gap: 6px;
+  border: 1px solid #2a2f37; border-radius: 999px;
+  padding: 4px 10px; background: #1a1d23;
+  color: #e5e7eb;
+  font-size: 12px; font-weight: 600;
+  cursor: pointer;
+}
+.tg-bottombar__bgm:hover { border-color: #fbbf24; color: #fbbf24; }
+.tg-bottombar__hint { flex: 1; text-align: center; }
+.tg-bottombar__time {
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.08em;
+}
+
+/* —— 侧拉详情卡 —— */
+.tg-drawer {
+  position: absolute;
+  top: 0; right: 0; bottom: 0;
+  width: 360px;
+  z-index: 8;
+  display: flex; flex-direction: column;
+  gap: 16px;
+  padding: 20px;
+  background: linear-gradient(180deg, rgba(20, 24, 32, 0.96), rgba(10, 12, 16, 0.98));
+  border-left: 1px solid rgba(251, 191, 36, 0.18);
+  box-shadow: -20px 0 40px rgba(0, 0, 0, 0.4);
+  transform: translateX(100%);
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  overflow-y: auto;
+}
+.tg-drawer.is-open { transform: translateX(0); }
+.tg-drawer__close {
+  position: absolute; top: 12px; right: 12px;
+  width: 28px; height: 28px;
+  display: grid; place-items: center;
+  border: 1px solid #2a2f37; border-radius: 50%;
+  background: #1a1d23; color: #9ca3af;
+  cursor: pointer; z-index: 2;
+}
+.tg-drawer__close:hover { border-color: #ef4444; color: #ef4444; }
+
+.tg-drawer__portrait {
+  position: relative;
+  width: 100%;
+  height: 280px;
+  display: grid; place-items: end center;
+  border-radius: 14px;
+  overflow: hidden;
+  background: linear-gradient(180deg, rgba(0, 0, 0, 0.4), transparent);
+  border: 1px solid #2a2f37;
+}
+.tg-drawer__portrait-stage {
+  display: grid; place-items: end center;
+  width: 100%; height: 100%;
+  padding-bottom: 16px;
+}
+.tg-drawer__portrait-stage .pixel-hero {
+  /* 大版本海报：保持 base 缩放 + 上下浮动 */
+  animation: pixelBreathe 3.6s ease-in-out infinite, pixelFloat 2.8s ease-in-out infinite;
+}
+@keyframes pixelFloat {
+  0%, 100% { transform: scale(4) translateY(0); }
+  50%      { transform: scale(4) translateY(-8px); }
+}
+.tg-drawer__portrait--legendary {
+  background: radial-gradient(ellipse at 50% 100%, rgba(251, 191, 36, 0.18), transparent 60%), #1a1d23;
+  border-color: rgba(251, 191, 36, 0.4);
+  box-shadow: 0 0 24px rgba(251, 191, 36, 0.1);
+}
+.tg-drawer__portrait--epic {
+  background: radial-gradient(ellipse at 50% 100%, rgba(168, 85, 247, 0.18), transparent 60%), #1a1d23;
+  border-color: rgba(168, 85, 247, 0.4);
+  box-shadow: 0 0 24px rgba(168, 85, 247, 0.1);
+}
+.tg-drawer__portrait--rare {
+  background: radial-gradient(ellipse at 50% 100%, rgba(96, 165, 250, 0.18), transparent 60%), #1a1d23;
+  border-color: rgba(96, 165, 250, 0.4);
+}
+.tg-drawer__portrait--common {
+  background: radial-gradient(ellipse at 50% 100%, rgba(156, 163, 175, 0.12), transparent 60%), #1a1d23;
+  border-color: rgba(156, 163, 175, 0.3);
+}
+.tg-drawer__rarity-tag {
+  position: absolute; top: 10px; left: 10px;
+  padding: 2px 10px; border-radius: 999px;
+  font-size: 11px; font-weight: 800; letter-spacing: 0.1em;
+  background: rgba(10, 12, 16, 0.7);
+  border: 1px solid currentColor;
+  color: #fbbf24;
+}
+.tg-drawer__portrait--epic + .tg-drawer__heading .tg-drawer__rarity-tag,
+.tg-drawer__portrait--epic .tg-drawer__rarity-tag { color: #a855f7; }
+.tg-drawer__portrait--rare .tg-drawer__rarity-tag { color: #60a5fa; }
+.tg-drawer__portrait--common .tg-drawer__rarity-tag { color: #9ca3af; }
+
+.tg-drawer__heading { display: flex; flex-direction: column; gap: 4px; }
+.tg-drawer__name {
+  margin: 0; font-size: 24px; font-weight: 800;
+  letter-spacing: 0.04em;
+}
+.tg-drawer__name--legendary { color: #fbbf24; text-shadow: 0 0 16px rgba(251, 191, 36, 0.4); }
+.tg-drawer__name--epic { color: #a855f7; }
+.tg-drawer__name--rare { color: #60a5fa; }
+.tg-drawer__name--common { color: #e5e7eb; }
+.tg-drawer__title { font-size: 12px; color: #9ca3af; letter-spacing: 0.05em; }
+
+.tg-drawer__bio {
+  font-size: 13px; line-height: 1.6; color: #c8cdd4;
+  padding: 12px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 10px;
+}
+
+.tg-drawer__stats {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+.tg-drawer__stat {
+  display: flex; align-items: center; gap: 8px;
+  padding: 8px 10px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 8px;
+  font-size: 12px;
+}
+.tg-drawer__stat-label { color: #9ca3af; flex: 1; }
+.tg-drawer__stat-value { color: #e5e7eb; font-weight: 800; font-size: 14px; }
+
+.tg-drawer__weapon {
+  display: flex; flex-direction: column; gap: 8px;
+  padding-top: 8px;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+}
+.tg-drawer__weapon-title {
+  font-size: 12px; font-weight: 700; color: #9ca3af;
+  letter-spacing: 0.05em;
+}
+.tg-drawer__weapon-card {
+  display: grid;
+  grid-template-columns: 56px 1fr;
+  gap: 12px;
+  padding: 10px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid #2a2f37;
+  border-radius: 10px;
+}
+.tg-drawer__weapon-card.tg-rarity--legendary { border-color: rgba(251, 191, 36, 0.4); background: rgba(251, 191, 36, 0.04); }
+.tg-drawer__weapon-card.tg-rarity--epic { border-color: rgba(168, 85, 247, 0.4); background: rgba(168, 85, 247, 0.04); }
+.tg-drawer__weapon-card.tg-rarity--rare { border-color: rgba(96, 165, 250, 0.4); background: rgba(96, 165, 250, 0.04); }
+.tg-drawer__weapon-card.tg-rarity--common { border-color: rgba(156, 163, 175, 0.3); }
+.tg-drawer__weapon-glyph {
+  width: 56px; height: 56px;
+  display: grid; place-items: center;
+  font-size: 32px; font-weight: 800;
+  background: rgba(0, 0, 0, 0.4);
+  border-radius: 8px;
+  color: #fbbf24;
+}
+.tg-drawer__weapon-card.tg-rarity--epic .tg-drawer__weapon-glyph { color: #a855f7; }
+.tg-drawer__weapon-card.tg-rarity--rare .tg-drawer__weapon-glyph { color: #60a5fa; }
+.tg-drawer__weapon-card.tg-rarity--common .tg-drawer__weapon-glyph { color: #9ca3af; }
+.tg-drawer__weapon-body { min-width: 0; }
+.tg-drawer__weapon-name { font-size: 14px; font-weight: 800; color: #e5e7eb; }
+.tg-drawer__weapon-desc {
+  margin-top: 4px; font-size: 12px; line-height: 1.5; color: #9ca3af;
+}
+.tg-drawer__weapon-stats {
+  margin-top: 6px; font-size: 11px; color: #6b7280;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.05em;
+}
+.tg-drawer__weapon-empty {
+  padding: 16px; text-align: center;
+  border: 1px dashed #2a2f37; border-radius: 10px;
+  color: #6b7280; font-size: 12px;
+}
+
+/* —— 「敬请期待」浮层 —— */
+.tg-coming-soon {
+  position: fixed; inset: 0; z-index: 100;
+  display: grid; place-items: center;
+  background: rgba(5, 7, 10, 0.7);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  animation: tgFadeIn 0.25s ease;
+}
+@keyframes tgFadeIn { from { opacity: 0; } to { opacity: 1; } }
+.tg-coming-soon__panel {
+  position: relative;
+  display: flex; flex-direction: column; align-items: center;
+  gap: 12px;
+  padding: 40px 32px;
+  min-width: 320px;
+  background: linear-gradient(180deg, #1a1d23, #15171b);
+  border: 1px solid rgba(251, 191, 36, 0.28);
+  border-radius: 16px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6);
+  animation: tgPopIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+@keyframes tgPopIn {
+  from { opacity: 0; transform: scale(0.92); }
+  to   { opacity: 1; transform: scale(1); }
+}
+.tg-coming-soon__close {
+  position: absolute; top: 12px; right: 12px;
+  width: 24px; height: 24px;
+  display: grid; place-items: center;
+  border: 1px solid #2a2f37; border-radius: 50%;
+  background: #0a0c10; color: #9ca3af;
+  cursor: pointer;
+}
+.tg-coming-soon__close:hover { color: #fbbf24; border-color: #fbbf24; }
+.tg-coming-soon__icon {
+  display: grid; place-items: center;
+  width: 64px; height: 64px;
+  border-radius: 50%;
+  background: radial-gradient(ellipse at center, rgba(251, 191, 36, 0.2), transparent 70%);
+  color: #fbbf24;
+}
+.tg-coming-soon__title {
+  font-size: 22px; font-weight: 800; color: #fbbf24;
+  letter-spacing: 0.08em;
+}
+.tg-coming-soon__desc {
+  font-size: 13px; color: #9ca3af;
+  text-align: center;
+  max-width: 280px;
+  line-height: 1.5;
+}
+
+.tg-sr-only {
+  position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+  overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0;
+}
+
+/* 移动端适配 */
+@media (max-width: 820px) {
+  .tg-body { grid-template-columns: 1fr; }
+  .tg-leftmenu {
+    position: absolute; left: 0; top: 0; bottom: 0;
+    width: 200px; z-index: 4;
+  }
+  .tg-drawer { width: 100%; }
+}
+
+/* =========================================================
+   Pixel Hero（像素小人）
+   32x40 像素的迷你武将，纯 CSS / div 拼出
+   ========================================================= */
+.pixel-hero {
+  position: relative;
+  width: 32px;
+  height: 40px;
+  transform-origin: bottom center;
+  /* 不影响 stage 点击的 hitbox 尺寸 */
+  image-rendering: pixelated;
+  filter: drop-shadow(0 1px 0 rgba(0, 0, 0, 0.5));
+  display: block;
+  animation: pixelBreathe 3.6s ease-in-out infinite;
+  /* 关键：让小人在 hitbox 内底部对齐，确保脚踩在 ground 线上 */
+  margin-bottom: 0;
+  flex-shrink: 0;
+}
+@keyframes pixelBreathe {
+  0%, 100% { filter: drop-shadow(0 2px 0 rgba(0, 0, 0, 0.45)); }
+  50%      { filter: drop-shadow(0 3px 0 rgba(0, 0, 0, 0.5)); }
+}
+
+/* —— 头 —— */
+.pixel-hero__head {
+  position: absolute;
+  top: 0; left: 50%; transform: translateX(-50%);
+  width: 14px; height: 14px;
+  border-radius: 2px;
+}
+.pixel-hero__eyes {
+  position: absolute;
+  top: 7px; left: 1px;
+  width: 12px; height: 2px;
+  display: flex; gap: 4px;
+}
+.pixel-hero__eyes span {
+  display: block;
+  width: 2px; height: 2px;
+}
+.pixel-hero__crown {
+  position: absolute;
+  top: -3px; left: 50%; transform: translateX(-50%);
+  width: 6px; height: 3px;
+  border-radius: 1px 1px 0 0;
+}
+.pixel-hero__crown--violet { width: 4px; }
+
+/* —— 身体 / 战袍 —— */
+.pixel-hero__body {
+  position: absolute;
+  top: 14px; left: 50%; transform: translateX(-50%);
+  width: 18px; height: 18px;
+  border-radius: 2px;
+}
+.pixel-hero__sash {
+  position: absolute;
+  bottom: 0; left: 0;
+  width: 100%; height: 3px;
+}
+.pixel-hero__name-tag {
+  position: absolute;
+  top: 2px; left: 50%; transform: translateX(-50%);
+  width: 10px; height: 10px;
+  border-radius: 1px;
+  display: grid; place-items: center;
+  font-size: 8px;
+  font-weight: 800;
+  line-height: 1;
+}
+
+/* —— 脚 —— */
+.pixel-hero__legs {
+  position: absolute;
+  bottom: 0; left: 50%; transform: translateX(-50%);
+  width: 14px; height: 8px;
+  display: flex; justify-content: space-between;
+}
+.pixel-hero__leg {
+  width: 5px; height: 8px;
+  border-radius: 0 0 2px 2px;
+}
+
+/* —— 武器（右手侧） —— */
+.pixel-hero__weapon {
+  position: absolute;
+  top: 6px; right: -10px;
+  width: 8px; height: 18px;
+  border-radius: 1px;
+  display: grid; place-items: center;
+  font-size: 7px;
+  font-weight: 800;
+  line-height: 1;
+  border: 1px solid rgba(0, 0, 0, 0.3);
+  box-shadow: 0 1px 0 rgba(0, 0, 0, 0.4);
+}
+
+/* 朝向：左朝向时整个小人水平镜像 */
+.tg-hero.is-fl .pixel-hero { transform: scaleX(-1) scale(var(--s, 1)); }
+.tg-hero.is-fl .pixel-hero { transform-origin: bottom center; }
+
+/* 武将容器大小（点击区域） */
+.tg-hero__hitbox {
+  position: relative;
+  width: 40px; height: 50px;
+  padding: 0; border: 0; background: transparent;
+  cursor: pointer;
+  display: flex; justify-content: center; align-items: flex-end;
+}
+.tg-hero__hitbox:focus-visible {
+  outline: 2px dashed #fbbf24; outline-offset: 4px;
+}
+
+/* 选中态：金色光圈 */
+.tg-hero.is-selected .pixel-hero {
+  filter: drop-shadow(0 0 6px rgba(251, 191, 36, 0.7)) drop-shadow(0 2px 0 rgba(0, 0, 0, 0.5));
+}

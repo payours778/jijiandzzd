@@ -8,9 +8,9 @@ import { QuickStrip } from "./components/QuickStrip";
 import { GameGrid } from "./components/GameGrid";
 import { Sidebar } from "./components/Sidebar";
 import { Toast } from "./components/Toast";
-import { TowerDefenseGame } from "./components/TowerDefenseGame";
+import { TowerDefenseGame, TrainingGroundScreen } from "./game/adou";
 import { useAppStore } from "./store/useAppStore";
-import { loadDevConfig } from "./game/devConfig";
+import { loadDevConfig } from "./game/adou/devConfig";
 
 export default function App() {
   const theme = useAppStore((state) => state.theme);
@@ -21,6 +21,9 @@ export default function App() {
   const user = useAppStore((state) => state.user);
   const [gameOpen, setGameOpen] = useState(
     () => window.location.hash === "#/game" || window.location.hash === "#/fx-test",
+  );
+  const [trainingOpen, setTrainingOpen] = useState(
+    () => window.location.hash === "#/training-ground",
   );
 
   useEffect(() => {
@@ -70,8 +73,10 @@ export default function App() {
 
   useEffect(() => {
     const handleHashChange = () => {
-      const open = window.location.hash === "#/game" || window.location.hash === "#/fx-test";
+      const hash = window.location.hash;
+      const open = hash === "#/game" || hash === "#/fx-test";
       setGameOpen(open);
+      setTrainingOpen(hash === "#/training-ground");
       if (open && !useAppStore.getState().user) {
         setAuthOpen(true);
       }
@@ -79,6 +84,17 @@ export default function App() {
     window.addEventListener("hashchange", handleHashChange);
     return () => window.removeEventListener("hashchange", handleHashChange);
   }, [setAuthOpen]);
+
+  if (trainingOpen) {
+    return (
+      <TrainingGroundScreen
+        onBack={() => {
+          window.location.hash = "";
+          setTrainingOpen(false);
+        }}
+      />
+    );
+  }
 
   if (gameOpen && user) {
     const mode = window.location.hash === "#/fx-test" ? "fx-test" : "game";
