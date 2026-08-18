@@ -17,6 +17,8 @@ import { Soldier } from "./units/Soldier";
 import { Zombie } from "./units/Zombie";
 import { LuBu } from "./units/LuBu";
 import { DiaoChan } from "./units/DiaoChan";
+import { CaoCao } from "./units/CaoCao";
+import { WeiUnit } from "./units/WeiUnit";
 import { playSlashDownSwing } from "./effects/playSlashDownSwing";
 
 const TEST_GENERALS = ["刘备", "赵云", "黄忠", "关羽", "张飞", "黄祖", "张苞", "关平", "马超"];
@@ -26,6 +28,7 @@ export class GamePlayScene extends Phaser.Scene {
   testMode = false;
   private board: (Unit | null)[][] = [];
   private zombies: Zombie[] = [];
+  private pendingZombies: Zombie[] = [];
   private hand: CardType[] = [];
   private handTexts: Phaser.GameObjects.Text[] = [];
   private mantou = Config.startingMantou;
@@ -85,6 +88,12 @@ export class GamePlayScene extends Phaser.Scene {
   }
 
   create() {
+    // 调试用：把场景实例挂到 window 上，方便浏览器控制台直接调用
+    if (typeof window !== "undefined") {
+      (window as unknown as { __gameScene?: GamePlayScene }).__gameScene = this;
+      // eslint-disable-next-line no-console
+      console.log("[GamePlayScene] 场景已挂到 window.__gameScene，可在控制台用 __gameScene.spawnWeiUnit(2,1,55,12000,0) 测试");
+    }
     this.gameOver = false;
     this.gameOverShown = false;
     this.wave = 1;
@@ -94,9 +103,10 @@ export class GamePlayScene extends Phaser.Scene {
     this.hand = [];
     this.handTexts = [];
     this.zombies = [];
+    this.pendingZombies = [];
     this.selectedCard = null;
     this.board = Array.from(
-      { length: this.testMode ? 1 : Config.rows },
+      { length: Config.rows },
       () => new Array<Unit | null>(Config.cols).fill(null),
     );
     this.fragmentPool = { ...FragmentPool };
@@ -154,11 +164,13 @@ export class GamePlayScene extends Phaser.Scene {
       0x3a3f48,
     );
 
-    for (let col = 0; col < Config.cols; col += 1) {
-      const center = this.getCellCenter(0, col);
-      this.add.rectangle(center.x, center.y, Config.cellWidth - 4, Config.cellHeight - 4, 0x1c1f24, 0.92);
-      this.add.rectangle(center.x, center.y, Config.cellWidth - 4, Config.cellHeight - 4, undefined)
-        .setStrokeStyle(1, 0x3a3f48);
+    for (let row = 0; row < this.board.length; row += 1) {
+      for (let col = 0; col < Config.cols; col += 1) {
+        const center = this.getCellCenter(row, col);
+        this.add.rectangle(center.x, center.y, Config.cellWidth - 4, Config.cellHeight - 4, 0x1c1f24, 0.92);
+        this.add.rectangle(center.x, center.y, Config.cellWidth - 4, Config.cellHeight - 4, undefined)
+          .setStrokeStyle(1, 0x3a3f48);
+      }
     }
   }
 
@@ -184,10 +196,10 @@ export class GamePlayScene extends Phaser.Scene {
 
     this.createRecycleBin();
 
-    const bossLabels = ["吕布", "貂蝉"];
+    const bossLabels = ["吕布", "貂蝉", "曹操"];
     bossLabels.forEach((label, index) => {
       const buttonX = 20 + index * 100;
-      const buttonY = 380;
+      const buttonY = 480;
       this.drawRoundedPanel(buttonX, buttonY, 92, 36, 0x3a1220, 0.9, 0xf43f5e);
       const button = this.add
         .text(buttonX + 46, buttonY + 18, label, {
@@ -209,24 +221,25 @@ export class GamePlayScene extends Phaser.Scene {
       "农",
       "尸",
       "障",
+      "魏",
       "刘", "备", "赵", "云", "黄", "忠", "关", "羽", "张", "飞",
       "祖", "苞", "平", "马", "超",
       ...TEST_GENERALS,
     ];
 
     const startX = 20;
-    const startY = 430;
+    const startY = 520;
     const colWidth = 92;
-    const rowHeight = 42;
+    const rowHeight = 28;
 
     labels.forEach((label, index) => {
       const buttonX = startX + (index % 10) * colWidth;
       const buttonY = startY + Math.floor(index / 10) * rowHeight;
-      this.drawRoundedPanel(buttonX, buttonY, 86, 34, 0x252a33, 0.9, 0x3a3f48);
+      this.drawRoundedPanel(buttonX, buttonY, 86, 26, 0x252a33, 0.9, 0x3a3f48);
       const button = this.add
         .text(
           buttonX + 43,
-          buttonY + 17,
+          buttonY + 13,
           label,
           {
             fontFamily: Config.fontFamily,
@@ -238,7 +251,7 @@ export class GamePlayScene extends Phaser.Scene {
         .setInteractive({ useHandCursor: true, draggable: true })
         .setData("testType", label)
         .setData("originX", buttonX + 43)
-        .setData("originY", buttonY + 17);
+        .setData("originY", buttonY + 13);
       this.testButtons.push(button);
     });
   }
@@ -314,6 +327,15 @@ export class GamePlayScene extends Phaser.Scene {
     for (let row = 0; row < this.board.length; row += 1) {
       for (let col = 0; col < Config.cols; col += 1) {
         const unit = this.board[row][col];
+        if (unit && !unit.dead) {
+          unit.tickDebuffs();
+        }
+      }
+    }
+
+    for (let row = 0; row < this.board.length; row += 1) {
+      for (let col = 0; col < Config.cols; col += 1) {
+        const unit = this.board[row][col];
         if (unit && !unit.dead && this.time.now >= unit.stunUntil) {
           unit.update(this, time, delta);
         }
@@ -324,9 +346,15 @@ export class GamePlayScene extends Phaser.Scene {
       if (zombie.dead) {
         return false;
       }
+      zombie.tickDebuffs();
       zombie.update(this, time, delta);
       return true;
     });
+
+    if (this.pendingZombies.length > 0) {
+      this.zombies.push(...this.pendingZombies);
+      this.pendingZombies = [];
+    }
 
     this.cleanupBoard();
     this.checkGameOver();
@@ -778,6 +806,12 @@ export class GamePlayScene extends Phaser.Scene {
       return;
     }
 
+    if (type === "曹" || type === "曹操") {
+      this.zombies.push(new CaoCao(this, center.x, center.y, row, 1));
+      this.messageText.setText("已放置曹操");
+      return;
+    }
+
     if (type === "尸" || type === "障") {
       this.zombies.push(
         new Zombie(
@@ -789,6 +823,14 @@ export class GamePlayScene extends Phaser.Scene {
         ),
       );
       this.messageText.setText(`已放置僵尸：${type}`);
+      return;
+    }
+
+    if (type === "魏") {
+      const wei = this.spawnWeiUnit(row, 1, 55, 12000, 0);
+      // 强制对齐到当前列 (用户点击的那列) 的左侧位置（还是按spawnWeiUnit第一格生成，但可以微调）
+      wei.setPosition(center.x, center.y);
+      this.messageText.setText(`已放置魏兵（测试模式，将从当前位置向右冲锋）`);
       return;
     }
 
@@ -888,7 +930,7 @@ export class GamePlayScene extends Phaser.Scene {
         this.updateWaveText();
         this.messageText.setText(`进入第 ${this.wave} 波`);
         if (this.wave % 5 === 0) {
-          this.showBossWarning();
+          this.showBossWarning(this.getBossForWave(this.wave));
         }
       }
       this.scheduleNextZombie();
@@ -905,11 +947,31 @@ export class GamePlayScene extends Phaser.Scene {
     const y = Config.boardY + row * Config.cellHeight + Config.cellHeight / 2;
     const strengthMultiplier = Math.pow(1.2, this.wave - 1);
     const zombie = isBossWave
-      ? this.wave % 10 === 0
-        ? new DiaoChan(this, Config.boardX - 16, y, row, strengthMultiplier)
-        : new LuBu(this, Config.boardX - 16, y, row, strengthMultiplier)
+      ? this.createBoss(this.getBossForWave(this.wave), y, row, strengthMultiplier)
       : new Zombie(this, Config.boardX - 16, y, row, type, strengthMultiplier);
     this.zombies.push(zombie);
+  }
+
+  private getBossForWave(wave: number): "吕布" | "貂蝉" | "曹操" {
+    const bossIndex = (Math.floor(wave / 5) - 1) % 3;
+    if (bossIndex === 1) return "貂蝉";
+    if (bossIndex === 2) return "曹操";
+    return "吕布";
+  }
+
+  private createBoss(
+    boss: "吕布" | "貂蝉" | "曹操",
+    y: number,
+    row: number,
+    strengthMultiplier: number,
+  ): Zombie {
+    if (boss === "貂蝉") {
+      return new DiaoChan(this, Config.boardX - 16, y, row, strengthMultiplier);
+    }
+    if (boss === "曹操") {
+      return new CaoCao(this, Config.boardX - 16, y, row, strengthMultiplier);
+    }
+    return new LuBu(this, Config.boardX - 16, y, row, strengthMultiplier);
   }
 
   private checkSynthesis() {
@@ -1165,6 +1227,55 @@ export class GamePlayScene extends Phaser.Scene {
     return rightmost;
   }
 
+  getNearestUnitInRow(row: number, fromX: number) {
+    let nearest: Unit | null = null;
+    let bestDistance = Infinity;
+
+    for (let col = 0; col < Config.cols; col += 1) {
+      const unit = this.board[row]?.[col];
+      if (unit && !unit.dead) {
+        const center = this.getCellCenter(row, col);
+        const distance = Math.abs(center.x - fromX);
+        if (distance < bestDistance) {
+          bestDistance = distance;
+          nearest = unit;
+        }
+      }
+    }
+
+    return nearest;
+  }
+
+  spawnWeiUnit(
+    row: number,
+    strengthMultiplier: number,
+    impactDamage: number,
+    duration: number,
+    xOffset = 0,
+  ) {
+    const y = Config.boardY + row * Config.cellHeight + Config.cellHeight / 2;
+    const spawnX = Config.boardX + Config.cellWidth / 2 + xOffset;
+    // eslint-disable-next-line no-console
+    console.log(`[spawnWeiUnit FIX] row=${row} spawnX=${spawnX.toFixed(0)} boardX=${Config.boardX} cellW/2=${Config.cellWidth / 2}`);
+    const wei = new WeiUnit(
+      this,
+      spawnX,
+      y,
+      row,
+      strengthMultiplier,
+      impactDamage,
+      duration,
+    );
+    this.pendingZombies.push(wei);
+    return wei;
+  }
+
+  notify(text: string) {
+    if (this.messageText) {
+      this.messageText.setText(text);
+    }
+  }
+
   showLuBuStab(unit: Unit, target: Unit) {
     const stab = this.add.text(target.x, target.y, "戳", {
       fontFamily: Config.fontFamily,
@@ -1223,15 +1334,26 @@ export class GamePlayScene extends Phaser.Scene {
     });
   }
 
-  showBossWarning() {
+  showBossWarning(boss: "吕布" | "貂蝉" | "曹操") {
+    const color =
+      boss === "貂蝉"
+        ? "#e879f9"
+        : boss === "曹操"
+          ? "#d4a72c"
+          : "#ef4444";
+    const stroke =
+      boss === "曹操"
+        ? "#450a0a"
+        : "#000";
+    const strokeThickness = boss === "曹操" ? 9 : 6;
     const warning = this.add
       .text(this.px(50), this.py(38), "BOSS 来临", {
         fontFamily: Config.fontFamily,
         fontSize: "58px",
-        color: "#ef4444",
+        color,
         fontStyle: "bold",
-        stroke: "#000",
-        strokeThickness: 6,
+        stroke,
+        strokeThickness,
       })
       .setOrigin(0.5)
       .setDepth(150)
@@ -1330,6 +1452,47 @@ export class GamePlayScene extends Phaser.Scene {
       duration: 2400,
       onComplete: () => charge.destroy(),
     });
+  }
+
+  showCaoCaoSword(unit: Unit) {
+    const center = this.getCellCenter(
+      unit.row,
+      Math.min(Config.cols - 1, this.getColFromX(unit.x) + 1),
+    );
+    this.spawnSymbol(center.x, center.y, "剑", "#d4a72c", 1.8, 340);
+  }
+
+  showCaoCaoJianxiong(unit: Unit, startCol: number) {
+    const center = this.getCellCenter(unit.row, Math.min(Config.cols - 1, startCol + 1));
+    this.spawnSymbol(center.x, center.y, "霸", "#d4a72c", 3.4, 480);
+    this.spawnSymbol(center.x - 34, center.y, "威", "#fbbf24", 1.4, 360);
+  }
+
+  showCaoCaoCharge(unit: Unit) {
+    const charge = this.add.text(unit.x, unit.y - 34, "蓄力", {
+      fontFamily: Config.fontFamily,
+      fontSize: "20px",
+      color: "#d4a72c",
+      fontStyle: "bold",
+      stroke: "#111",
+      strokeThickness: 3,
+    }).setOrigin(0.5).setDepth(86);
+
+    this.tweens.add({
+      targets: charge,
+      alpha: 0,
+      duration: 2900,
+      onComplete: () => charge.destroy(),
+    });
+  }
+
+  showWeiChargeTrail(unit: Unit) {
+    this.spawnSymbol(unit.x, unit.y, "冲", "#d4a72c", 0.9, 260);
+  }
+
+  showWeiImpact(unit: Unit, target: Unit) {
+    this.spawnSymbol(target.x, target.y, "突", "#fbbf24", 2.2, 360);
+    this.spawnSymbol(unit.x, unit.y, "骑", "#d4a72c", 1.2, 300);
   }
 
   animateSlash(x: number, y: number) {

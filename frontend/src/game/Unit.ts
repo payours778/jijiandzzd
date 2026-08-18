@@ -19,6 +19,10 @@ export abstract class Unit extends Phaser.GameObjects.Text {
   protected isFriendly = false;
   protected outlineGraphics?: Phaser.GameObjects.Graphics;
   protected outlineColor = 0xffffff;
+  private baseMaxHp = 0;
+  private heavyWoundUntil = 0;
+  private heavyWoundRatio = 1;
+  private heavyWoundMarker?: Phaser.GameObjects.Text;
 
   constructor(
     scene: Phaser.Scene,
@@ -62,6 +66,7 @@ export abstract class Unit extends Phaser.GameObjects.Text {
   syncHealthBar() {
     this.healthBar?.setPosition(this.x, this.y - 32);
     this.healthBarBackground?.setPosition(this.x, this.y - 32);
+    this.heavyWoundMarker?.setPosition(this.x, this.y - 46);
     const ratio = Math.max(0, this.hp / this.maxHp);
     this.healthBar?.setDisplaySize(this.healthBarWidth * ratio, 5);
     this.syncLevelText();
@@ -179,6 +184,45 @@ export abstract class Unit extends Phaser.GameObjects.Text {
     this.scene.time.delayedCall(duration, () => marker.destroy());
   }
 
+  applyHeavyWound(durationMs: number, maxHpRatio: number) {
+    if (this.baseMaxHp === 0) {
+      this.baseMaxHp = this.maxHp;
+    }
+    this.heavyWoundUntil = this.scene.time.now + durationMs;
+    this.heavyWoundRatio = maxHpRatio;
+    this.maxHp = this.baseMaxHp * maxHpRatio;
+    if (this.hp > this.maxHp) {
+      this.hp = this.maxHp;
+    }
+    this.showHeavyWoundMarker();
+    this.syncHealthBar();
+  }
+
+  tickDebuffs() {
+    if (this.heavyWoundUntil > 0 && this.scene.time.now >= this.heavyWoundUntil) {
+      this.heavyWoundUntil = 0;
+      this.maxHp = this.baseMaxHp || this.maxHp;
+      this.heavyWoundMarker?.destroy();
+      this.heavyWoundMarker = undefined;
+      this.syncHealthBar();
+    }
+  }
+
+  private showHeavyWoundMarker() {
+    this.heavyWoundMarker?.destroy();
+    this.heavyWoundMarker = this.scene.add
+      .text(this.x, this.y - 46, "重伤", {
+        fontFamily: Config.fontFamily,
+        fontSize: "16px",
+        color: "#d97706",
+        fontStyle: "bold",
+        stroke: "#111",
+        strokeThickness: 2,
+      })
+      .setOrigin(0.5)
+      .setDepth(100);
+  }
+
   private shakeOnHit() {
     const startX = this.x;
     this.scene.tweens.add({
@@ -220,6 +264,7 @@ export abstract class Unit extends Phaser.GameObjects.Text {
     this.levelText?.destroy();
     this.hitFlashTimer?.remove();
     this.outlineGraphics?.destroy();
+    this.heavyWoundMarker?.destroy();
   }
 
   override destroy(fromScene?: boolean) {

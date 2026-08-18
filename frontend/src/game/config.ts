@@ -154,6 +154,22 @@ export const DiaoChanStats = {
   moonlightFullScreen: true,
 };
 
+export const CaoCaoStats = {
+  hp: 1500,
+  speed: 10,
+  normalDamage: 45,
+  normalCooldown: 1200,
+  slashDamage: 1,
+  heavyWoundRatio: 0.5,
+  heavyWoundDuration: 5000,
+  summonWeiDamage: 55,
+  summonPerRow: 1,
+  summonDuration: 12000,
+  skillCooldown: 20000,
+  restTime: 600,
+  summonEnabled: true,
+};
+
 export const RefreshProbability = {
   soldier: 0.65,
   farm: 0.2,

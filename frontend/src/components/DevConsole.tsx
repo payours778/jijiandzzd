@@ -1,5 +1,12 @@
 import { useEffect, useState } from "react";
-import { Config, DiaoChanStats, LuBuStats, SoldierStats, ZombieStats } from "../game/config";
+import {
+  CaoCaoStats,
+  Config,
+  DiaoChanStats,
+  LuBuStats,
+  SoldierStats,
+  ZombieStats,
+} from "../game/config";
 import { GeneralConfig } from "../game/units/General";
 import { saveDevConfig } from "../game/devConfig";
 
@@ -80,6 +87,21 @@ const defaults = {
     charmEnabled: true,
     moonlightFullScreen: true,
   },
+  caocao: {
+    hp: 1500,
+    speed: 10,
+    normalDamage: 45,
+    normalCooldown: 1200,
+    slashDamage: 1,
+    heavyWoundRatio: 0.5,
+    heavyWoundDuration: 5000,
+    summonWeiDamage: 55,
+    summonPerRow: 1,
+    summonDuration: 12000,
+    skillCooldown: 20000,
+    restTime: 600,
+    summonEnabled: true,
+  },
 };
 
 export function DevConsole({ open, onClose }: { open: boolean; onClose: () => void }) {
@@ -146,6 +168,19 @@ export function DevConsole({ open, onClose }: { open: boolean; onClose: () => vo
     DiaoChanStats.charmDuration = defaults.diaochan.charmDuration;
     DiaoChanStats.charmEnabled = defaults.diaochan.charmEnabled;
     DiaoChanStats.moonlightFullScreen = defaults.diaochan.moonlightFullScreen;
+    CaoCaoStats.hp = defaults.caocao.hp;
+    CaoCaoStats.speed = defaults.caocao.speed;
+    CaoCaoStats.normalDamage = defaults.caocao.normalDamage;
+    CaoCaoStats.normalCooldown = defaults.caocao.normalCooldown;
+    CaoCaoStats.slashDamage = defaults.caocao.slashDamage;
+    CaoCaoStats.heavyWoundRatio = defaults.caocao.heavyWoundRatio;
+    CaoCaoStats.heavyWoundDuration = defaults.caocao.heavyWoundDuration;
+    CaoCaoStats.summonWeiDamage = defaults.caocao.summonWeiDamage;
+    CaoCaoStats.summonPerRow = defaults.caocao.summonPerRow;
+    CaoCaoStats.summonDuration = defaults.caocao.summonDuration;
+    CaoCaoStats.skillCooldown = defaults.caocao.skillCooldown;
+    CaoCaoStats.restTime = defaults.caocao.restTime;
+    CaoCaoStats.summonEnabled = defaults.caocao.summonEnabled;
     setVersion(version + 1);
   };
 
@@ -287,6 +322,22 @@ export function DevConsole({ open, onClose }: { open: boolean; onClose: () => vo
               <NumberField label="魅惑时长ms" value={DiaoChanStats.charmDuration} onChange={(value) => { DiaoChanStats.charmDuration = value; setVersion(version + 1); }} />
               <BooleanField label="魅惑开关" value={DiaoChanStats.charmEnabled} onChange={(value) => { DiaoChanStats.charmEnabled = value; setVersion(version + 1); }} />
               <BooleanField label="全屏溅射" value={DiaoChanStats.moonlightFullScreen} onChange={(value) => { DiaoChanStats.moonlightFullScreen = value; setVersion(version + 1); }} />
+            </fieldset>
+            <fieldset>
+              <legend>曹操</legend>
+              <NumberField label="基础血量" value={CaoCaoStats.hp} onChange={(value) => { CaoCaoStats.hp = value; setVersion(version + 1); }} />
+              <NumberField label="移速" value={CaoCaoStats.speed} onChange={(value) => { CaoCaoStats.speed = value; setVersion(version + 1); }} />
+              <NumberField label="普攻伤害" value={CaoCaoStats.normalDamage} onChange={(value) => { CaoCaoStats.normalDamage = value; setVersion(version + 1); }} />
+              <NumberField label="普攻CDms" value={CaoCaoStats.normalCooldown} onChange={(value) => { CaoCaoStats.normalCooldown = value; setVersion(version + 1); }} />
+              <NumberField label="奸雄击伤害" value={CaoCaoStats.slashDamage} onChange={(value) => { CaoCaoStats.slashDamage = value; setVersion(version + 1); }} />
+              <NumberField label="重伤比例" value={CaoCaoStats.heavyWoundRatio} onChange={(value) => { CaoCaoStats.heavyWoundRatio = value; setVersion(version + 1); }} />
+              <NumberField label="重伤时长ms" value={CaoCaoStats.heavyWoundDuration} onChange={(value) => { CaoCaoStats.heavyWoundDuration = value; setVersion(version + 1); }} />
+              <NumberField label="统御魏兵伤害" value={CaoCaoStats.summonWeiDamage} onChange={(value) => { CaoCaoStats.summonWeiDamage = value; setVersion(version + 1); }} />
+              <NumberField label="召唤每行数量" value={CaoCaoStats.summonPerRow} onChange={(value) => { CaoCaoStats.summonPerRow = value; setVersion(version + 1); }} />
+              <NumberField label="召唤存续ms" value={CaoCaoStats.summonDuration} onChange={(value) => { CaoCaoStats.summonDuration = value; setVersion(version + 1); }} />
+              <NumberField label="技能CDms" value={CaoCaoStats.skillCooldown} onChange={(value) => { CaoCaoStats.skillCooldown = value; setVersion(version + 1); }} />
+              <NumberField label="休整ms" value={CaoCaoStats.restTime} onChange={(value) => { CaoCaoStats.restTime = value; setVersion(version + 1); }} />
+              <BooleanField label="召唤功能开关" value={CaoCaoStats.summonEnabled} onChange={(value) => { CaoCaoStats.summonEnabled = value; setVersion(version + 1); }} />
             </fieldset>
           </div>
         )}
