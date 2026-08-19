@@ -20,7 +20,13 @@ import { DiaoChan } from "./units/DiaoChan";
 import { CaoCao } from "./units/CaoCao";
 import { WeiUnit } from "./units/WeiUnit";
 import { playSlashDownSwing } from "./effects/playSlashDownSwing";
+import { createBoardMap, preloadBoardMap } from "./boardMap";
 import { playMusic, playSfx } from "../../audio/audioSystem";
+
+interface HandCard {
+  card: CardType;
+  level: number;
+}
 
 const TEST_GENERALS = ["刘备", "赵云", "黄忠", "关羽", "张飞", "黄祖", "张苞", "关平", "马超"];
 const TEST_SOLDIERS = ["刀", "枪", "骑", "弓"];
@@ -30,8 +36,10 @@ export class GamePlayScene extends Phaser.Scene {
   private board: (Unit | null)[][] = [];
   private zombies: Zombie[] = [];
   private pendingZombies: Zombie[] = [];
-  private hand: CardType[] = [];
+  private hand: HandCard[] = [];
   private handTexts: Phaser.GameObjects.Text[] = [];
+  private handLevelTexts: Phaser.GameObjects.Text[] = [];
+  private handTrayObjects: Phaser.GameObjects.GameObject[] = [];
   private mantou = Config.startingMantou;
   private selectedCard: CardType | null = null;
   private gameOver = false;
@@ -88,6 +96,7 @@ export class GamePlayScene extends Phaser.Scene {
   }
 
   preload() {
+    preloadBoardMap(this);
     this.load.image("slash", "effects/slash.png");
     this.load.image("slash-tiny", "effects/slash-tiny.png");
     this.load.image("blades-green", "effects/blades-green.png");
@@ -144,6 +153,7 @@ export class GamePlayScene extends Phaser.Scene {
     this.input.on("drag", this.handleDrag, this);
     this.input.on("dragend", this.handleDragEnd, this);
     window.addEventListener("mini-playbox-dev-command", this.devCommandHandler);
+    window.addEventListener("mini-playbox-dev-config-changed", this.handleDevConfigChanged);
     this.input.keyboard?.on("keydown-R", () => this.scene.restart());
 
     this.time.addEvent({
@@ -155,7 +165,10 @@ export class GamePlayScene extends Phaser.Scene {
 
     this.scheduleNextZombie();
 
-    this.hand = Array.from({ length: Config.refreshCardCount }, () => this.randomCard());
+    this.hand = Array.from(
+      { length: Math.min(Config.refreshCardCount, Config.handLimit) },
+      () => this.makeHandCard(this.randomCard()),
+    );
     this.refreshCost = Config.refreshStartCost;
     this.fragmentPool = { ...FragmentPool };
     this.renderHand();
@@ -165,23 +178,48 @@ export class GamePlayScene extends Phaser.Scene {
 
   shutdown() {
     window.removeEventListener("mini-playbox-dev-command", this.devCommandHandler);
+    window.removeEventListener("mini-playbox-dev-config-changed", this.handleDevConfigChanged);
+  }
+
+  private handleDevConfigChanged = () => {
+    this.clampHandToLimit();
+    this.createHandTray();
+    this.renderHand();
+    this.updateDrawButton();
+  };
+
+  private makeHandCard(card: CardType): HandCard {
+    return { card, level: 1 };
+  }
+
+  private removeHandCardAt(handIndex: number) {
+    if (handIndex >= 0 && handIndex < this.hand.length) {
+      this.hand.splice(handIndex, 1);
+    }
+  }
+
+  private clampHandToLimit() {
+    if (this.hand.length > Config.handLimit) {
+      this.hand = this.hand.slice(0, Config.handLimit);
+    }
   }
 
   private createTestBoard() {
+    createBoardMap(this, this.board.length, Config.cols);
     this.drawRoundedPanel(
       Config.boardX - 12,
       Config.boardY - 12,
       Config.cols * Config.cellWidth + 24,
       this.board.length * Config.cellHeight + 24,
       0x15181d,
-      0.96,
+      0.34,
       0x3a3f48,
     );
 
     for (let row = 0; row < this.board.length; row += 1) {
       for (let col = 0; col < Config.cols; col += 1) {
         const center = this.getCellCenter(row, col);
-        this.add.rectangle(center.x, center.y, Config.cellWidth - 4, Config.cellHeight - 4, 0x1c1f24, 0.92);
+        this.add.rectangle(center.x, center.y, Config.cellWidth - 4, Config.cellHeight - 4, 0x0f1713, 0.4);
         this.add.rectangle(center.x, center.y, Config.cellWidth - 4, Config.cellHeight - 4, undefined)
           .setStrokeStyle(1, 0x3a3f48);
       }
@@ -375,13 +413,14 @@ export class GamePlayScene extends Phaser.Scene {
   }
 
   private createBoard() {
+    createBoardMap(this, this.board.length, Config.cols);
     this.drawRoundedPanel(
       Config.boardX - 12,
       Config.boardY - 12,
       Config.cols * Config.cellWidth + 24,
       this.board.length * Config.cellHeight + 24,
       0x15181d,
-      0.96,
+      0.34,
       0x3a3f48,
     );
 
@@ -390,7 +429,7 @@ export class GamePlayScene extends Phaser.Scene {
       for (let col = 0; col < Config.cols; col += 1) {
         this.board[row][col] = null;
         const center = this.getCellCenter(row, col);
-        this.add.rectangle(center.x, center.y, Config.cellWidth - 4, Config.cellHeight - 4, 0x1c1f24, 0.92);
+        this.add.rectangle(center.x, center.y, Config.cellWidth - 4, Config.cellHeight - 4, 0x0f1713, 0.4);
         this.add.rectangle(center.x, center.y, Config.cellWidth - 4, Config.cellHeight - 4, undefined).setStrokeStyle(1, 0x3a3f48);
       }
     }
@@ -467,21 +506,34 @@ export class GamePlayScene extends Phaser.Scene {
   }
 
   private createHandTray() {
+    this.handTrayObjects.forEach((object) => object.destroy());
+    this.handTrayObjects = [];
+
     const trayX = this.px(4.5);
     const trayY = this.py(84.8);
     const trayWidth = this.px(55.5);
     const trayHeight = this.py(8.4);
 
-    this.drawRoundedPanel(trayX, trayY, trayWidth, trayHeight, 0x15181d, 0.9, 0x4b5563);
+    const panel = this.drawRoundedPanel(
+      trayX,
+      trayY,
+      trayWidth,
+      trayHeight,
+      0x15181d,
+      0.9,
+      0x4b5563,
+    );
+    this.handTrayObjects.push(panel);
 
     const slotWidth = 50;
     const slotHeight = 46;
     for (let index = 0; index < Config.handLimit; index += 1) {
       const cx = this.px(16) + index * this.px(6.6);
-      this.drawCardSlot(cx, this.py(89), slotWidth, slotHeight, index);
+      const slot = this.drawCardSlot(cx, this.py(89), slotWidth, slotHeight, index);
+      this.handTrayObjects.push(slot);
     }
 
-    this.add
+    const label = this.add
       .text(this.px(7), this.py(89), "手牌", {
         fontFamily: Config.fontFamily,
         fontSize: "14px",
@@ -490,9 +542,16 @@ export class GamePlayScene extends Phaser.Scene {
       })
       .setOrigin(0.5)
       .setDepth(25);
+    this.handTrayObjects.push(label);
   }
 
-  private drawCardSlot(cx: number, cy: number, width: number, height: number, index: number) {
+  private drawCardSlot(
+    cx: number,
+    cy: number,
+    width: number,
+    height: number,
+    index: number,
+  ): Phaser.GameObjects.Graphics {
     const graphics = this.add.graphics().setDepth(-5);
     const fill = index % 2 === 0 ? 0x1f242c : 0x232833;
 
@@ -511,6 +570,7 @@ export class GamePlayScene extends Phaser.Scene {
 
     graphics.fillStyle(0xfbbf24, 0.9);
     graphics.fillCircle(cx + width / 2 - 4, cy - height / 2 + 4, 2.5);
+    return graphics;
   }
 
   private updateDrawButton() {
@@ -616,7 +676,7 @@ export class GamePlayScene extends Phaser.Scene {
     fill: number,
     alpha: number,
     stroke: number,
-  ) {
+  ): Phaser.GameObjects.Graphics {
     const graphics = this.add.graphics();
     graphics.fillStyle(fill, alpha);
     graphics.fillRoundedRect(x, y, width, height, 8);
@@ -624,13 +684,17 @@ export class GamePlayScene extends Phaser.Scene {
     graphics.strokeRoundedRect(x + 0.5, y + 0.5, width - 1, height - 1, 8);
     graphics.lineStyle(1, stroke, 0.7);
     graphics.strokeRoundedRect(x, y, width, height, 8);
+    return graphics;
   }
 
   private renderHand() {
     this.handTexts.forEach((text) => text.destroy());
+    this.handLevelTexts.forEach((text) => text.destroy());
     this.handTexts = [];
+    this.handLevelTexts = [];
 
-    this.hand.forEach((card, index) => {
+    this.hand.forEach((handCard, index) => {
+      const { card, level } = handCard;
       const text = this.add
         .text(this.px(16) + index * this.px(6.6), this.py(89), card, {
           fontFamily: Config.fontFamily,
@@ -645,12 +709,29 @@ export class GamePlayScene extends Phaser.Scene {
         .setDepth(30)
         .setInteractive({ useHandCursor: true, draggable: true })
         .setData("card", card)
+        .setData("level", level)
         .setData("handIndex", index);
 
+      text.on("dragstart", () => text.setBackgroundColor("transparent"));
       text.on("pointerover", () => this.showCardTooltip(card, text));
       text.on("pointerout", () => this.hideCardTooltip());
 
       this.handTexts.push(text);
+
+      if (level > 1) {
+        const badge = this.add
+          .text(text.x + 20, text.y - 20, String(level), {
+            fontFamily: Config.fontFamily,
+            fontSize: "13px",
+            color: "#fbbf24",
+            fontStyle: "bold",
+            stroke: "#111",
+            strokeThickness: 2,
+          })
+          .setOrigin(0.5)
+          .setDepth(31);
+        this.handLevelTexts.push(badge);
+      }
     });
 
     if (!this.selectedCard) {
@@ -730,7 +811,10 @@ export class GamePlayScene extends Phaser.Scene {
     }
 
     this.mantou -= this.refreshCost;
-    this.hand = Array.from({ length: Config.refreshCardCount }, () => this.randomCard());
+    this.hand = Array.from(
+      { length: Math.min(Config.refreshCardCount, Config.handLimit) },
+      () => this.makeHandCard(this.randomCard()),
+    );
     this.refreshCost += Config.refreshCostStep;
     this.updateMantouText();
     this.updateDrawButton();
@@ -765,22 +849,35 @@ export class GamePlayScene extends Phaser.Scene {
       : "农";
   }
 
-  private placeCard(card: CardType, row: number, col: number) {
+  private placeCard(card: CardType, row: number, col: number, level = 1, handIndex = -1) {
     const center = this.getCellCenter(row, col);
     const existing = this.board[row][col];
-    const incomingLevel = 1;
 
     if (existing) {
       if (
+        existing instanceof General &&
+        GeneralPieces[existing.generalName].includes(card) &&
+        existing.level < Config.maxLevel
+      ) {
+        existing.setLevel(existing.level + 1);
+        existing.playUpgradeSfx();
+        this.removeHandCardAt(handIndex);
+        this.selectedCard = null;
+        this.renderHand();
+        this.messageText.setText(`${existing.baseText} 融合文字升级到 ${existing.level} 级`);
+        return;
+      }
+
+      if (
         existing.baseText === card &&
-        existing.level === incomingLevel &&
+        existing.level === level &&
         existing.level < Config.maxLevel
       ) {
         existing.setLevel(existing.level + 1);
         if (existing instanceof Farm) {
           existing.nextProduceAt = this.time.now + existing.getProduceInterval();
         }
-        this.hand.splice(this.hand.indexOf(card), 1);
+        this.removeHandCardAt(handIndex);
         this.selectedCard = null;
         this.renderHand();
         this.messageText.setText(`${card} 升级到 ${existing.level} 级`);
@@ -805,7 +902,10 @@ export class GamePlayScene extends Phaser.Scene {
 
     this.board[row][col] = unit;
     unit.setInteractive({ draggable: true });
-    this.hand.splice(this.hand.indexOf(card), 1);
+    if (level > 1) {
+      unit.setLevel(level);
+    }
+    this.removeHandCardAt(handIndex);
     this.selectedCard = null;
     this.renderHand();
     this.messageText.setText(`已放置：${card}`);
@@ -849,6 +949,21 @@ export class GamePlayScene extends Phaser.Scene {
 
     const targetUnit = this.board[targetRow][targetCol];
     if (targetUnit && targetUnit !== unit) {
+      if (
+        targetUnit instanceof General &&
+        unit instanceof GeneralFragment &&
+        GeneralPieces[targetUnit.generalName].includes(unit.baseText) &&
+        targetUnit.level < Config.maxLevel
+      ) {
+        targetUnit.setLevel(targetUnit.level + 1);
+        targetUnit.playUpgradeSfx();
+        this.board[unit.row][unit.col] = null;
+        unit.destroy();
+        this.cleanupBoard();
+        this.messageText.setText(`${targetUnit.baseText} 融合文字升级到 ${targetUnit.level} 级`);
+        return;
+      }
+
       if (targetUnit.baseText === unit.baseText && targetUnit.level === unit.level && targetUnit.level < Config.maxLevel) {
         targetUnit.setLevel(targetUnit.level + 1);
         if (targetUnit instanceof Farm) {
@@ -896,13 +1011,42 @@ export class GamePlayScene extends Phaser.Scene {
 
   private handleHandCardDragEnd(pointer: Phaser.Input.Pointer, cardText: Phaser.GameObjects.Text) {
     const card = cardText.getData("card") as CardType;
+    const level = cardText.getData("level") as number;
     const handIndex = cardText.getData("handIndex") as number;
 
+    const targetCardText = this.handTexts.find(
+      (text) =>
+        text !== cardText &&
+        text.getBounds().contains(pointer.x, pointer.y),
+    );
+
+    if (targetCardText) {
+      const targetCard = targetCardText.getData("card") as CardType;
+      const targetLevel = targetCardText.getData("level") as number;
+      const targetIndex = targetCardText.getData("handIndex") as number;
+
+      if (targetCard === card && targetLevel === level && level < Config.maxLevel) {
+        this.hand[targetIndex].level += 1;
+        this.removeHandCardAt(handIndex);
+        const mergedIndex = handIndex < targetIndex ? targetIndex - 1 : targetIndex;
+        const mergedLevel = this.hand[mergedIndex].level;
+        this.selectedCard = null;
+        this.renderHand();
+        this.messageText.setText(`${card} 在手牌中升级到 ${mergedLevel} 级`);
+        playSfx("synthesize");
+        return;
+      }
+
+      this.snapHandCardBack(cardText, handIndex);
+      return;
+    }
+
     if (this.isInBin(pointer.x, pointer.y)) {
-      this.hand.splice(this.hand.indexOf(card), 1);
+      this.removeHandCardAt(handIndex);
       if (card in FragmentPool) {
         this.fragmentPool[card] += 1;
       }
+      this.selectedCard = null;
       this.renderHand();
       this.messageText.setText(`${card} 已回收`);
       playSfx("recycle");
@@ -917,14 +1061,16 @@ export class GamePlayScene extends Phaser.Scene {
       return;
     }
 
-    this.placeCard(card, row, col);
-    if (this.hand.includes(card)) {
+    const beforeLength = this.hand.length;
+    this.placeCard(card, row, col, level, handIndex);
+    if (this.hand.length === beforeLength) {
       this.snapHandCardBack(cardText, handIndex);
     }
   }
 
   private snapHandCardBack(cardText: Phaser.GameObjects.Text, handIndex: number) {
     const x = this.px(16) + handIndex * this.px(6.6);
+    cardText.setBackgroundColor("#252a33");
     cardText.setPosition(x, this.py(89));
   }
 

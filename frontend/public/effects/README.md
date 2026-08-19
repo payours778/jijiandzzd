@@ -11,5 +11,8 @@
 - `spear-attack.png`
   - 来源：OpenGameArt `Red axe and Spear`（作者 kenliten）
   - 许可：CC-BY 4.0，使用时保留署名
+- `board-grass.png`
+  - 来源：OpenGameArt `Ancient Civ. in the Jungle - grass-tile-2.png`（作者 DevEarley）
+  - 许可：CC0
  
 CC0 素材可免费使用、修改和商用，无需署名；CC-BY 素材需按上表保留署名。

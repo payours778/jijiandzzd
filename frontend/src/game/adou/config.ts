@@ -13,7 +13,7 @@ export const Config = {
   farmProduceInterval: 7000,
   farmProduceNum: 25,
   startingMantou: 150,
-  handLimit: 7,
+  handLimit: 5,
   maxLevel: 5,
   zombieSpawnStart: 6000,
   zombieSpawnStep: 260,

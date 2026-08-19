@@ -31,7 +31,7 @@ const defaults = {
   refreshStartCost: 50,
   refreshCostStep: 10,
   refreshCardCount: 7,
-  handLimit: 7,
+  handLimit: 5,
   maxLevel: 5,
   farmProduceInterval: 7000,
   farmProduceNum: 25,
@@ -182,6 +182,7 @@ export function DevConsole({ open, onClose }: { open: boolean; onClose: () => vo
     CaoCaoStats.restTime = defaults.caocao.restTime;
     CaoCaoStats.summonEnabled = defaults.caocao.summonEnabled;
     setVersion(version + 1);
+    window.dispatchEvent(new CustomEvent("mini-playbox-dev-config-changed"));
   };
 
   return (
@@ -213,6 +214,7 @@ export function DevConsole({ open, onClose }: { open: boolean; onClose: () => vo
                 onChange={(value) => {
                   Config[key] = value;
                   setVersion(version + 1);
+                  window.dispatchEvent(new CustomEvent("mini-playbox-dev-config-changed"));
                 }}
               />
             ))}
