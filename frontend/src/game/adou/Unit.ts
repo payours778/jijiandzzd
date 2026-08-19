@@ -109,8 +109,20 @@ export abstract class Unit extends Phaser.GameObjects.Text {
   }
 
   setLevel(level: number) {
+    const oldLevel = this.level;
     this.level = Math.min(level, 5);
     this.setText(this.baseText);
+
+    if (this.level > oldLevel) {
+      const steps = this.level - oldLevel;
+      for (let i = 0; i < steps; i += 1) {
+        this.maxHp *= 2;
+        this.hp = Math.min(this.hp * 2, this.maxHp);
+        if (this.baseMaxHp > 0) {
+          this.baseMaxHp *= 2;
+        }
+      }
+    }
 
     if (this.level > 1) {
       if (!this.levelText) {
@@ -238,7 +250,7 @@ export abstract class Unit extends Phaser.GameObjects.Text {
 
   private showDamageNumber(damage: number) {
     const number = this.scene.add
-      .text(this.x, this.y - 20, `-${damage}`, {
+      .text(this.x, this.y - 20, `-${damage.toFixed(2)}`, {
         fontFamily: Config.fontFamily,
         fontSize: "16px",
         color: "#f87171",
