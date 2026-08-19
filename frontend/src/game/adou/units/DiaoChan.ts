@@ -2,6 +2,7 @@ import { Config, DiaoChanStats } from "../config";
 import { Unit } from "../Unit";
 import { Zombie } from "./Zombie";
 import type { GamePlayScene } from "../GamePlayScene";
+import { playSfx } from "../../../audio/audioSystem";
 
 export class DiaoChan extends Zombie {
   private homeX: number;
@@ -31,6 +32,10 @@ export class DiaoChan extends Zombie {
     this.speed = DiaoChanStats.speed;
   }
 
+  protected override playDeathSfx() {
+    playSfx("diaochan_death");
+  }
+
   override update(scene: GamePlayScene, time: number, delta: number) {
     if (this.dead) return;
     this.syncHealthBar();
@@ -47,6 +52,7 @@ export class DiaoChan extends Zombie {
     if (this.charging) {
       this.chargeRemaining -= delta;
       if (this.chargeRemaining <= 0) {
+        playSfx("diaochan_skill2");
         scene.diaoChanMoonlight(DiaoChanStats.moonlightDamage * this.strengthMultiplier);
         this.charging = false;
         this.moonlightCooldown = DiaoChanStats.moonlightCooldown;
@@ -107,6 +113,7 @@ export class DiaoChan extends Zombie {
       neighbor.takeDamage(damage);
     }
     scene.showDiaoChanFan(unit);
+    playSfx("diaochan_attack");
     this.normalCooldown = 1200;
   }
 
@@ -126,6 +133,7 @@ export class DiaoChan extends Zombie {
 
     const center = scene.getCellCenter(this.row, col);
     scene.showDiaoChanFanAt(center.x, center.y);
+    playSfx("diaochan_skill1");
     this.fanCooldown = DiaoChanStats.fanCooldown;
     this.restTimer = DiaoChanStats.restTime;
   }

@@ -22,6 +22,7 @@ export function TrainingGroundScreen({ onBack }: TrainingGroundScreenProps) {
       showToast("请先登录后再开始游戏");
       return;
     }
+    sessionStorage.setItem("mini-playbox-return-to", "training");
     window.location.hash = "#/game";
   };
 

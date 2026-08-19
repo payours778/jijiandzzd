@@ -2,6 +2,7 @@ import { Config, ZombieStats } from "../config";
 import { Unit } from "../Unit";
 import { Zombie } from "./Zombie";
 import type { GamePlayScene } from "../GamePlayScene";
+import { playSfx } from "../../../audio/audioSystem";
 
 // 魏字骑兵：只能由曹操「统御」召唤，冲锋后撤退再恢复正常僵尸行为。
 export class WeiUnit extends Zombie {
@@ -118,6 +119,7 @@ export class WeiUnit extends Zombie {
         if (dx >= -10 && dx <= Math.max(40, step + 10)) {
           candidate.takeDamage(this.impactDamage * this.strengthMultiplier);
           scene.showWeiImpact(this, candidate);
+          playSfx("wei_hit");
           // eslint-disable-next-line no-console
           console.log(`[WeiUnit charge HIT] x=${this.x.toFixed(0)} col=${currentCol} target=${candidate.baseText} targetX=${candidate.x.toFixed(0)} dx=${dx.toFixed(1)} damage=${(this.impactDamage * this.strengthMultiplier).toFixed(0)} → retreat`);
           this.target = null;
@@ -169,6 +171,7 @@ export class WeiUnit extends Zombie {
       this.biteTimer -= delta;
       if (this.biteTimer <= 0) {
         unit.takeDamage(ZombieStats.biteDamage * this.strengthMultiplier);
+        playSfx("zombie_bite");
         this.biteTimer = ZombieStats.biteInterval;
       }
       return;

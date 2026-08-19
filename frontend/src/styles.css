@@ -1774,6 +1774,20 @@ img { max-width: 100%; display: block; }
   color: #78a5f7;
 }
 
+.tower-defense-page .audio-toggle,
+.game-start-screen .audio-toggle {
+  position: fixed;
+  top: 16px;
+  right: 118px;
+  z-index: 10;
+  width: 40px;
+  height: 40px;
+  border: 1px solid #3a3f48;
+  border-radius: 6px;
+  background: #15171b;
+  color: #f3f4f6;
+}
+
 .dev-console {
   position: fixed;
   top: 60px;

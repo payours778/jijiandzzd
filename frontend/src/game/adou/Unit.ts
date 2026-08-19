@@ -145,6 +145,7 @@ export abstract class Unit extends Phaser.GameObjects.Text {
 
     if (this.hp <= 0) {
       this.dead = true;
+      this.playDeathSfx();
       this.destroy();
       return;
     }
@@ -265,6 +266,10 @@ export abstract class Unit extends Phaser.GameObjects.Text {
     this.hitFlashTimer?.remove();
     this.outlineGraphics?.destroy();
     this.heavyWoundMarker?.destroy();
+  }
+
+  protected playDeathSfx() {
+    // 默认无死亡音效，武将/BOSS 子类按需覆盖。
   }
 
   override destroy(fromScene?: boolean) {

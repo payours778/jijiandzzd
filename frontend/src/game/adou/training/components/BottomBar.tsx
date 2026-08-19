@@ -1,13 +1,33 @@
 import { Music, Pause, Play } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { playMusic, stopMusic, unlock } from "../../../../audio/audioSystem";
 
 export function BottomBar() {
-  const [playing, setPlaying] = useState(false);
+  const [playing, setPlaying] = useState(true);
+
+  useEffect(() => {
+    unlock();
+    playMusic("training");
+    return () => stopMusic();
+  }, []);
+
+  const toggleMusic = () => {
+    if (playing) {
+      stopMusic();
+      setPlaying(false);
+      return;
+    }
+
+    unlock();
+    playMusic("training");
+    setPlaying(true);
+  };
+
   return (
     <footer className="tg-bottombar">
       <button
         className="tg-bottombar__bgm"
-        onClick={() => setPlaying((p) => !p)}
+        onClick={toggleMusic}
         aria-label={playing ? "暂停" : "播放"}
       >
         {playing ? <Pause size={14} /> : <Play size={14} />}

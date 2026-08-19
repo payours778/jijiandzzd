@@ -3,6 +3,7 @@ import { Unit } from "../Unit";
 import { Zombie } from "./Zombie";
 import { WeiUnit } from "./WeiUnit";
 import type { GamePlayScene } from "../GamePlayScene";
+import { playSfx } from "../../../audio/audioSystem";
 
 // 曹操：玄黑鎏金风格的统帅气场 BOSS。
 export class CaoCao extends Zombie {
@@ -29,6 +30,10 @@ export class CaoCao extends Zombie {
     this.maxHp = CaoCaoStats.hp * strengthMultiplier;
     this.hp = this.maxHp;
     this.speed = CaoCaoStats.speed;
+  }
+
+  protected override playDeathSfx() {
+    playSfx("caocao_death");
   }
 
   override update(scene: GamePlayScene, _time: number, delta: number) {
@@ -85,6 +90,7 @@ export class CaoCao extends Zombie {
       }
     }
     scene.showCaoCaoSword(this);
+    playSfx("melee");
     this.normalCooldown = CaoCaoStats.normalCooldown;
   }
 
@@ -106,6 +112,7 @@ export class CaoCao extends Zombie {
     }
 
     scene.showCaoCaoJianxiong(this, Math.min(Config.cols - 1, startCol));
+    playSfx("melee");
     this.skillCooldown = CaoCaoStats.skillCooldown;
     this.restTimer = CaoCaoStats.restTime;
   }
@@ -119,6 +126,7 @@ export class CaoCao extends Zombie {
     this.charging = true;
     this.chargeRemaining = 3000;
     scene.showCaoCaoCharge(this);
+    playSfx("cavalry");
   }
 
   private summonWei(scene: GamePlayScene) {

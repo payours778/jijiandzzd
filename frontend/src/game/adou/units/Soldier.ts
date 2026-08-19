@@ -1,6 +1,7 @@
 import { SoldierStats, type CardType } from "../config";
 import { Unit } from "../Unit";
 import type { GamePlayScene } from "../GamePlayScene";
+import { playSfx } from "../../../audio/audioSystem";
 
 export class Soldier extends Unit {
   soldierType: CardType;
@@ -44,6 +45,7 @@ export class Soldier extends Unit {
       if (target) {
         target.takeDamage(stats.damage * damageMultiplier);
         scene.animateDaoSlash(this, target);
+        playSfx("melee");
         this.attackTimer = stats.cooldown * cooldownMultiplier;
       }
       return;
@@ -58,6 +60,7 @@ export class Soldier extends Unit {
       if (targets.length > 0) {
         targets.forEach((zombie) => zombie.takeDamage(stats.damage * damageMultiplier));
         scene.animateThrust(this, this.col - 3);
+        playSfx("spear");
         this.attackTimer = stats.cooldown * cooldownMultiplier;
       }
       return;
@@ -67,6 +70,7 @@ export class Soldier extends Unit {
       const target = scene.getNearestZombieInRow(this.row, this.x);
       if (target) {
         scene.shootArrow(this.x, this.y, target, stats.damage * damageMultiplier);
+        playSfx("bow");
         this.attackTimer = stats.cooldown * cooldownMultiplier;
       }
       return;
@@ -77,6 +81,7 @@ export class Soldier extends Unit {
       if (targets.length > 0) {
         targets.forEach((zombie) => zombie.takeDamage(stats.damage * damageMultiplier));
         scene.animateCavalrySlash(this);
+        playSfx("cavalry");
         this.attackTimer = stats.cooldown * cooldownMultiplier;
       }
     }

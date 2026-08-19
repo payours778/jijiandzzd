@@ -1,5 +1,7 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useAppStore } from "../../../store/useAppStore";
+import { AudioToggleButton } from "../../../audio/AudioToggleButton";
+import { playMusic, playSfx, stopMusic, unlock } from "../../../audio/audioSystem";
 import { listWeapons } from "../weapons";
 
 const avatars = [
@@ -20,9 +22,11 @@ const leaderboard = [
 export function GameStartScreen({
   onStart,
   onBack,
+  backLabel = "返回网站",
 }: {
   onStart: () => void;
   onBack: () => void;
+  backLabel?: string;
 }) {
   const user = useAppStore((state) => state.user);
   const [mode, setMode] = useState<"normal" | "challenge">("normal");
@@ -30,6 +34,12 @@ export function GameStartScreen({
     () => localStorage.getItem("mini-playbox-avatar") || avatars[0],
   );
   const [avatarPickerOpen, setAvatarPickerOpen] = useState(false);
+
+  useEffect(() => {
+    unlock();
+    playMusic("menu");
+    return () => stopMusic();
+  }, []);
 
   /** 武器列表：从独立 weapons 模块动态读取，保留按 defaultHolder 排序 */
   const weapons = useMemo(
@@ -41,15 +51,24 @@ export function GameStartScreen({
   );
 
   const selectAvatar = (path: string) => {
+    playSfx("click");
     setAvatar(path);
     localStorage.setItem("mini-playbox-avatar", path);
   };
 
   return (
     <div className="game-start-screen">
-      <button className="game-start-back" type="button" onClick={onBack}>
-        返回网站
+      <button
+        className="game-start-back"
+        type="button"
+        onClick={() => {
+          playSfx("click");
+          onBack();
+        }}
+      >
+        {backLabel}
       </button>
+      <AudioToggleButton />
 
       <header className="game-start-header">
         <div className="game-start-user">
@@ -57,7 +76,10 @@ export function GameStartScreen({
             className="game-start-user-avatar"
             src={avatar}
             alt="用户头像"
-            onClick={() => setAvatarPickerOpen(true)}
+            onClick={() => {
+              playSfx("click");
+              setAvatarPickerOpen(true);
+            }}
           />
           <div>
             <strong>{user?.displayName || "游客"}</strong>
@@ -75,7 +97,10 @@ export function GameStartScreen({
           <button
             className={`game-mode-card${mode === "normal" ? " is-active" : ""}`}
             type="button"
-            onClick={() => setMode("normal")}
+            onClick={() => {
+              playSfx("click");
+              setMode("normal");
+            }}
           >
             <strong>普通模式</strong>
             <span>经典波次防守，正常游戏流程</span>
@@ -130,7 +155,10 @@ export function GameStartScreen({
           className="button button-primary game-start-button"
           type="button"
           disabled={mode === "challenge"}
-          onClick={onStart}
+          onClick={() => {
+            playSfx("click");
+            onStart();
+          }}
         >
           开始游戏
         </button>
@@ -138,7 +166,13 @@ export function GameStartScreen({
 
       {avatarPickerOpen && (
         <div className="avatar-picker-modal">
-          <div className="avatar-picker-backdrop" onClick={() => setAvatarPickerOpen(false)} />
+          <div
+            className="avatar-picker-backdrop"
+            onClick={() => {
+              playSfx("click");
+              setAvatarPickerOpen(false);
+            }}
+          />
           <div className="avatar-picker-card" role="dialog" aria-modal="true">
             <h2>选择头像</h2>
             <img className="avatar-picker-preview" src={avatar} alt="当前头像" />
@@ -157,7 +191,10 @@ export function GameStartScreen({
             <button
               className="button button-primary"
               type="button"
-              onClick={() => setAvatarPickerOpen(false)}
+              onClick={() => {
+                playSfx("click");
+                setAvatarPickerOpen(false);
+              }}
             >
               完成
             </button>

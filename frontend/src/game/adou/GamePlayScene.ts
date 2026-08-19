@@ -20,6 +20,7 @@ import { DiaoChan } from "./units/DiaoChan";
 import { CaoCao } from "./units/CaoCao";
 import { WeiUnit } from "./units/WeiUnit";
 import { playSlashDownSwing } from "./effects/playSlashDownSwing";
+import { playMusic, playSfx } from "../../audio/audioSystem";
 
 const TEST_GENERALS = ["刘备", "赵云", "黄忠", "关羽", "张飞", "黄祖", "张苞", "关平", "马超"];
 const TEST_SOLDIERS = ["刀", "枪", "骑", "弓"];
@@ -49,11 +50,17 @@ export class GamePlayScene extends Phaser.Scene {
   private waveText!: Phaser.GameObjects.Text;
   private gameOverPanel?: Phaser.GameObjects.Graphics;
   private gameOverButton?: Phaser.GameObjects.Text;
+  private drawButtonBounds = {
+    x: 0.62 * 960,
+    y: 0.8575 * 640,
+    width: 0.16 * 960,
+    height: 0.065 * 640,
+  };
   private binBounds = {
-    x: 0.89 * 960,
-    y: 0.23 * 640,
-    width: 0.09 * 960,
-    height: 0.41 * 640,
+    x: 0.875 * 960,
+    y: 0.12 * 640,
+    width: 0.10 * 960,
+    height: 0.20 * 640,
   };
   private binText!: Phaser.GameObjects.Text;
   private selectedTestType: string | null = null;
@@ -85,9 +92,16 @@ export class GamePlayScene extends Phaser.Scene {
     this.load.image("slash-tiny", "effects/slash-tiny.png");
     this.load.image("blades-green", "effects/blades-green.png");
     this.load.image("blades-red", "effects/blades-red.png");
+    this.load.spritesheet("spear-attack", "effects/spear-attack.png", {
+      frameWidth: 320,
+      frameHeight: 320,
+      endFrame: 7,
+    });
   }
 
   create() {
+    playMusic(this.testMode ? "fxTest" : "battle");
+
     // 调试用：把场景实例挂到 window 上，方便浏览器控制台直接调用
     if (typeof window !== "undefined") {
       (window as unknown as { __gameScene?: GamePlayScene }).__gameScene = this;
@@ -405,37 +419,98 @@ export class GamePlayScene extends Phaser.Scene {
       color: "#d1d5db",
     }).setOrigin(0.5);
 
-    this.selectedText = this.add.text(this.px(2.5), this.py(94), "", {
+    this.selectedText = this.add.text(this.px(2.5), this.py(91), "", {
       fontFamily: Config.fontFamily,
       fontSize: "18px",
       color: "#a78bfa",
     });
 
-    this.drawRoundedPanel(this.px(82), this.py(91), this.px(15), this.py(7), 0xfbbf24, 0.95, 0xb45309);
+    this.drawRoundedPanel(0, this.py(84), Config.gameWidth, this.py(12), 0x111318, 0.92, 0x3a3f48);
+    this.createHandTray();
+
+    this.drawRoundedPanel(
+      this.drawButtonBounds.x,
+      this.drawButtonBounds.y,
+      this.drawButtonBounds.width,
+      this.drawButtonBounds.height,
+      0xfbbf24,
+      0.95,
+      0xb45309,
+    );
     this.drawButton = this.add
-      .text(this.px(97), this.py(94), "", {
-        fontFamily: Config.fontFamily,
-        fontSize: "20px",
-        color: "#111",
-        fontStyle: "bold",
-      })
-      .setOrigin(1, 0.5)
+      .text(
+        this.drawButtonBounds.x + this.drawButtonBounds.width / 2,
+        this.drawButtonBounds.y + this.drawButtonBounds.height / 2,
+        "",
+        {
+          fontFamily: Config.fontFamily,
+          fontSize: "20px",
+          color: "#111",
+          fontStyle: "bold",
+        },
+      )
+      .setOrigin(0.5)
       .setInteractive({ useHandCursor: true });
 
     this.createRecycleBin();
 
     this.add
-      .text(this.px(2.5), this.py(94), "R：重新开局", {
+      .text(this.px(2.5), this.py(95), "R：重新开局", {
         fontFamily: Config.fontFamily,
         fontSize: "16px",
         color: "#6b7280",
       });
 
-    this.drawRoundedPanel(0, this.py(84), Config.gameWidth, this.py(12), 0x111318, 0.92, 0x3a3f48);
-
     this.updateMantouText();
     this.updateDrawButton();
     this.updateWaveText();
+  }
+
+  private createHandTray() {
+    const trayX = this.px(4.5);
+    const trayY = this.py(84.8);
+    const trayWidth = this.px(55.5);
+    const trayHeight = this.py(8.4);
+
+    this.drawRoundedPanel(trayX, trayY, trayWidth, trayHeight, 0x15181d, 0.9, 0x4b5563);
+
+    const slotWidth = 50;
+    const slotHeight = 46;
+    for (let index = 0; index < Config.handLimit; index += 1) {
+      const cx = this.px(16) + index * this.px(6.6);
+      this.drawCardSlot(cx, this.py(89), slotWidth, slotHeight, index);
+    }
+
+    this.add
+      .text(this.px(7), this.py(89), "手牌", {
+        fontFamily: Config.fontFamily,
+        fontSize: "14px",
+        color: "#9ca3af",
+        fontStyle: "bold",
+      })
+      .setOrigin(0.5)
+      .setDepth(25);
+  }
+
+  private drawCardSlot(cx: number, cy: number, width: number, height: number, index: number) {
+    const graphics = this.add.graphics().setDepth(-5);
+    const fill = index % 2 === 0 ? 0x1f242c : 0x232833;
+
+    graphics.fillStyle(fill, 0.95);
+    graphics.fillRoundedRect(cx - width / 2, cy - height / 2, width, height, 8);
+    graphics.lineStyle(1, 0x111318, 1);
+    graphics.strokeRoundedRect(
+      cx - width / 2 + 0.5,
+      cy - height / 2 + 0.5,
+      width - 1,
+      height - 1,
+      8,
+    );
+    graphics.lineStyle(1, 0x4b5563, 0.85);
+    graphics.strokeRoundedRect(cx - width / 2, cy - height / 2, width, height, 8);
+
+    graphics.fillStyle(0xfbbf24, 0.9);
+    graphics.fillCircle(cx + width / 2 - 4, cy - height / 2 + 4, 2.5);
   }
 
   private updateDrawButton() {
@@ -449,6 +524,9 @@ export class GamePlayScene extends Phaser.Scene {
   }
 
   private createRecycleBin() {
+    const cx = this.binBounds.x + this.binBounds.width / 2;
+    const cy = this.binBounds.y + this.binBounds.height / 2;
+
     this.drawRoundedPanel(
       this.binBounds.x,
       this.binBounds.y,
@@ -459,19 +537,75 @@ export class GamePlayScene extends Phaser.Scene {
       0x6b7280,
     );
 
+    this.drawRecycleIcon(cx, cy - 10, 34);
+
     this.binText = this.add
       .text(
-        this.binBounds.x + this.binBounds.width / 2,
-        this.binBounds.y + this.binBounds.height / 2,
+        cx,
+        this.binBounds.y + this.binBounds.height - 18,
         "回收站",
         {
           fontFamily: Config.fontFamily,
-          fontSize: "18px",
-          color: "#9ca3af",
+          fontSize: "15px",
+          color: "#cbd5e1",
           fontStyle: "bold",
         },
       )
       .setOrigin(0.5);
+  }
+
+  private drawRecycleIcon(cx: number, cy: number, size: number) {
+    const graphics = this.add.graphics().setDepth(35);
+
+    graphics.lineStyle(Math.max(2, Math.round(size * 0.12)), 0x9ca3af, 1);
+    graphics.strokeRoundedRect(
+      cx - size * 0.26,
+      cy - size * 0.95,
+      size * 0.52,
+      size * 0.34,
+      2,
+    );
+
+    graphics.fillStyle(0x9ca3af, 1);
+    graphics.fillRoundedRect(
+      cx - size * 0.58,
+      cy - size * 0.62,
+      size * 1.16,
+      size * 0.22,
+      2,
+    );
+
+    graphics.fillStyle(0x475569, 1);
+    graphics.fillRoundedRect(
+      cx - size * 0.44,
+      cy - size * 0.42,
+      size * 0.88,
+      size * 1.02,
+      3,
+    );
+    graphics.lineStyle(2, 0x111318, 1);
+    graphics.strokeRoundedRect(
+      cx - size * 0.44,
+      cy - size * 0.42,
+      size * 0.88,
+      size * 1.02,
+      3,
+    );
+
+    graphics.lineStyle(Math.max(1, Math.round(size * 0.08)), 0x94a3b8, 0.85);
+    graphics.lineBetween(cx, cy - size * 0.24, cx, cy + size * 0.44);
+    graphics.lineBetween(
+      cx - size * 0.25,
+      cy - size * 0.24,
+      cx - size * 0.25,
+      cy + size * 0.44,
+    );
+    graphics.lineBetween(
+      cx + size * 0.25,
+      cy - size * 0.24,
+      cx + size * 0.25,
+      cy + size * 0.44,
+    );
   }
 
   private drawRoundedPanel(
@@ -502,10 +636,13 @@ export class GamePlayScene extends Phaser.Scene {
           fontFamily: Config.fontFamily,
           fontSize: "26px",
           color: this.getCardColor(card),
+          stroke: "#111",
+          strokeThickness: 2,
           backgroundColor: "#252a33",
           padding: { x: 12, y: 8 },
         })
         .setOrigin(0.5)
+        .setDepth(30)
         .setInteractive({ useHandCursor: true, draggable: true })
         .setData("card", card)
         .setData("handIndex", index);
@@ -571,8 +708,13 @@ export class GamePlayScene extends Phaser.Scene {
       return;
     }
 
-    const drawBounds = this.drawButton.getBounds();
-    if (drawBounds.contains(pointer.x, pointer.y)) {
+    const drawBounds = this.drawButtonBounds;
+    if (
+      pointer.x >= drawBounds.x &&
+      pointer.x <= drawBounds.x + drawBounds.width &&
+      pointer.y >= drawBounds.y &&
+      pointer.y <= drawBounds.y + drawBounds.height
+    ) {
       this.drawCard();
       return;
     }
@@ -594,6 +736,7 @@ export class GamePlayScene extends Phaser.Scene {
     this.updateDrawButton();
     this.renderHand();
     this.messageText.setText(`刷新手牌，消耗馒头：${this.refreshCost - Config.refreshCostStep}`);
+    playSfx("draw");
   }
 
   private randomCard(): CardType {
@@ -641,6 +784,9 @@ export class GamePlayScene extends Phaser.Scene {
         this.selectedCard = null;
         this.renderHand();
         this.messageText.setText(`${card} 升级到 ${existing.level} 级`);
+        if (existing instanceof General) {
+          existing.playUpgradeSfx();
+        }
       } else {
         this.messageText.setText("该格子被占用，无法放置");
       }
@@ -663,6 +809,7 @@ export class GamePlayScene extends Phaser.Scene {
     this.selectedCard = null;
     this.renderHand();
     this.messageText.setText(`已放置：${card}`);
+    playSfx("place");
   }
 
   private handleDrag(_pointer: Phaser.Input.Pointer, gameObject: Phaser.GameObjects.GameObject, dragX: number, dragY: number) {
@@ -711,6 +858,9 @@ export class GamePlayScene extends Phaser.Scene {
         unit.destroy();
         this.cleanupBoard();
         this.messageText.setText(`${targetUnit.baseText} 升级到 ${targetUnit.level} 级`);
+        if (targetUnit instanceof General) {
+          targetUnit.playUpgradeSfx();
+        }
         return;
       }
 
@@ -755,6 +905,7 @@ export class GamePlayScene extends Phaser.Scene {
       }
       this.renderHand();
       this.messageText.setText(`${card} 已回收`);
+      playSfx("recycle");
       return;
     }
 
@@ -888,6 +1039,7 @@ export class GamePlayScene extends Phaser.Scene {
     unit.destroy();
     this.cleanupBoard();
     this.messageText.setText(`${unit.baseText} 已回收`);
+    playSfx("recycle");
   }
 
   private snapUnitBack(unit: Unit) {
@@ -906,6 +1058,7 @@ export class GamePlayScene extends Phaser.Scene {
           this.mantou += Config.farmProduceNum;
           unit.nextProduceAt = this.time.now + unit.getProduceInterval();
           unit.showProduceNumber(Config.farmProduceNum);
+          playSfx("farm");
         }
       }
     }
@@ -1005,6 +1158,7 @@ export class GamePlayScene extends Phaser.Scene {
           this.board[row][col] = general;
           this.board[row][col + 1] = null;
           this.messageText.setText(`合成武将：${generalName}`);
+          playSfx("synthesize");
         }
       }
     }
@@ -1033,6 +1187,8 @@ export class GamePlayScene extends Phaser.Scene {
   }
 
   private showGameOverPanel() {
+    playSfx("game_over");
+
     const cx = this.px(50);
     const cy = this.py(50);
     this.gameOverPanel = this.add.graphics();
@@ -1335,6 +1491,8 @@ export class GamePlayScene extends Phaser.Scene {
   }
 
   showBossWarning(boss: "吕布" | "貂蝉" | "曹操") {
+    playSfx("boss_warning");
+
     const color =
       boss === "貂蝉"
         ? "#e879f9"
@@ -1569,19 +1727,66 @@ export class GamePlayScene extends Phaser.Scene {
     const startX = unit.x;
     const safeTargetCol = Math.max(0, targetCol);
     const endX = Config.boardX + safeTargetCol * Config.cellWidth + Config.cellWidth / 2;
-    const thrust = this.add.image(unit.x, unit.y, "slash")
-      .setOrigin(0.5)
+    const finalWidth = Config.cellWidth * 3;
+    const smallWidth = Config.cellWidth * 0.6;
+    const height = Config.cellHeight * 1.15;
+    const startHandleX = startX + Config.cellWidth * 0.2;
+    const thrustHandleX = startX - Config.cellWidth * 0.05;
+    const thrust = this.add.image(startHandleX, unit.y, "spear-attack", 2)
+      .setOrigin(1, 0.5)
       .setDepth(80)
-      .setScale(1.2)
-      .setAngle(-18);
+      .setFlipX(true)
+      .setDisplaySize(smallWidth, height);
+
+    const streak = this.add.rectangle(
+      (startX + endX) / 2,
+      unit.y,
+      Math.abs(endX - startX) + Config.cellWidth,
+      2,
+      0xfde68a,
+      0.35,
+    )
+      .setOrigin(0.5)
+      .setDepth(79);
 
     this.tweens.add({
       targets: thrust,
-      x: endX,
-      scale: 1.6,
+      x: thrustHandleX,
+      scaleX: finalWidth / 320,
+      duration: 160,
+      ease: "Cubic.easeOut",
+      onComplete: () => {
+        const flash = this.add.circle(endX, unit.y, 8, 0xfbbf24, 0.9).setDepth(90);
+        const ring = this.add.circle(endX, unit.y, 5, 0xfff7d6, 0.8).setDepth(90);
+        this.tweens.add({
+          targets: flash,
+          scale: 3,
+          alpha: 0,
+          duration: 130,
+          onComplete: () => flash.destroy(),
+        });
+        this.tweens.add({
+          targets: ring,
+          scale: 2.2,
+          alpha: 0,
+          duration: 160,
+          onComplete: () => ring.destroy(),
+        });
+        this.tweens.add({
+          targets: thrust,
+          x: startHandleX,
+          scaleX: smallWidth / 320,
+          duration: 130,
+          ease: "Quad.easeIn",
+          onComplete: () => thrust.destroy(),
+        });
+      },
+    });
+    this.tweens.add({
+      targets: streak,
       alpha: 0,
-      duration: 240,
-      onComplete: () => thrust.destroy(),
+      duration: 200,
+      onComplete: () => streak.destroy(),
     });
   }
 

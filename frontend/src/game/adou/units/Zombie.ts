@@ -1,6 +1,7 @@
 import { ZombieStats } from "../config";
 import { Unit } from "../Unit";
 import type { GamePlayScene } from "../GamePlayScene";
+import { playSfx } from "../../../audio/audioSystem";
 
 export class Zombie extends Unit {
   zombieType: "normal" | "cone";
@@ -41,6 +42,7 @@ export class Zombie extends Unit {
       if (this.biteTimer <= 0) {
         unit.takeDamage(ZombieStats.biteDamage * this.strengthMultiplier);
         this.tiltToward(unit);
+        playSfx("zombie_bite");
         this.biteTimer = ZombieStats.biteInterval;
       }
       return;

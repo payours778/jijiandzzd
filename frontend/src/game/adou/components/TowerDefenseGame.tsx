@@ -6,6 +6,8 @@ import { GamePlayScene } from "../GamePlayScene";
 import { DevConsole } from "./DevConsole";
 import { GameStartScreen } from "./GameStartScreen";
 import { loadDevConfig } from "../devConfig";
+import { AudioToggleButton } from "../../../audio/AudioToggleButton";
+import { playMusic, playSfx, stopMusic, unlock } from "../../../audio/audioSystem";
 
 export function TowerDefenseGame({
   mode = "game",
@@ -17,6 +19,19 @@ export function TowerDefenseGame({
   const containerRef = useRef<HTMLDivElement>(null);
   const [consoleOpen, setConsoleOpen] = useState(false);
   const [started, setStarted] = useState(false);
+  const fromTraining =
+    typeof window !== "undefined" &&
+    sessionStorage.getItem("mini-playbox-return-to") === "training";
+
+  const handleBack = () => {
+    playSfx("click");
+    sessionStorage.removeItem("mini-playbox-return-to");
+    if (fromTraining) {
+      window.location.hash = "#/training-ground";
+      return;
+    }
+    onBack();
+  };
 
   useEffect(() => {
     loadDevConfig();
@@ -38,8 +53,12 @@ export function TowerDefenseGame({
       },
     });
 
+    unlock();
+    playMusic(mode === "fx-test" ? "fxTest" : "battle");
+
     return () => {
       game.destroy(true);
+      stopMusic();
     };
   }, [mode, started]);
 
@@ -47,23 +66,32 @@ export function TowerDefenseGame({
     return (
       <GameStartScreen
         onStart={() => setStarted(true)}
-        onBack={onBack}
+        onBack={handleBack}
+        backLabel={fromTraining ? "返回军营" : "返回网站"}
       />
     );
   }
 
   return (
     <div className="tower-defense-page">
-      <button className="tower-defense-back" type="button" onClick={onBack}>
-        返回网站
+      <button
+        className="tower-defense-back"
+        type="button"
+        onClick={handleBack}
+      >
+        {fromTraining ? "返回军营" : "返回网站"}
       </button>
       <button
         className="tower-defense-dev"
         type="button"
-        onClick={() => setConsoleOpen(true)}
+        onClick={() => {
+          playSfx("click");
+          setConsoleOpen(true);
+        }}
       >
         开发者控制台
       </button>
+      <AudioToggleButton />
       <div ref={containerRef} className="tower-defense-container" />
       <div className="crt-overlay" aria-hidden="true" />
       <DevConsole open={consoleOpen} onClose={() => setConsoleOpen(false)} />

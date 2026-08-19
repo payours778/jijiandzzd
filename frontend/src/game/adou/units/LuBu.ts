@@ -2,6 +2,7 @@ import { Unit } from "../Unit";
 import { Zombie } from "./Zombie";
 import { Config, LuBuStats } from "../config";
 import type { GamePlayScene } from "../GamePlayScene";
+import { playSfx } from "../../../audio/audioSystem";
 
 export class LuBu extends Zombie {
   private moveAccumulator = 0;
@@ -26,6 +27,10 @@ export class LuBu extends Zombie {
     this.maxHp = LuBuStats.hp * strengthMultiplier;
     this.hp = this.maxHp;
     this.speed = LuBuStats.speed;
+  }
+
+  protected override playDeathSfx() {
+    playSfx("lubu_death");
   }
 
   override update(scene: GamePlayScene, _time: number, delta: number) {
@@ -95,6 +100,7 @@ export class LuBu extends Zombie {
     const damage = LuBuStats.normalDamage * this.strengthMultiplier;
     unit.takeDamage(damage);
     scene.showLuBuStab(this, unit);
+    playSfx("lubu_attack");
     this.normalCooldown = LuBuStats.normalCooldown;
   }
 
@@ -113,6 +119,7 @@ export class LuBu extends Zombie {
     }
 
     scene.showLuBuSlash(this, col);
+    playSfx("lubu_skill1");
     this.skillCooldown = LuBuStats.skillCooldown;
     this.restTimer = LuBuStats.slashRest;
   }
@@ -137,6 +144,7 @@ export class LuBu extends Zombie {
       : scene.getRightmostUnitInRow(this.row);
     if (target) {
       const damage = LuBuStats.arrowDamage * this.strengthMultiplier;
+      playSfx("lubu_skill2");
       scene.shootUnitArrow(this.x, this.y, target, damage);
     }
   }

@@ -1,5 +1,6 @@
 import { Unit } from "../Unit";
 import type { GamePlayScene } from "../GamePlayScene";
+import { playSfx } from "../../../audio/audioSystem";
 
 export const GeneralConfig = {
   刘备: { hp: 340, damage: 22, cooldown: 1800, color: "#f59e0b" },
@@ -12,6 +13,32 @@ export const GeneralConfig = {
   关平: { hp: 330, damage: 26, cooldown: 1300, color: "#fb7185" },
   马超: { hp: 320, damage: 30, cooldown: 1800, color: "#60a5fa" },
 };
+
+function playGeneralAttackSfx(name: keyof typeof GeneralConfig) {
+  switch (name) {
+    case "刘备":
+      playSfx("general_liubei");
+      break;
+    case "赵云":
+      playSfx("general_zhaoyun");
+      break;
+    case "关羽":
+      playSfx("general_guanyu");
+      break;
+    case "黄忠":
+    case "黄祖":
+      playSfx("bow");
+      break;
+    case "张飞":
+    case "张苞":
+    case "马超":
+      playSfx("spear");
+      break;
+    case "关平":
+      playSfx("melee");
+      break;
+  }
+}
 
 export class General extends Unit {
   generalName: keyof typeof GeneralConfig;
@@ -30,6 +57,14 @@ export class General extends Unit {
     this.isFriendly = true;
     this.attachHealthBar(36, 0x22c55e);
     this.attachOutline(0xfbbf24);
+  }
+
+  playUpgradeSfx() {
+    playGeneralAttackSfx(this.generalName);
+  }
+
+  protected override playDeathSfx() {
+    playSfx("general_death");
   }
 
   override update(scene: GamePlayScene, _time: number, delta: number) {
@@ -51,6 +86,7 @@ export class General extends Unit {
       if (targets.length > 0) {
         targets.forEach((zombie) => zombie.takeDamage(config.damage * damageMultiplier));
         scene.showHealRing(this);
+        playGeneralAttackSfx(this.generalName);
         this.attackTimer = config.cooldown * cooldownMultiplier;
       }
       return;
@@ -61,6 +97,7 @@ export class General extends Unit {
       if (targets.length > 0) {
         targets.forEach((zombie) => zombie.takeDamage(config.damage * damageMultiplier));
         scene.showZhaoyunStab(this);
+        playGeneralAttackSfx(this.generalName);
         this.attackTimer = config.cooldown * cooldownMultiplier;
       }
       return;
@@ -72,6 +109,7 @@ export class General extends Unit {
         targets.forEach((zombie) => zombie.takeDamage(config.damage * damageMultiplier));
         scene.huangzhongArrowRow(this.row, config.damage * damageMultiplier);
         scene.showHuangzhongBow(this);
+        playGeneralAttackSfx(this.generalName);
         if (Math.random() < 0.1) {
           scene.rainArrowsAll(config.damage * damageMultiplier);
         }
@@ -85,6 +123,7 @@ export class General extends Unit {
       if (targets.length > 0) {
         targets.forEach((zombie) => zombie.takeDamage(config.damage * damageMultiplier));
         scene.showGuanyuSlash(this);
+        playGeneralAttackSfx(this.generalName);
         this.attackTimer = config.cooldown * cooldownMultiplier;
       }
       return;
@@ -98,6 +137,7 @@ export class General extends Unit {
           zombie.setX(zombie.x - 42);
         });
         scene.showZhangfeiShock(this);
+        playGeneralAttackSfx(this.generalName);
         this.attackTimer = config.cooldown * cooldownMultiplier;
       }
       return;
@@ -108,6 +148,7 @@ export class General extends Unit {
       if (targets.length > 0) {
         targets.forEach((zombie) => zombie.takeDamage(config.damage * damageMultiplier));
         scene.showPoisonEffect(this);
+        playGeneralAttackSfx(this.generalName);
         this.attackTimer = config.cooldown * cooldownMultiplier;
       }
       return;
@@ -118,6 +159,7 @@ export class General extends Unit {
       if (targets.length > 0) {
         targets.forEach((zombie) => zombie.takeDamage(config.damage * damageMultiplier));
         scene.showHeavyThrust(this);
+        playGeneralAttackSfx(this.generalName);
         this.attackTimer = config.cooldown * cooldownMultiplier;
       }
       return;
@@ -128,6 +170,7 @@ export class General extends Unit {
       if (targets.length > 0) {
         targets.forEach((zombie) => zombie.takeDamage(config.damage * damageMultiplier));
         scene.showArcSlash(this);
+        playGeneralAttackSfx(this.generalName);
         this.attackTimer = config.cooldown * cooldownMultiplier;
       }
       return;
@@ -139,6 +182,7 @@ export class General extends Unit {
         targets.forEach((zombie) => zombie.takeDamage(config.damage * damageMultiplier));
         scene.animateCharge(this, this.col - 2);
         scene.showChargeEffect(this);
+        playGeneralAttackSfx(this.generalName);
         this.attackTimer = config.cooldown * cooldownMultiplier;
       }
     }

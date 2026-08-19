@@ -60,6 +60,13 @@ const weapons: WeaponDefinition[] = [
     stats: { damage: 22, attackSpeed: 1100, range: 80, critRate: 0.1 },
   },
   {
+    id: "da-dao", series: "blade", name: "长刀", glyph: "刀",
+    description: "关平专用长刀，刀势沉稳。",
+    attackType: "melee", rarity: "rare", status: "development", defaultHolder: "关平",
+    stats: { damage: 12, attackSpeed: 950, range: 72 },
+    tags: ["横扫"],
+  },
+  {
     id: "yanyue-da-dao", series: "blade", name: "雁翎大刀", glyph: "刀",
     description: "军旅常用大刀，开山裂石。",
     attackType: "melee", rarity: "epic", status: "available",
