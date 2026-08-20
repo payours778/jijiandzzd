@@ -31,6 +31,16 @@ db.exec(`
     created_at TEXT NOT NULL,
     last_seen_at TEXT NOT NULL
   );
+
+  CREATE TABLE IF NOT EXISTS adou_records (
+    account_id TEXT NOT NULL,
+    mode TEXT NOT NULL DEFAULT 'normal',
+    best_wave INTEGER NOT NULL,
+    score INTEGER NOT NULL DEFAULT 0,
+    play_count INTEGER NOT NULL DEFAULT 1,
+    updated_at TEXT NOT NULL,
+    PRIMARY KEY (account_id, mode)
+  );
 `);
 
 const mimeTypes = {
@@ -325,6 +335,104 @@ async function handleApi(req, res, pathname) {
     }
 
     sendJson(res, 200, publicSession(session));
+    return;
+  }
+
+  if (pathname === "/api/adou/best-wave" && req.method === "POST") {
+    const session = getSessionFromRequest(req);
+
+    if (!session) {
+      sendJson(res, 401, { error: "Unauthorized" });
+      return;
+    }
+
+    if (!session.accountId) {
+      sendJson(res, 403, { error: "游客无法提交排行，请先注册账号" });
+      return;
+    }
+
+    const body = await readBody(req);
+    const wave = Number(body.wave);
+    const mode = body.mode === "challenge" ? "challenge" : "normal";
+
+    if (!Number.isInteger(wave) || wave < 1 || wave > 999) {
+      sendJson(res, 400, { error: "无效的波次" });
+      return;
+    }
+
+    // UPSERT 保证 best_wave 只增不减；play_count 每次对局 +1；score 预留暂不参与更新。
+    db.prepare(`
+      INSERT INTO adou_records (account_id, mode, best_wave, score, play_count, updated_at)
+      VALUES (?, ?, ?, 0, 1, ?)
+      ON CONFLICT(account_id, mode) DO UPDATE SET
+        best_wave = MAX(best_wave, excluded.best_wave),
+        play_count = play_count + 1,
+        updated_at = excluded.updated_at
+    `).run(session.accountId, mode, wave, new Date().toISOString());
+
+    const record = db
+      .prepare("SELECT best_wave, play_count FROM adou_records WHERE account_id = ? AND mode = ?")
+      .get(session.accountId, mode);
+
+    sendJson(res, 200, {
+      ok: true,
+      bestWave: record.best_wave,
+      playCount: record.play_count,
+      isNewBest: record.best_wave === wave,
+    });
+    return;
+  }
+
+  if (pathname === "/api/adou/leaderboard" && req.method === "GET") {
+    const mode = new URL(req.url, "http://localhost").searchParams.get("mode") === "challenge"
+      ? "challenge"
+      : "normal";
+
+    // 昵称走 JOIN accounts 实时获取；排序规则：波次 > 积分 > 达成时间。
+    const rows = db.prepare(`
+      SELECT a.display_name AS display_name, r.best_wave, r.score, r.updated_at
+      FROM adou_records r
+      JOIN accounts a ON a.id = r.account_id
+      WHERE r.mode = ?
+      ORDER BY r.best_wave DESC, r.score DESC, r.updated_at ASC
+      LIMIT 20
+    `).all(mode);
+
+    const leaderboard = rows.map((row, index) => ({
+      rank: index + 1,
+      displayName: row.display_name,
+      bestWave: row.best_wave,
+    }));
+
+    let myRank = null;
+    const session = getSessionFromRequest(req);
+
+    if (session?.accountId) {
+      const mine = db
+        .prepare("SELECT best_wave, score, play_count, updated_at FROM adou_records WHERE account_id = ? AND mode = ?")
+        .get(session.accountId, mode);
+
+      if (mine) {
+        const ahead = db.prepare(`
+          SELECT COUNT(*) AS count
+          FROM adou_records
+          WHERE mode = ?
+            AND (
+              best_wave > ?
+              OR (best_wave = ? AND score > ?)
+              OR (best_wave = ? AND score = ? AND updated_at < ?)
+            )
+        `).get(mode, mine.best_wave, mine.best_wave, mine.score, mine.best_wave, mine.score, mine.updated_at);
+
+        myRank = {
+          rank: ahead.count + 1,
+          bestWave: mine.best_wave,
+          playCount: mine.play_count,
+        };
+      }
+    }
+
+    sendJson(res, 200, { leaderboard, myRank });
     return;
   }
 

@@ -1335,6 +1335,12 @@ export class GamePlayScene extends Phaser.Scene {
   private showGameOverPanel() {
     playSfx("game_over");
 
+    // 结算事件：每局只触发一次（showGameOverPanel 受 gameOverShown 防重入保护），
+    // 由 React 层监听后提交全服排行榜。
+    window.dispatchEvent(
+      new CustomEvent("adou-game-over", { detail: { wave: this.wave } }),
+    );
+
     const cx = this.px(50);
     const cy = this.py(50);
     this.gameOverPanel = this.add.graphics();
@@ -1357,7 +1363,17 @@ export class GamePlayScene extends Phaser.Scene {
       .setDepth(141);
 
     this.add
-      .text(cx, cy, "僵尸抵达终点", {
+      .text(cx, cy - 16, `到达第 ${this.wave} 波`, {
+        fontFamily: Config.fontFamily,
+        fontSize: "22px",
+        color: "#fbbf24",
+        fontStyle: "bold",
+      })
+      .setOrigin(0.5)
+      .setDepth(141);
+
+    this.add
+      .text(cx, cy + 12, "僵尸抵达终点", {
         fontFamily: Config.fontFamily,
         fontSize: "18px",
         color: "#d1d5db",
@@ -1366,7 +1382,7 @@ export class GamePlayScene extends Phaser.Scene {
       .setDepth(141);
 
     this.add
-      .text(cx, cy + 30, "按 R 重新开始", {
+      .text(cx, cy + 34, "按 R 重新开始", {
         fontFamily: Config.fontFamily,
         fontSize: "14px",
         color: "#9ca3af",

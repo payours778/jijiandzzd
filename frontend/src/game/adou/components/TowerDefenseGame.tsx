@@ -62,6 +62,34 @@ export function TowerDefenseGame({
     };
   }, [mode, started]);
 
+  // 监听游戏结算事件，将本局波次提交到全服排行榜（只保留用户最高波次）。
+  useEffect(() => {
+    const handleGameOver = async (event: Event) => {
+      const wave = (event as CustomEvent).detail?.wave;
+      const token = localStorage.getItem("mini-playbox-token");
+
+      if (!token || !Number.isInteger(wave)) {
+        return;
+      }
+
+      try {
+        await fetch("/api/adou/best-wave", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({ wave, mode: "normal" }),
+        });
+      } catch {
+        // 提交失败不影响游戏流程。
+      }
+    };
+
+    window.addEventListener("adou-game-over", handleGameOver);
+    return () => window.removeEventListener("adou-game-over", handleGameOver);
+  }, []);
+
   if (mode === "game" && !started) {
     return (
       <GameStartScreen

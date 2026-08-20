@@ -2198,6 +2198,22 @@ img { max-width: 100%; display: block; }
   color: #9ca3af;
 }
 
+.leaderboard-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 28px 0;
+  color: #6b7280;
+  font-size: 14px;
+}
+
+.leaderboard-empty-icon {
+  font-size: 32px;
+  opacity: 0.6;
+}
+
 .game-start-footer {
   display: flex;
   justify-content: center;

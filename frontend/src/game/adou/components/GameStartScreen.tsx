@@ -11,13 +11,17 @@ const avatars = [
   "/avatars/avatar-04.png",
 ];
 
-const leaderboard = [
-  { name: "阿斗", score: 999 },
-  { name: "赵云", score: 888 },
-  { name: "黄忠", score: 777 },
-  { name: "马超", score: 666 },
-  { name: "刘备", score: 555 },
-];
+interface LeaderboardEntry {
+  rank: number;
+  displayName: string;
+  bestWave: number;
+}
+
+interface MyRank {
+  rank: number;
+  bestWave: number;
+  playCount: number;
+}
 
 export function GameStartScreen({
   onStart,
@@ -34,11 +38,43 @@ export function GameStartScreen({
     () => localStorage.getItem("mini-playbox-avatar") || avatars[0],
   );
   const [avatarPickerOpen, setAvatarPickerOpen] = useState(false);
+  const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([]);
+  const [myRank, setMyRank] = useState<MyRank | null>(null);
+  const [leaderboardUnavailable, setLeaderboardUnavailable] = useState(false);
 
   useEffect(() => {
     unlock();
     playMusic("menu");
     return () => stopMusic();
+  }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function loadLeaderboard() {
+      try {
+        const token = localStorage.getItem("mini-playbox-token");
+        const response = await fetch("/api/adou/leaderboard", {
+          headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+        });
+
+        if (!response.ok) {
+          throw new Error("Leaderboard request failed");
+        }
+
+        const data = await response.json();
+        if (cancelled) return;
+        setLeaderboard(data.leaderboard ?? []);
+        setMyRank(data.myRank ?? null);
+      } catch {
+        if (!cancelled) setLeaderboardUnavailable(true);
+      }
+    }
+
+    loadLeaderboard();
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   /** 武器列表：从独立 weapons 模块动态读取，保留按 defaultHolder 排序 */
@@ -138,13 +174,29 @@ export function GameStartScreen({
         <section className="game-start-leaderboard">
           <div className="game-start-section-heading">
             <h2>排行榜</h2>
-            <span>本地预览</span>
+            <span>
+              {myRank
+                ? `我的最高：第 ${myRank.bestWave} 波 · 第 ${myRank.rank} 名`
+                : "全服最高波次"}
+            </span>
           </div>
-          {leaderboard.map((item, index) => (
-            <div className="leaderboard-item" key={item.name}>
-              <span>{index + 1}</span>
-              <strong>{item.name}</strong>
-              <b>{item.score}</b>
+          {leaderboardUnavailable && (
+            <div className="leaderboard-empty">
+              <span className="leaderboard-empty-icon">⚠</span>
+              <span>排行榜暂不可用（后端未启动？）</span>
+            </div>
+          )}
+          {!leaderboardUnavailable && leaderboard.length === 0 && (
+            <div className="leaderboard-empty">
+              <span className="leaderboard-empty-icon">🏆</span>
+              <span>暂无记录，快来抢第一</span>
+            </div>
+          )}
+          {leaderboard.map((item) => (
+            <div className="leaderboard-item" key={`${item.rank}-${item.displayName}`}>
+              <span>{item.rank}</span>
+              <strong>{item.displayName}</strong>
+              <b>{item.bestWave} 波</b>
             </div>
           ))}
         </section>
