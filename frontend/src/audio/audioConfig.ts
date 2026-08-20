@@ -16,6 +16,7 @@ export type SfxKey =
   | "recycle"
   | "synthesize"
   | "farm"
+  | "heal"
   | "hit"
   | "melee"
   | "spear"
@@ -55,6 +56,7 @@ export const SFX_FILES: Record<SfxKey, string> = {
   recycle: "/assets/audio/sfx/receive.wav",
   synthesize: "/assets/audio/sfx/bell.wav",
   farm: "/assets/audio/sfx/gold.ogg",
+  heal: "",
   hit: "",
   melee: "/assets/audio/sfx/刀兵.ogg",
   spear: "/assets/audio/sfx/枪兵.ogg",

@@ -1,2 +1,4 @@
 data/app.db
 data/users.json
+server.out.log
+server.err.log

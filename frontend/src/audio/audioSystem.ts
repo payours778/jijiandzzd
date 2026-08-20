@@ -302,6 +302,10 @@ function synthSfx(key: SfxKey) {
     case "farm":
       playTone({ frequency: 300, endFrequency: 210, duration: 0.1, type: "triangle", volume: 0.14 });
       break;
+    case "heal":
+      playTone({ frequency: 520, duration: 0.1, type: "sine", volume: 0.12 });
+      playTone({ frequency: 780, duration: 0.14, type: "sine", volume: 0.12, delay: 0.1 });
+      break;
     case "hit":
       playNoise({ duration: 0.07, volume: 0.18, lowpass: 2200 });
       playTone({ frequency: 190, endFrequency: 90, duration: 0.09, type: "square", volume: 0.12 });

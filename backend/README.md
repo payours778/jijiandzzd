@@ -20,5 +20,7 @@ node server.mjs
 - `POST /api/auth/logout`
 - `GET /api/me`
 - `PATCH /api/me`
+- `POST /api/adou/best-wave`
+- `GET /api/adou/leaderboard`
 
 用户数据保存在 `backend/data/app.db`，数据库文件已加入 `.gitignore`。

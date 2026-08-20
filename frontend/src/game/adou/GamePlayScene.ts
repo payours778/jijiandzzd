@@ -4,6 +4,7 @@ import {
   RefreshProbability,
   FragmentPool,
   GeneralPieces,
+  MedicConfig,
   SoldierStats,
   findGeneral,
   type CardType,
@@ -13,6 +14,7 @@ import { Unit } from "./Unit";
 import { Farm } from "./units/Farm";
 import { General } from "./units/General";
 import { GeneralFragment } from "./units/GeneralFragment";
+import { Medic } from "./units/Medic";
 import { Soldier } from "./units/Soldier";
 import { Zombie } from "./units/Zombie";
 import { LuBu } from "./units/LuBu";
@@ -271,6 +273,7 @@ export class GamePlayScene extends Phaser.Scene {
     const labels = [
       ...TEST_SOLDIERS,
       "农",
+      "医",
       "尸",
       "障",
       "魏",
@@ -358,6 +361,8 @@ export class GamePlayScene extends Phaser.Scene {
       unit = new Soldier(this, center.x, center.y, row, col, this.selectedTestType as CardType);
     } else if (this.selectedTestType === "农") {
       unit = new Farm(this, center.x, center.y, row, col);
+    } else if (this.selectedTestType === "医") {
+      unit = new Medic(this, center.x, center.y, row, col);
     } else {
       unit = new GeneralFragment(this, center.x, center.y, row, col, this.selectedTestType);
     }
@@ -757,6 +762,13 @@ export class GamePlayScene extends Phaser.Scene {
         `产出：${Config.farmProduceNum} 馒头`,
         `间隔：${Config.farmProduceInterval}ms`,
       ].join("\n");
+    } else if (card === "医") {
+      content = [
+        "治疗单位",
+        `血量：${MedicConfig.hp}`,
+        `间隔：${MedicConfig.healInterval}ms`,
+        "治疗当前血量最低的友方",
+      ].join("\n");
     } else {
       content = ["武将碎片", "横向相邻配对可合成武将"].join("\n");
     }
@@ -838,6 +850,10 @@ export class GamePlayScene extends Phaser.Scene {
       return "农";
     }
 
+    if (roll < RefreshProbability.soldier + RefreshProbability.farm + RefreshProbability.medic) {
+      return "医";
+    }
+
     if (availableFragments.length > 0) {
       const fragment = availableFragments[Math.floor(Math.random() * availableFragments.length)];
       this.fragmentPool[fragment] -= 1;
@@ -894,6 +910,8 @@ export class GamePlayScene extends Phaser.Scene {
 
     if (card === "农") {
       unit = new Farm(this, center.x, center.y, row, col);
+    } else if (card === "医") {
+      unit = new Medic(this, center.x, center.y, row, col);
     } else if (card === "刀" || card === "枪" || card === "骑" || card === "弓") {
       unit = new Soldier(this, center.x, center.y, row, col, card);
     } else {
@@ -1092,19 +1110,25 @@ export class GamePlayScene extends Phaser.Scene {
     const center = this.getCellCenter(row, col);
 
     if (type === "吕" || type === "吕布") {
-      this.zombies.push(new LuBu(this, center.x, center.y, row, 1));
+      const boss = new LuBu(this, center.x, center.y, row, 1);
+      boss.showHpText(true);
+      this.zombies.push(boss);
       this.messageText.setText("已放置吕布");
       return;
     }
 
     if (type === "貂" || type === "貂蝉") {
-      this.zombies.push(new DiaoChan(this, center.x, center.y, row, 1));
+      const boss = new DiaoChan(this, center.x, center.y, row, 1);
+      boss.showHpText(true);
+      this.zombies.push(boss);
       this.messageText.setText("已放置貂蝉");
       return;
     }
 
     if (type === "曹" || type === "曹操") {
-      this.zombies.push(new CaoCao(this, center.x, center.y, row, 1));
+      const boss = new CaoCao(this, center.x, center.y, row, 1);
+      boss.showHpText(true);
+      this.zombies.push(boss);
       this.messageText.setText("已放置曹操");
       return;
     }
@@ -1144,6 +1168,8 @@ export class GamePlayScene extends Phaser.Scene {
       unit = new Soldier(this, center.x, center.y, row, col, type as CardType);
     } else if (type === "农") {
       unit = new Farm(this, center.x, center.y, row, col);
+    } else if (type === "医") {
+      unit = new Medic(this, center.x, center.y, row, col);
     } else {
       unit = new GeneralFragment(this, center.x, center.y, row, col, type);
     }
@@ -1264,13 +1290,14 @@ export class GamePlayScene extends Phaser.Scene {
     row: number,
     strengthMultiplier: number,
   ): Zombie {
-    if (boss === "貂蝉") {
-      return new DiaoChan(this, Config.boardX - 16, y, row, strengthMultiplier);
-    }
-    if (boss === "曹操") {
-      return new CaoCao(this, Config.boardX - 16, y, row, strengthMultiplier);
-    }
-    return new LuBu(this, Config.boardX - 16, y, row, strengthMultiplier);
+    const result =
+      boss === "貂蝉"
+        ? new DiaoChan(this, Config.boardX - 16, y, row, strengthMultiplier)
+        : boss === "曹操"
+          ? new CaoCao(this, Config.boardX - 16, y, row, strengthMultiplier)
+          : new LuBu(this, Config.boardX - 16, y, row, strengthMultiplier);
+    result.showHpText(true);
+    return result;
   }
 
   private checkSynthesis() {
@@ -2023,6 +2050,58 @@ export class GamePlayScene extends Phaser.Scene {
     this.spawnSymbol(unit.x - 34, unit.y, "仁", "#4ade80", 0.9);
   }
 
+  getLowestHpFriendlyUnit(ignore?: Unit): Unit | null {
+    let lowest: Unit | null = null;
+    for (let row = 0; row < this.board.length; row += 1) {
+      for (let col = 0; col < Config.cols; col += 1) {
+        const unit = this.board[row][col];
+        if (!unit || unit.dead || !unit.isAlly() || unit === ignore) {
+          continue;
+        }
+        if (!lowest || unit.hp / unit.maxHp < lowest.hp / lowest.maxHp) {
+          lowest = unit;
+        }
+      }
+    }
+    return lowest;
+  }
+
+  healAllFriendlies(percent: number) {
+    for (let row = 0; row < this.board.length; row += 1) {
+      for (let col = 0; col < Config.cols; col += 1) {
+        const unit = this.board[row][col];
+        if (!unit || unit.dead || !unit.isAlly()) {
+          continue;
+        }
+        const amount = unit.maxHp * percent;
+        unit.heal(amount);
+        this.showHealNumber(unit, amount);
+      }
+    }
+  }
+
+  showHealNumber(unit: Unit, amount: number) {
+    const text = this.add
+      .text(unit.x, unit.y - 20, `+${amount.toFixed(2)}`, {
+        fontFamily: Config.fontFamily,
+        fontSize: "16px",
+        color: "#4ade80",
+        fontStyle: "bold",
+        stroke: "#111",
+        strokeThickness: 2,
+      })
+      .setOrigin(0.5)
+      .setDepth(91);
+
+    this.tweens.add({
+      targets: text,
+      y: unit.y - 38,
+      alpha: 0,
+      duration: 520,
+      onComplete: () => text.destroy(),
+    });
+  }
+
   showZhaoyunStab(unit: Unit) {
     for (let i = 0; i < 3; i += 1) {
       this.spawnSymbol(
@@ -2113,6 +2192,7 @@ export class GamePlayScene extends Phaser.Scene {
 
   private getCardColor(card: CardType) {
     if (card === "农") return "#4ade80";
+    if (card === "医") return MedicConfig.color;
     if (card in SoldierStats) return SoldierStats[card as keyof typeof SoldierStats].color;
     return "#c084fc";
   }

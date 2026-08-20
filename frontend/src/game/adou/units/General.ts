@@ -3,15 +3,15 @@ import type { GamePlayScene } from "../GamePlayScene";
 import { playSfx } from "../../../audio/audioSystem";
 
 export const GeneralConfig = {
-  刘备: { hp: 340, damage: 22, cooldown: 1800, color: "#f59e0b" },
-  赵云: { hp: 360, damage: 16, cooldown: 420, color: "#38bdf8" },
-  黄忠: { hp: 260, damage: 26, cooldown: 1800, color: "#fbbf24" },
-  关羽: { hp: 420, damage: 60, cooldown: 2400, color: "#ef4444" },
-  张飞: { hp: 460, damage: 40, cooldown: 2800, color: "#a855f7" },
-  黄祖: { hp: 300, damage: 24, cooldown: 1600, color: "#84cc16" },
-  张苞: { hp: 360, damage: 28, cooldown: 1400, color: "#22d3ee" },
-  关平: { hp: 330, damage: 26, cooldown: 1300, color: "#fb7185" },
-  马超: { hp: 320, damage: 30, cooldown: 1800, color: "#60a5fa" },
+  刘备: { hp: 500, damage: 22, cooldown: 1800, color: "#f59e0b" },
+  赵云: { hp: 500, damage: 16, cooldown: 420, color: "#38bdf8" },
+  黄忠: { hp: 500, damage: 26, cooldown: 1800, color: "#fbbf24" },
+  关羽: { hp: 500, damage: 60, cooldown: 2400, color: "#ef4444" },
+  张飞: { hp: 500, damage: 40, cooldown: 2800, color: "#a855f7" },
+  黄祖: { hp: 500, damage: 24, cooldown: 1600, color: "#84cc16" },
+  张苞: { hp: 500, damage: 28, cooldown: 1400, color: "#22d3ee" },
+  关平: { hp: 500, damage: 26, cooldown: 1300, color: "#fb7185" },
+  马超: { hp: 1000, damage: 30, cooldown: 1800, color: "#60a5fa" },
 };
 
 function playGeneralAttackSfx(name: keyof typeof GeneralConfig) {
@@ -42,6 +42,7 @@ function playGeneralAttackSfx(name: keyof typeof GeneralConfig) {
 
 export class General extends Unit {
   generalName: keyof typeof GeneralConfig;
+  private liuBeiHealTimer = 5000;
 
   constructor(
     scene: Phaser.Scene,
@@ -57,6 +58,7 @@ export class General extends Unit {
     this.isFriendly = true;
     this.attachHealthBar(36, 0x22c55e);
     this.attachOutline(0xfbbf24);
+    this.showHpText(true);
   }
 
   playUpgradeSfx() {
@@ -70,6 +72,15 @@ export class General extends Unit {
   override update(scene: GamePlayScene, _time: number, delta: number) {
     if (this.dead) {
       return;
+    }
+
+    if (this.generalName === "刘备") {
+      this.liuBeiHealTimer -= delta;
+      if (this.liuBeiHealTimer <= 0) {
+        this.liuBeiHealTimer = 5000;
+        scene.healAllFriendlies(0.1);
+        playSfx("heal");
+      }
     }
 
     this.attackTimer -= delta;

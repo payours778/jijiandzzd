@@ -14,6 +14,7 @@ export abstract class Unit extends Phaser.GameObjects.Text {
   protected healthBar?: Phaser.GameObjects.Rectangle;
   protected healthBarBackground?: Phaser.GameObjects.Rectangle;
   protected healthBarWidth = 34;
+  protected hpText?: Phaser.GameObjects.Text;
   protected levelText?: Phaser.GameObjects.Text;
   protected hitFlashTimer?: Phaser.Time.TimerEvent;
   protected isFriendly = false;
@@ -67,10 +68,32 @@ export abstract class Unit extends Phaser.GameObjects.Text {
     this.healthBar?.setPosition(this.x, this.y - 32);
     this.healthBarBackground?.setPosition(this.x, this.y - 32);
     this.heavyWoundMarker?.setPosition(this.x, this.y - 46);
+    this.hpText?.setPosition(this.x, this.y - 44);
+    if (this.hpText?.visible) {
+      this.hpText.setText(`${Math.round(this.hp)}/${Math.round(this.maxHp)}`);
+    }
     const ratio = Math.max(0, this.hp / this.maxHp);
     this.healthBar?.setDisplaySize(this.healthBarWidth * ratio, 5);
     this.syncLevelText();
     this.syncOutline();
+  }
+
+  showHpText(visible: boolean) {
+    if (visible && !this.hpText) {
+      this.hpText = this.scene.add
+        .text(this.x, this.y - 44, `${Math.round(this.hp)}/${Math.round(this.maxHp)}`, {
+          fontFamily: Config.fontFamily,
+          fontSize: "13px",
+          color: "#fde68a",
+          fontStyle: "bold",
+          stroke: "#111",
+          strokeThickness: 2,
+        })
+        .setOrigin(0.5)
+        .setDepth(95);
+    }
+    this.hpText?.setVisible(visible);
+    this.syncHealthBar();
   }
 
   attachOutline(color: number) {
@@ -163,6 +186,18 @@ export abstract class Unit extends Phaser.GameObjects.Text {
     }
 
     this.syncHealthBar();
+  }
+
+  heal(amount: number) {
+    if (this.dead) {
+      return;
+    }
+    this.hp = Math.min(this.maxHp, this.hp + amount);
+    this.syncHealthBar();
+  }
+
+  isAlly(): boolean {
+    return this.isFriendly;
   }
 
   stun(duration: number) {
@@ -274,6 +309,7 @@ export abstract class Unit extends Phaser.GameObjects.Text {
     // 子类销毁前清理自定义对象。
     this.healthBar?.destroy();
     this.healthBarBackground?.destroy();
+    this.hpText?.destroy();
     this.levelText?.destroy();
     this.hitFlashTimer?.remove();
     this.outlineGraphics?.destroy();

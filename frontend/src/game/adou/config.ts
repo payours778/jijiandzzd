@@ -27,6 +27,7 @@ export type CardType =
   | "骑"
   | "弓"
   | "农"
+  | "医"
   | "刘"
   | "备"
   | "赵"
@@ -118,6 +119,14 @@ export const SoldierStats = {
   弓: { hp: 100, damage: 10, cooldown: 1000, range: 999, color: "#059669" },
 };
 
+export const MedicConfig = {
+  hp: 300,
+  healInterval: 3000,
+  healPercent: 0.1,
+  levelHealBonus: 0.05,
+  color: "#10b981",
+};
+
 export const ZombieStats = {
   normal: { hp: 100, speed: 22 },
   cone: { hp: 200, speed: 16 },
@@ -171,7 +180,8 @@ export const CaoCaoStats = {
 };
 
 export const RefreshProbability = {
-  soldier: 0.65,
-  farm: 0.2,
+  soldier: 0.6,
+  farm: 0.15,
+  medic: 0.1,
   fragment: 0.15,
 } as const;
