@@ -4,13 +4,14 @@ import {
   Config,
   DiaoChanStats,
   LuBuStats,
+  MedicConfig,
   SoldierStats,
   ZombieStats,
 } from "../config";
 import { GeneralConfig } from "../units/General";
 import { saveDevConfig } from "../devConfig";
 
-type Tab = "global" | "soldier" | "general" | "zombie" | "boss";
+type Tab = "global" | "soldier" | "general" | "medic" | "zombie" | "boss";
 
 const globalFields = [
   ["startingMantou", "初始馒头"],
@@ -39,10 +40,16 @@ const defaults = {
   zombieSpawnStep: 260,
   zombieSpawnMin: 1200,
   soldier: {
-    刀: { hp: 120, damage: 30, cooldown: 700, range: 1 },
-    枪: { hp: 130, damage: 15, cooldown: 700, range: 3 },
-    骑: { hp: 240, damage: 15, cooldown: 700, range: 1.5 },
-    弓: { hp: 100, damage: 10, cooldown: 1000, range: 999 },
+    刀: { hp: 300, damage: 30, cooldown: 700, range: 1 },
+    枪: { hp: 200, damage: 15, cooldown: 700, range: 3 },
+    骑: { hp: 250, damage: 15, cooldown: 700, range: 1.5 },
+    弓: { hp: 200, damage: 10, cooldown: 1000, range: 999 },
+  },
+  medic: {
+    hp: 300,
+    healInterval: 3000,
+    healPercent: 0.1,
+    levelHealBonus: 0.05,
   },
   general: {
     刘备: { hp: 500, damage: 22, cooldown: 1800 },
@@ -142,6 +149,11 @@ export function DevConsole({ open, onClose }: { open: boolean; onClose: () => vo
       GeneralConfig[key].cooldown = defaults.general[key].cooldown;
     });
 
+    MedicConfig.hp = defaults.medic.hp;
+    MedicConfig.healInterval = defaults.medic.healInterval;
+    MedicConfig.healPercent = defaults.medic.healPercent;
+    MedicConfig.levelHealBonus = defaults.medic.levelHealBonus;
+
     ZombieStats.normal.hp = defaults.zombie.normalHp;
     ZombieStats.normal.speed = defaults.zombie.normalSpeed;
     ZombieStats.cone.hp = defaults.zombie.coneHp;
@@ -192,14 +204,14 @@ export function DevConsole({ open, onClose }: { open: boolean; onClose: () => vo
         <button type="button" onClick={onClose}>关闭</button>
       </div>
       <div className="dev-console-tabs">
-        {(["global", "soldier", "general", "zombie", "boss"] as Tab[]).map((item) => (
+        {(["global", "soldier", "general", "medic", "zombie", "boss"] as Tab[]).map((item) => (
           <button
             className={tab === item ? "is-active" : ""}
             type="button"
             key={item}
             onClick={() => setTab(item)}
           >
-            {{ global: "全局", soldier: "士兵", general: "武将", zombie: "僵尸", boss: "BOSS" }[item]}
+            {{ global: "全局", soldier: "士兵", general: "武将", medic: "医", zombie: "僵尸", boss: "BOSS" }[item]}
           </button>
         ))}
       </div>
@@ -340,6 +352,47 @@ export function DevConsole({ open, onClose }: { open: boolean; onClose: () => vo
               <NumberField label="技能CDms" value={CaoCaoStats.skillCooldown} onChange={(value) => { CaoCaoStats.skillCooldown = value; setVersion(version + 1); }} />
               <NumberField label="休整ms" value={CaoCaoStats.restTime} onChange={(value) => { CaoCaoStats.restTime = value; setVersion(version + 1); }} />
               <BooleanField label="召唤功能开关" value={CaoCaoStats.summonEnabled} onChange={(value) => { CaoCaoStats.summonEnabled = value; setVersion(version + 1); }} />
+            </fieldset>
+          </div>
+        )}
+
+
+        {tab === "medic" && (
+          <div className="dev-field-grid">
+            <fieldset>
+              <legend>医</legend>
+              <NumberField
+                label="血量"
+                value={MedicConfig.hp}
+                onChange={(value) => {
+                  MedicConfig.hp = value;
+                  setVersion(version + 1);
+                }}
+              />
+              <NumberField
+                label="治疗间隔ms"
+                value={MedicConfig.healInterval}
+                onChange={(value) => {
+                  MedicConfig.healInterval = value;
+                  setVersion(version + 1);
+                }}
+              />
+              <NumberField
+                label="治疗百分比"
+                value={MedicConfig.healPercent}
+                onChange={(value) => {
+                  MedicConfig.healPercent = value;
+                  setVersion(version + 1);
+                }}
+              />
+              <NumberField
+                label="每级治疗加成"
+                value={MedicConfig.levelHealBonus}
+                onChange={(value) => {
+                  MedicConfig.levelHealBonus = value;
+                  setVersion(version + 1);
+                }}
+              />
             </fieldset>
           </div>
         )}

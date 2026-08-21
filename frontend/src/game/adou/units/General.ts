@@ -1,6 +1,6 @@
 import { Unit } from "../Unit";
 import type { GamePlayScene } from "../GamePlayScene";
-import { playSfx } from "../../../audio/audioSystem";
+import { playSfx, playVoiceOnce } from "../../../audio/audioSystem";
 
 export const GeneralConfig = {
   刘备: { hp: 500, damage: 22, cooldown: 1800, color: "#f59e0b" },
@@ -43,6 +43,10 @@ function playGeneralAttackSfx(name: keyof typeof GeneralConfig) {
 export class General extends Unit {
   generalName: keyof typeof GeneralConfig;
   private liuBeiHealTimer = 5000;
+  longDanStacks = 0;
+  private longDanLabel?: Phaser.GameObjects.Text;
+  private reviveLabel?: Phaser.GameObjects.Text;
+  private reviveCross?: Phaser.GameObjects.Graphics;
 
   constructor(
     scene: Phaser.Scene,
@@ -70,9 +74,11 @@ export class General extends Unit {
   }
 
   override update(scene: GamePlayScene, _time: number, delta: number) {
-    if (this.dead) {
+    if (this.dead || this.reviving) {
       return;
     }
+
+    this.updateLongDanLabel();
 
     if (this.generalName === "刘备") {
       this.liuBeiHealTimer -= delta;
@@ -104,9 +110,13 @@ export class General extends Unit {
     }
 
     if (this.generalName === "赵云") {
+      const longDanMultiplier = 1 + 0.1 * this.longDanStacks;
       const targets = scene.getZombiesInRange(this.row, this.col - 2, this.col - 1);
       if (targets.length > 0) {
-        targets.forEach((zombie) => zombie.takeDamage(config.damage * damageMultiplier));
+        targets.forEach((zombie) => {
+          zombie.markZhaoyunHit();
+          zombie.takeDamage(config.damage * damageMultiplier * longDanMultiplier);
+        });
         scene.showZhaoyunStab(this);
         playGeneralAttackSfx(this.generalName);
         this.attackTimer = config.cooldown * cooldownMultiplier;
@@ -197,5 +207,165 @@ export class General extends Unit {
         this.attackTimer = config.cooldown * cooldownMultiplier;
       }
     }
+  }
+  addLongDanStack() {
+    if (this.generalName !== "赵云" || this.longDanStacks >= 2) {
+      return;
+    }
+    this.longDanStacks += 1;
+    this.updateLongDanLabel();
+    playSfx("zhaoyun_longdan");
+    this.showFloatingText(`龙胆 x${this.longDanStacks}`, "#fde68a");
+  }
+
+  protected override onLethalDamage() {
+    if (this.generalName === "赵云" && this.longDanStacks > 0) {
+      this.beginZhaoyunRevival();
+      return;
+    }
+    super.onLethalDamage();
+  }
+
+  private beginZhaoyunRevival() {
+    this.reviving = true;
+    this.hp = 0;
+    this.disableInteractive();
+    this.setVisible(false);
+    this.syncHealthBar();
+
+    this.reviveLabel = this.scene.add
+      .text(this.x, this.y, "复活中", {
+        fontFamily: "monospace",
+        fontSize: "18px",
+        color: "#fde68a",
+        fontStyle: "bold",
+        stroke: "#111",
+        strokeThickness: 3,
+      })
+      .setOrigin(0.5)
+      .setDepth(110);
+
+    const startAt = this.scene.time.now;
+    playVoiceOnce("zhaoyun_revive", () => {
+      const elapsed = this.scene.time.now - startAt;
+      const wait = Math.max(0, 3000 - elapsed);
+      this.scene.time.delayedCall(wait, () => this.finishZhaoyunRevival());
+    }, 3000);
+  }
+
+  private finishZhaoyunRevival() {
+    if (!this.reviving || this.dead) {
+      return;
+    }
+    this.reviveLabel?.destroy();
+    this.reviveLabel = undefined;
+    this.reviving = false;
+
+    if (this.longDanStacks === 1) {
+      this.reduceLevelByOne();
+    }
+    this.longDanStacks = 0;
+    this.updateLongDanLabel();
+
+    this.hp = this.maxHp;
+    this.setVisible(true);
+    this.setInteractive({ draggable: true });
+    this.syncHealthBar();
+    this.showReviveCross();
+    this.showFloatingText("复活", "#4ade80");
+  }
+
+  private reduceLevelByOne() {
+    if (this.level <= 1) {
+      return;
+    }
+    this.level -= 1;
+    this.maxHp = Math.round(this.maxHp / 2);
+    this.setText(this.baseText);
+    if (this.level <= 1) {
+      this.levelText?.setVisible(false);
+    } else {
+      this.levelText?.setText(String(this.level));
+      this.levelText?.setVisible(true);
+    }
+    this.syncHealthBar();
+  }
+
+  private showReviveCross() {
+    this.reviveCross?.destroy();
+    const g = this.scene.add.graphics();
+    this.reviveCross = g;
+    g.setDepth(110);
+    g.setPosition(this.x, this.y);
+    g.fillStyle(0xfef08a, 0.95);
+    g.fillRect(-4, -20, 8, 40);
+    g.fillRect(-20, -4, 40, 8);
+    g.lineStyle(2, 0xffffff, 0.9);
+    g.strokeRect(-6, -22, 12, 44);
+    g.strokeRect(-22, -6, 44, 12);
+    this.scene.tweens.add({
+      targets: g,
+      scale: 1.5,
+      alpha: 0,
+      duration: 800,
+      ease: "Quad.out",
+      onComplete: () => {
+        g.destroy();
+        if (this.reviveCross === g) {
+          this.reviveCross = undefined;
+        }
+      },
+    });
+  }
+
+  private showFloatingText(text: string, color: string) {
+    const label = this.scene.add
+      .text(this.x, this.y - 58, text, {
+        fontFamily: "monospace",
+        fontSize: "16px",
+        color,
+        fontStyle: "bold",
+        stroke: "#111",
+        strokeThickness: 2,
+      })
+      .setOrigin(0.5)
+      .setDepth(120);
+    this.scene.tweens.add({
+      targets: label,
+      y: this.y - 84,
+      alpha: 0,
+      duration: 900,
+      onComplete: () => label.destroy(),
+    });
+  }
+  protected override onDestroyed() {
+    this.longDanLabel?.destroy();
+    this.longDanLabel = undefined;
+    this.reviveLabel?.destroy();
+    this.reviveCross?.destroy();
+    super.onDestroyed();
+  }
+
+  private updateLongDanLabel() {
+    if (this.longDanStacks <= 0) {
+      this.longDanLabel?.destroy();
+      this.longDanLabel = undefined;
+      return;
+    }
+    if (!this.longDanLabel) {
+      this.longDanLabel = this.scene.add
+        .text(this.x, this.y + 26, "", {
+          fontFamily: "monospace",
+          fontSize: "13px",
+          color: "#fbbf24",
+          fontStyle: "bold",
+          stroke: "#111",
+          strokeThickness: 2,
+        })
+        .setOrigin(0.5)
+        .setDepth(96);
+    }
+    this.longDanLabel.setText(`龙x${this.longDanStacks}`);
+    this.longDanLabel.setPosition(this.x, this.y + 26);
   }
 }

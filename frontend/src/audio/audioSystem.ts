@@ -200,6 +200,28 @@ export function playSfx(key: SfxKey) {
   synthSfx(key);
 }
 
+export function playVoiceOnce(key: SfxKey, onEnd: () => void, fallbackMs = 3000) {
+  const src = SFX_FILES[key];
+  if (!src || settings.muted || settings.sfxVolume <= 0 || typeof Audio === "undefined") {
+    window.setTimeout(onEnd, fallbackMs);
+    return;
+  }
+
+  unlock();
+  const sound = new Audio(src);
+  sound.volume = settings.sfxVolume;
+  let done = false;
+  const safeFinish = () => {
+    if (done) return;
+    done = true;
+    onEnd();
+  };
+  sound.addEventListener("ended", safeFinish);
+  sound.addEventListener("error", () => window.setTimeout(safeFinish, fallbackMs));
+  window.setTimeout(safeFinish, Math.max(fallbackMs, 15000));
+  sound.play().catch(() => window.setTimeout(safeFinish, fallbackMs));
+}
+
 interface ToneOptions {
   frequency: number;
   endFrequency?: number;

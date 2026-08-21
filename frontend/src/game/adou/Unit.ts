@@ -8,6 +8,7 @@ export abstract class Unit extends Phaser.GameObjects.Text {
   maxHp: number;
   attackTimer = 0;
   dead = false;
+  reviving = false;
   stunUntil = 0;
   level = 1;
   baseText: string;
@@ -172,6 +173,9 @@ export abstract class Unit extends Phaser.GameObjects.Text {
   }
 
   takeDamage(damage: number) {
+    if (this.reviving) {
+      return;
+    }
     this.hp -= damage;
     this.showDamageNumber(damage);
     if (this.isFriendly) {
@@ -179,17 +183,21 @@ export abstract class Unit extends Phaser.GameObjects.Text {
     }
 
     if (this.hp <= 0) {
-      this.dead = true;
-      this.playDeathSfx();
-      this.destroy();
+      this.onLethalDamage();
       return;
     }
 
     this.syncHealthBar();
   }
 
+  protected onLethalDamage() {
+    this.dead = true;
+    this.playDeathSfx();
+    this.destroy();
+  }
+
   heal(amount: number) {
-    if (this.dead) {
+    if (this.dead || this.reviving) {
       return;
     }
     this.hp = Math.min(this.maxHp, this.hp + amount);

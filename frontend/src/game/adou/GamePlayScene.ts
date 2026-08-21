@@ -401,6 +401,12 @@ export class GamePlayScene extends Phaser.Scene {
 
     this.zombies = this.zombies.filter((zombie) => {
       if (zombie.dead) {
+        if (
+          (zombie instanceof LuBu || zombie instanceof DiaoChan || zombie instanceof CaoCao) &&
+          zombie.hitByZhaoyun
+        ) {
+          this.awardZhaoyunLongDan();
+        }
         return false;
       }
       zombie.tickDebuffs();
@@ -1343,6 +1349,18 @@ export class GamePlayScene extends Phaser.Scene {
         const unit = this.board[row][col];
         if (unit?.dead) {
           this.board[row][col] = null;
+        }
+      }
+    }
+  }
+
+  private awardZhaoyunLongDan() {
+    for (let row = 0; row < this.board.length; row += 1) {
+      for (let col = 0; col < Config.cols; col += 1) {
+        const unit = this.board[row][col];
+        if (unit instanceof General && unit.generalName === "赵云" && !unit.dead) {
+          unit.addLongDanStack();
+          return;
         }
       }
     }

@@ -113,10 +113,10 @@ export const GeneralPieces: Record<string, [string, string]> = {
 };
 
 export const SoldierStats = {
-  刀: { hp: 120, damage: 30, cooldown: 700, range: 1, color: "#d97706" },
-  枪: { hp: 130, damage: 15, cooldown: 700, range: 3, color: "#2563eb" },
-  骑: { hp: 240, damage: 15, cooldown: 700, range: 1.5, color: "#dc2626" },
-  弓: { hp: 100, damage: 10, cooldown: 1000, range: 999, color: "#059669" },
+  刀: { hp: 300, damage: 30, cooldown: 700, range: 1, color: "#d97706" },
+  枪: { hp: 200, damage: 15, cooldown: 700, range: 3, color: "#2563eb" },
+  骑: { hp: 250, damage: 15, cooldown: 700, range: 1.5, color: "#dc2626" },
+  弓: { hp: 200, damage: 10, cooldown: 1000, range: 999, color: "#059669" },
 };
 
 export const MedicConfig = {

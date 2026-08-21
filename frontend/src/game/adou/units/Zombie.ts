@@ -8,6 +8,7 @@ export class Zombie extends Unit {
   speed: number;
   biteTimer = 0;
   strengthMultiplier: number;
+  hitByZhaoyun = false;
 
   constructor(
     scene: GamePlayScene,
@@ -38,7 +39,7 @@ export class Zombie extends Unit {
     const unit = scene.getUnitAt(this.row, col);
     const stats = ZombieStats[this.zombieType];
 
-    if (unit && !unit.dead) {
+    if (unit && !unit.dead && !unit.reviving) {
       if (this.biteTimer <= 0) {
         unit.takeDamage(ZombieStats.biteDamage * this.strengthMultiplier);
         this.tiltToward(unit);
@@ -50,6 +51,10 @@ export class Zombie extends Unit {
 
     this.x += (stats.speed * delta) / 1000;
     this.setX(this.x);
+  }
+
+  markZhaoyunHit() {
+    this.hitByZhaoyun = true;
   }
 
   private tiltToward(target: Unit) {
