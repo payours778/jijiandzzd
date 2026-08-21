@@ -76,7 +76,7 @@ export function playSlashDownSwing(
     delay: mainDuration * (0.1 / 0.45),
     ease: "Quad.easeIn",
     onUpdate: (tween) => {
-      const p = tween.getValue();
+      const p = tween.getValue() ?? 0;
       drawFan(slash, p);
 
       if (!damageTriggered && p >= 0.5) {
