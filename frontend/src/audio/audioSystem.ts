@@ -340,6 +340,11 @@ function synthSfx(key: SfxKey) {
       playTone({ frequency: 340, endFrequency: 240, duration: 0.09, type: "sawtooth", volume: 0.12 });
       playNoise({ duration: 0.08, volume: 0.12, lowpass: 1800 });
       break;
+    case "zhangfei_attack":
+      playTone({ frequency: 80, endFrequency: 38, duration: 0.26, type: "sine", volume: 0.34 });
+      playNoise({ duration: 0.18, volume: 0.24, lowpass: 850 });
+      playTone({ frequency: 52, duration: 0.3, type: "triangle", volume: 0.3, delay: 0.02 });
+      break;
     case "bow":
       playTone({ frequency: 900, endFrequency: 1500, duration: 0.12, type: "sine", volume: 0.12 });
       playNoise({ duration: 0.05, volume: 0.08, lowpass: 4000 });

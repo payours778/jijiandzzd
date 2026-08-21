@@ -67,7 +67,7 @@ export class LuBu extends Zombie {
     }
 
     if (this.skillCooldown <= 0) {
-      if (Math.random() < 0.5) {
+      if (Math.random() < LuBuStats.skill1Chance) {
         this.skillSlash(scene);
       } else if (scene.getRightmostUnitInRow(this.row)) {
         this.skillCharge(scene);
@@ -113,7 +113,7 @@ export class LuBu extends Zombie {
       if (target && !target.dead) {
         target.takeDamage(damage);
         if (!target.dead) {
-          target.stun(1000);
+        target.stun(LuBuStats.slashStunDuration);
         }
       }
     }
@@ -134,7 +134,7 @@ export class LuBu extends Zombie {
     }
 
     this.charging = true;
-    this.chargeRemaining = 3000;
+    this.chargeRemaining = LuBuStats.skill2ChargeTime;
     scene.showLuBuCharge(this);
   }
 

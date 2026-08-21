@@ -64,7 +64,7 @@ export class DiaoChan extends Zombie {
     const unit = scene.getUnitAt(this.row, Math.min(Config.cols - 1, col + 1));
 
     if (this.fanCooldown <= 0 && this.moonlightCooldown <= 0) {
-      if (Math.random() < 0.5) {
+      if (Math.random() < DiaoChanStats.fanChance) {
         this.skillFan(scene, unit?.col);
       } else {
         this.skillMoonlight(scene);
@@ -114,7 +114,7 @@ export class DiaoChan extends Zombie {
     }
     scene.showDiaoChanFan(unit);
     playSfx("diaochan_attack");
-    this.normalCooldown = 1200;
+    this.normalCooldown = DiaoChanStats.normalCooldown;
   }
 
   private skillFan(scene: GamePlayScene, targetCol?: number) {

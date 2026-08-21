@@ -108,6 +108,7 @@ export class GamePlayScene extends Phaser.Scene {
       frameHeight: 320,
       endFrame: 7,
     });
+    this.load.image("guanping-saber", "effects/guanping-saber.png");
   }
 
   create() {
@@ -1484,16 +1485,37 @@ export class GamePlayScene extends Phaser.Scene {
     )[0] || null;
   }
 
+  getHighestHpZombie() {
+    return this.zombies
+      .filter((zombie) => !zombie.dead)
+      .sort((a, b) => b.hp - a.hp)[0] || null;
+  }
+
+  getFarthestZombieFrom(fromX: number) {
+    return this.zombies
+      .filter((zombie) => !zombie.dead)
+      .sort((a, b) => Math.abs(b.x - fromX) - Math.abs(a.x - fromX))[0] || null;
+  }
+
+  pushBackAllZombies(distanceCells: number) {
+    const minX = Config.boardX + Config.cellWidth / 2;
+    this.zombies.forEach((zombie) => {
+      if (!zombie.dead) {
+        zombie.setX(Math.max(minX, zombie.x - Config.cellWidth * distanceCells));
+      }
+    });
+  }
+
   getZombiesInRange(row: number, minCol: number, maxCol: number) {
     const minX = Config.boardX + minCol * Config.cellWidth;
-    const maxX = Config.boardX + (maxCol + 1) * Config.cellWidth;
+    const maxX = Config.boardX + (maxCol + 1.5) * Config.cellWidth;
     return this.getZombiesInRow(row).filter(
       (zombie) => zombie.x >= minX && zombie.x <= maxX,
     );
   }
 
   getFrontZombieInRange(row: number, minCol: number, maxCol: number) {
-    return this.getZombiesInRange(row, minCol, maxCol).sort((a, b) => a.x - b.x)[0] || null;
+    return this.getZombiesInRange(row, minCol, maxCol).sort((a, b) => b.x - a.x)[0] || null;
   }
 
   getZombiesInCircle(row: number, col: number, radiusCells: number) {
@@ -1997,6 +2019,84 @@ export class GamePlayScene extends Phaser.Scene {
     });
   }
 
+  animateZhangfeiThrust(unit: Unit, targetCol: number) {
+    const startX = unit.x;
+    const startY = unit.y;
+    const safeTargetCol = Math.max(0, targetCol);
+    const endX = Config.boardX + safeTargetCol * Config.cellWidth + Config.cellWidth / 2;
+    const bigWidth = Config.cellWidth * 1.2;
+    const fullWidth = Config.cellWidth * 4.2;
+    const height = Config.cellHeight * 1.45;
+    const startHandleX = startX + Config.cellWidth * 0.3;
+    const thrustHandleX = startX + Config.cellWidth * 0.05;
+
+    const thrust = this.add.image(startHandleX, startY, "spear-attack", 2)
+      .setOrigin(1, 0.5)
+      .setDepth(85)
+      .setFlipX(true)
+      .setTintFill(0x16181d)
+      .setDisplaySize(bigWidth, height);
+
+    this.tweens.add({
+      targets: unit,
+      x: startX - 6,
+      duration: 70,
+      yoyo: true,
+      onComplete: () => unit.setX(startX),
+    });
+
+    this.tweens.add({
+      targets: thrust,
+      x: thrustHandleX,
+      scaleX: fullWidth / 320,
+      duration: 130,
+      ease: "Cubic.easeOut",
+      onComplete: () => {
+        const flash = this.add.circle(endX, startY, 12, 0x9ca3af, 0.95).setDepth(90);
+        const ring = this.add.circle(endX, startY, 6, 0xe5e7eb, 0.9).setDepth(90);
+        this.tweens.add({
+          targets: flash,
+          scale: 3.2,
+          alpha: 0,
+          duration: 150,
+          onComplete: () => flash.destroy(),
+        });
+        this.tweens.add({
+          targets: ring,
+          scale: 2.6,
+          alpha: 0,
+          duration: 180,
+          onComplete: () => ring.destroy(),
+        });
+        this.tweens.add({
+          targets: thrust,
+          x: startHandleX,
+          scaleX: bigWidth / 320,
+          duration: 170,
+          ease: "Quad.easeIn",
+          onComplete: () => thrust.destroy(),
+        });
+      },
+    });
+
+    const streak = this.add.rectangle(
+      (startX + endX) / 2,
+      startY,
+      Math.abs(endX - startX) + Config.cellWidth * 1.2,
+      5,
+      0x1f2937,
+      0.5,
+    )
+      .setOrigin(0.5)
+      .setDepth(79);
+    this.tweens.add({
+      targets: streak,
+      alpha: 0,
+      duration: 220,
+      onComplete: () => streak.destroy(),
+    });
+  }
+
   animateCharge(unit: Unit, targetCol: number) {
     const target = this.getCellCenter(unit.row, Math.max(0, targetCol)).x;
     const startX = unit.x;
@@ -2157,6 +2257,34 @@ export class GamePlayScene extends Phaser.Scene {
 
   showArcSlash(unit: Unit) {
     this.spawnSymbol(unit.x - 42, unit.y, "斩", "#fb7185", 2.4, 380);
+  }
+
+  animateGuanpingSlash(unit: Unit) {
+    const center = this.getCellCenter(unit.row, unit.col);
+    const blade = this.add.image(center.x, center.y, "blades-red")
+      .setOrigin(0.5)
+      .setDepth(82)
+      .setDisplaySize(Config.cellWidth * 0.52, Config.cellHeight * 0.52)
+      .setAlpha(0.9);
+    const bladeBack = this.add.image(center.x, center.y, "slash")
+      .setOrigin(0.5)
+      .setDepth(81)
+      .setDisplaySize(Config.cellWidth * 0.36, Config.cellHeight * 0.36)
+      .setAlpha(0.75);
+
+    this.tweens.add({
+      targets: [blade, bladeBack],
+      angle: 360,
+      scaleX: 1.15,
+      scaleY: 1.15,
+      alpha: 0,
+      duration: 280,
+      ease: "Cubic.easeOut",
+      onComplete: () => {
+        blade.destroy();
+        bladeBack.destroy();
+      },
+    });
   }
 
   showChargeEffect(unit: Unit) {

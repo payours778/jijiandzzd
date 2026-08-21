@@ -58,7 +58,7 @@ export class CaoCao extends Zombie {
     }
 
     if (this.skillCooldown <= 0) {
-      if (Math.random() < 0.5 || !scene.hasPlayerUnit()) {
+      if (Math.random() < CaoCaoStats.skill1Chance || !scene.hasPlayerUnit()) {
         this.skillJianxiong(scene);
       } else {
         this.skillTongyu(scene);
@@ -124,7 +124,7 @@ export class CaoCao extends Zombie {
     }
 
     this.charging = true;
-    this.chargeRemaining = 3000;
+    this.chargeRemaining = CaoCaoStats.summonChargeTime;
     scene.showCaoCaoCharge(this);
     playSfx("cavalry");
   }

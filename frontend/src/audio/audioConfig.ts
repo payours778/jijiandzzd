@@ -27,6 +27,8 @@ export type SfxKey =
   | "general_guanyu"
   | "zhaoyun_longdan"
   | "zhaoyun_revive"
+  | "zhangfei_roar"
+  | "zhangfei_attack"
   | "lubu_attack"
   | "lubu_skill1"
   | "lubu_skill2"
@@ -69,6 +71,8 @@ export const SFX_FILES: Record<SfxKey, string> = {
   general_guanyu: "/assets/audio/sfx/关羽普攻.ogg",
   zhaoyun_longdan: "/assets/audio/sfx/赵云龙胆.mp3",
   zhaoyun_revive: "/assets/audio/sfx/赵云复活.mp3",
+  zhangfei_roar: "/assets/audio/sfx/张飞咆哮.ogg",
+  zhangfei_attack: "",
   lubu_attack: "/assets/audio/sfx/吕布的普通攻击.wav",
   lubu_skill1: "/assets/audio/sfx/吕布一技能.ogg",
   lubu_skill2: "/assets/audio/sfx/吕布技能2.ogg",

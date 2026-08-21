@@ -49,6 +49,22 @@ export function loadDevConfig() {
           }
         }
       }
+      if (savedVersion < 4) {
+        const huangzu = data.general.黄祖 as { damage?: number; cooldown?: number } | undefined;
+        if (huangzu) {
+          data.general.黄祖 = { ...huangzu, damage: 30, cooldown: 1000 };
+        }
+      }
+      if (savedVersion < 5) {
+        const zhangbao = data.general.张苞 as { cooldown?: number } | undefined;
+        if (zhangbao) {
+          data.general.张苞 = { ...zhangbao, cooldown: 600 };
+        }
+        const guanping = data.general.关平 as { damage?: number; cooldown?: number } | undefined;
+        if (guanping) {
+          data.general.关平 = { ...guanping, damage: 25, cooldown: 700 };
+        }
+      }
       Object.assign(GeneralConfig, data.general);
     }
     if (data.zombie) Object.assign(ZombieStats, data.zombie);
@@ -66,7 +82,7 @@ export function saveDevConfig() {
     localStorage.setItem(
       KEY,
       JSON.stringify({
-        version: 3,
+        version: 5,
         config: {
           startingMantou: Config.startingMantou,
           refreshStartCost: Config.refreshStartCost,

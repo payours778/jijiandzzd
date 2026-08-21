@@ -144,6 +144,9 @@ export const LuBuStats = {
   skillCooldown: 2600,
   moveInterval: 1100,
   slashRest: 500,
+  skill1Chance: 0.5,
+  slashStunDuration: 1000,
+  skill2ChargeTime: 3000,
   skill2FullScreen: true,
 };
 
@@ -153,12 +156,14 @@ export const DiaoChanStats = {
   normalDamage: 35,
   fanDamage: 60,
   moonlightDamage: 90,
+  normalCooldown: 1200,
   fanCooldown: 10000,
   moonlightCooldown: 20000,
   restTime: 4000,
   charmDuration: 2000,
   moonlightCharge: 2500,
   wanderAmplitude: 10,
+  fanChance: 0.5,
   charmEnabled: true,
   moonlightFullScreen: true,
 };
@@ -176,6 +181,8 @@ export const CaoCaoStats = {
   summonDuration: 12000,
   skillCooldown: 20000,
   restTime: 600,
+  skill1Chance: 0.5,
+  summonChargeTime: 3000,
   summonEnabled: true,
 };
 

@@ -21,6 +21,8 @@ export abstract class Unit extends Phaser.GameObjects.Text {
   protected isFriendly = false;
   protected outlineGraphics?: Phaser.GameObjects.Graphics;
   protected outlineColor = 0xffffff;
+  protected damageReduction = 1;
+  invincible = false;
   private baseMaxHp = 0;
   private heavyWoundUntil = 0;
   private heavyWoundRatio = 1;
@@ -173,13 +175,15 @@ export abstract class Unit extends Phaser.GameObjects.Text {
   }
 
   takeDamage(damage: number) {
-    if (this.reviving) {
+    if (this.reviving || this.invincible) {
       return;
     }
-    this.hp -= damage;
-    this.showDamageNumber(damage);
+    const actualDamage = damage * this.damageReduction;
+    this.hp -= actualDamage;
+    this.showDamageNumber(actualDamage);
     if (this.isFriendly) {
       this.shakeOnHit();
+      this.onDamaged(actualDamage);
     }
 
     if (this.hp <= 0) {
@@ -209,6 +213,9 @@ export abstract class Unit extends Phaser.GameObjects.Text {
   }
 
   stun(duration: number) {
+    if (this.invincible) {
+      return;
+    }
     this.stunUntil = this.scene.time.now + duration;
     const marker = this.scene.add
       .text(this.x, this.y - 20, "晕", {
@@ -225,6 +232,9 @@ export abstract class Unit extends Phaser.GameObjects.Text {
   }
 
   charm(duration: number) {
+    if (this.invincible) {
+      return;
+    }
     this.stunUntil = this.scene.time.now + duration;
     const marker = this.scene.add
       .text(this.x, this.y - 20, "魅", {
@@ -291,7 +301,7 @@ export abstract class Unit extends Phaser.GameObjects.Text {
     });
   }
 
-  private showDamageNumber(damage: number) {
+  protected showDamageNumber(damage: number) {
     const number = this.scene.add
       .text(this.x, this.y - 20, `-${damage.toFixed(2)}`, {
         fontFamily: Config.fontFamily,
@@ -326,6 +336,18 @@ export abstract class Unit extends Phaser.GameObjects.Text {
 
   protected playDeathSfx() {
     // 默认无死亡音效，武将/BOSS 子类按需覆盖。
+  }
+
+  setDamageReduction(ratio: number) {
+    this.damageReduction = Math.max(0, Math.min(1, ratio));
+  }
+
+  setInvincible(invincible: boolean) {
+    this.invincible = invincible;
+  }
+
+  protected onDamaged(_damage: number) {
+    // 子类可按需统计承受伤害。
   }
 
   override destroy(fromScene?: boolean) {

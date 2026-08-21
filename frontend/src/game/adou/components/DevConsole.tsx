@@ -8,7 +8,7 @@ import {
   SoldierStats,
   ZombieStats,
 } from "../config";
-import { GeneralConfig } from "../units/General";
+import { GeneralConfig, type GeneralConfigItem } from "../units/General";
 import { saveDevConfig } from "../devConfig";
 
 type Tab = "global" | "soldier" | "general" | "medic" | "zombie" | "boss";
@@ -52,15 +52,70 @@ const defaults = {
     levelHealBonus: 0.05,
   },
   general: {
-    刘备: { hp: 500, damage: 22, cooldown: 1800 },
-    赵云: { hp: 500, damage: 16, cooldown: 420 },
-    黄忠: { hp: 500, damage: 26, cooldown: 1800 },
-    关羽: { hp: 500, damage: 60, cooldown: 2400 },
-    张飞: { hp: 500, damage: 40, cooldown: 2800 },
-    黄祖: { hp: 500, damage: 24, cooldown: 1600 },
-    张苞: { hp: 500, damage: 28, cooldown: 1400 },
-    关平: { hp: 500, damage: 26, cooldown: 1300 },
-    马超: { hp: 1000, damage: 30, cooldown: 1800 },
+    刘备: {
+      hp: 500,
+      damage: 22,
+      cooldown: 1800,
+      liuBeiHealInterval: 5000,
+      liuBeiHealPercent: 0.1,
+    },
+    赵云: {
+      hp: 500,
+      damage: 16,
+      cooldown: 420,
+      longDanDamageBonus: 0.1,
+      reviveDelay: 3000,
+    },
+    黄忠: {
+      hp: 500,
+      damage: 26,
+      cooldown: 1800,
+      arrowStormChance: 0.1,
+    },
+    关羽: {
+      hp: 500,
+      damage: 60,
+      cooldown: 2400,
+      skillCooldown: 6000,
+    },
+    张飞: {
+      hp: 500,
+      damage: 40,
+      cooldown: 2800,
+      roarThresholdRatio: 0.5,
+      pushbackCells: 2,
+    },
+    黄祖: {
+      hp: 500,
+      damage: 30,
+      cooldown: 1000,
+      skillCooldown: 10000,
+      rapidDuration: 3000,
+      rapidSpeedMultiplier: 3,
+    },
+    张苞: {
+      hp: 500,
+      damage: 28,
+      cooldown: 600,
+      stunChance: 0.1,
+      stunDuration: 1000,
+    },
+    关平: {
+      hp: 500,
+      damage: 25,
+      cooldown: 700,
+      bladeChance: 0.05,
+      bladeDuration: 5000,
+      bladeInterval: 1000,
+    },
+    马超: {
+      hp: 1000,
+      damage: 30,
+      cooldown: 1800,
+      chargeSelfCostRatio: 0.1,
+      chargeDamageRatio: 0.2,
+      chargeDamageReduction: 0.2,
+    },
   },
   zombie: {
     normalHp: 100,
@@ -79,18 +134,23 @@ const defaults = {
     skillCooldown: 2600,
     normalCooldown: 1100,
     slashRest: 500,
+    skill1Chance: 0.5,
+    slashStunDuration: 1000,
+    skill2ChargeTime: 3000,
     skill2FullScreen: true,
   },
   diaochan: {
     hp: 800,
     speed: 9,
     normalDamage: 35,
+    normalCooldown: 1200,
     fanDamage: 60,
     moonlightDamage: 90,
     fanCooldown: 10000,
     moonlightCooldown: 20000,
     restTime: 4000,
     charmDuration: 2000,
+    fanChance: 0.5,
     charmEnabled: true,
     moonlightFullScreen: true,
   },
@@ -107,8 +167,22 @@ const defaults = {
     summonDuration: 12000,
     skillCooldown: 20000,
     restTime: 600,
+    skill1Chance: 0.5,
+    summonChargeTime: 3000,
     summonEnabled: true,
   },
+};
+
+const generalSkillFields: Record<string, [keyof GeneralConfigItem, string][]> = {
+  刘备: [["liuBeiHealInterval", "治疗间隔ms"], ["liuBeiHealPercent", "治疗百分比"]],
+  赵云: [["longDanDamageBonus", "每层龙胆攻击加成"], ["reviveDelay", "复活延迟ms"]],
+  黄忠: [["arrowStormChance", "万箭齐发概率"]],
+  关羽: [["skillCooldown", "跳斩CDms"]],
+  张飞: [["roarThresholdRatio", "咆哮受击比例"], ["pushbackCells", "击退格数"]],
+  黄祖: [["skillCooldown", "速射CDms"], ["rapidDuration", "速射持续ms"], ["rapidSpeedMultiplier", "速射攻速倍率"]],
+  张苞: [["stunChance", "眩晕概率"], ["stunDuration", "眩晕时长ms"]],
+  关平: [["bladeChance", "飞刀触发概率"], ["bladeDuration", "飞刀持续ms"], ["bladeInterval", "飞刀攻击间隔ms"]],
+  马超: [["chargeSelfCostRatio", "冲锋自损比例"], ["chargeDamageRatio", "冲锋伤害比例"], ["chargeDamageReduction", "冲锋免伤比例"]],
 };
 
 export function DevConsole({ open, onClose }: { open: boolean; onClose: () => void }) {
@@ -144,9 +218,10 @@ export function DevConsole({ open, onClose }: { open: boolean; onClose: () => vo
     });
 
     (Object.keys(GeneralConfig) as (keyof typeof GeneralConfig)[]).forEach((key) => {
-      GeneralConfig[key].hp = defaults.general[key].hp;
-      GeneralConfig[key].damage = defaults.general[key].damage;
-      GeneralConfig[key].cooldown = defaults.general[key].cooldown;
+      Object.assign(
+        GeneralConfig[key],
+        (defaults.general as unknown as Record<string, GeneralConfigItem>)[key],
+      );
     });
 
     MedicConfig.hp = defaults.medic.hp;
@@ -160,39 +235,9 @@ export function DevConsole({ open, onClose }: { open: boolean; onClose: () => vo
     ZombieStats.cone.speed = defaults.zombie.coneSpeed;
     ZombieStats.biteDamage = defaults.zombie.biteDamage;
     ZombieStats.biteInterval = defaults.zombie.biteInterval;
-    LuBuStats.hp = defaults.lubu.hp;
-    LuBuStats.speed = defaults.lubu.speed;
-    LuBuStats.normalDamage = defaults.lubu.normalDamage;
-    LuBuStats.slashDamage = defaults.lubu.slashDamage;
-    LuBuStats.arrowDamage = defaults.lubu.arrowDamage;
-    LuBuStats.skillCooldown = defaults.lubu.skillCooldown;
-    LuBuStats.normalCooldown = defaults.lubu.normalCooldown;
-    LuBuStats.slashRest = defaults.lubu.slashRest;
-    LuBuStats.skill2FullScreen = defaults.lubu.skill2FullScreen;
-    DiaoChanStats.hp = defaults.diaochan.hp;
-    DiaoChanStats.speed = defaults.diaochan.speed;
-    DiaoChanStats.normalDamage = defaults.diaochan.normalDamage;
-    DiaoChanStats.fanDamage = defaults.diaochan.fanDamage;
-    DiaoChanStats.moonlightDamage = defaults.diaochan.moonlightDamage;
-    DiaoChanStats.fanCooldown = defaults.diaochan.fanCooldown;
-    DiaoChanStats.moonlightCooldown = defaults.diaochan.moonlightCooldown;
-    DiaoChanStats.restTime = defaults.diaochan.restTime;
-    DiaoChanStats.charmDuration = defaults.diaochan.charmDuration;
-    DiaoChanStats.charmEnabled = defaults.diaochan.charmEnabled;
-    DiaoChanStats.moonlightFullScreen = defaults.diaochan.moonlightFullScreen;
-    CaoCaoStats.hp = defaults.caocao.hp;
-    CaoCaoStats.speed = defaults.caocao.speed;
-    CaoCaoStats.normalDamage = defaults.caocao.normalDamage;
-    CaoCaoStats.normalCooldown = defaults.caocao.normalCooldown;
-    CaoCaoStats.slashDamage = defaults.caocao.slashDamage;
-    CaoCaoStats.heavyWoundRatio = defaults.caocao.heavyWoundRatio;
-    CaoCaoStats.heavyWoundDuration = defaults.caocao.heavyWoundDuration;
-    CaoCaoStats.summonWeiDamage = defaults.caocao.summonWeiDamage;
-    CaoCaoStats.summonPerRow = defaults.caocao.summonPerRow;
-    CaoCaoStats.summonDuration = defaults.caocao.summonDuration;
-    CaoCaoStats.skillCooldown = defaults.caocao.skillCooldown;
-    CaoCaoStats.restTime = defaults.caocao.restTime;
-    CaoCaoStats.summonEnabled = defaults.caocao.summonEnabled;
+    Object.assign(LuBuStats, defaults.lubu);
+    Object.assign(DiaoChanStats, defaults.diaochan);
+    Object.assign(CaoCaoStats, defaults.caocao);
     setVersion(version + 1);
     window.dispatchEvent(new CustomEvent("mini-playbox-dev-config-changed"));
   };
@@ -304,6 +349,17 @@ export function DevConsole({ open, onClose }: { open: boolean; onClose: () => vo
                     setVersion(version + 1);
                   }}
                 />
+                {(generalSkillFields[name] ?? []).map(([field, label]) => (
+                  <NumberField
+                    key={field}
+                    label={label}
+                    value={stats[field] as number}
+                    onChange={(value) => {
+                      (stats as unknown as Record<string, number>)[field] = value;
+                      setVersion(version + 1);
+                    }}
+                  />
+                ))}
               </fieldset>
             ))}
           </div>
@@ -321,6 +377,9 @@ export function DevConsole({ open, onClose }: { open: boolean; onClose: () => vo
               <NumberField label="技能CDms" value={LuBuStats.skillCooldown} onChange={(value) => { LuBuStats.skillCooldown = value; setVersion(version + 1); }} />
               <NumberField label="普攻CDms" value={LuBuStats.normalCooldown} onChange={(value) => { LuBuStats.normalCooldown = value; setVersion(version + 1); }} />
               <NumberField label="技能1休整ms" value={LuBuStats.slashRest} onChange={(value) => { LuBuStats.slashRest = value; setVersion(version + 1); }} />
+              <NumberField label="技能1概率" value={LuBuStats.skill1Chance} onChange={(value) => { LuBuStats.skill1Chance = value; setVersion(version + 1); }} />
+              <NumberField label="技能1眩晕ms" value={LuBuStats.slashStunDuration} onChange={(value) => { LuBuStats.slashStunDuration = value; setVersion(version + 1); }} />
+              <NumberField label="技能2充能ms" value={LuBuStats.skill2ChargeTime} onChange={(value) => { LuBuStats.skill2ChargeTime = value; setVersion(version + 1); }} />
               <BooleanField label="技能2全屏" value={LuBuStats.skill2FullScreen} onChange={(value) => { LuBuStats.skill2FullScreen = value; setVersion(version + 1); }} />
             </fieldset>
             <fieldset>
@@ -328,12 +387,14 @@ export function DevConsole({ open, onClose }: { open: boolean; onClose: () => vo
               <NumberField label="血量" value={DiaoChanStats.hp} onChange={(value) => { DiaoChanStats.hp = value; setVersion(version + 1); }} />
               <NumberField label="移速" value={DiaoChanStats.speed} onChange={(value) => { DiaoChanStats.speed = value; setVersion(version + 1); }} />
               <NumberField label="普攻" value={DiaoChanStats.normalDamage} onChange={(value) => { DiaoChanStats.normalDamage = value; setVersion(version + 1); }} />
+              <NumberField label="普攻CDms" value={DiaoChanStats.normalCooldown} onChange={(value) => { DiaoChanStats.normalCooldown = value; setVersion(version + 1); }} />
               <NumberField label="魅惑之舞" value={DiaoChanStats.fanDamage} onChange={(value) => { DiaoChanStats.fanDamage = value; setVersion(version + 1); }} />
               <NumberField label="闭月流光" value={DiaoChanStats.moonlightDamage} onChange={(value) => { DiaoChanStats.moonlightDamage = value; setVersion(version + 1); }} />
               <NumberField label="技能1CDms" value={DiaoChanStats.fanCooldown} onChange={(value) => { DiaoChanStats.fanCooldown = value; setVersion(version + 1); }} />
               <NumberField label="技能2CDms" value={DiaoChanStats.moonlightCooldown} onChange={(value) => { DiaoChanStats.moonlightCooldown = value; setVersion(version + 1); }} />
               <NumberField label="休整ms" value={DiaoChanStats.restTime} onChange={(value) => { DiaoChanStats.restTime = value; setVersion(version + 1); }} />
               <NumberField label="魅惑时长ms" value={DiaoChanStats.charmDuration} onChange={(value) => { DiaoChanStats.charmDuration = value; setVersion(version + 1); }} />
+              <NumberField label="技能1概率" value={DiaoChanStats.fanChance} onChange={(value) => { DiaoChanStats.fanChance = value; setVersion(version + 1); }} />
               <BooleanField label="魅惑开关" value={DiaoChanStats.charmEnabled} onChange={(value) => { DiaoChanStats.charmEnabled = value; setVersion(version + 1); }} />
               <BooleanField label="全屏溅射" value={DiaoChanStats.moonlightFullScreen} onChange={(value) => { DiaoChanStats.moonlightFullScreen = value; setVersion(version + 1); }} />
             </fieldset>
@@ -350,6 +411,8 @@ export function DevConsole({ open, onClose }: { open: boolean; onClose: () => vo
               <NumberField label="召唤每行数量" value={CaoCaoStats.summonPerRow} onChange={(value) => { CaoCaoStats.summonPerRow = value; setVersion(version + 1); }} />
               <NumberField label="召唤存续ms" value={CaoCaoStats.summonDuration} onChange={(value) => { CaoCaoStats.summonDuration = value; setVersion(version + 1); }} />
               <NumberField label="技能CDms" value={CaoCaoStats.skillCooldown} onChange={(value) => { CaoCaoStats.skillCooldown = value; setVersion(version + 1); }} />
+              <NumberField label="技能1概率" value={CaoCaoStats.skill1Chance} onChange={(value) => { CaoCaoStats.skill1Chance = value; setVersion(version + 1); }} />
+              <NumberField label="统御充能ms" value={CaoCaoStats.summonChargeTime} onChange={(value) => { CaoCaoStats.summonChargeTime = value; setVersion(version + 1); }} />
               <NumberField label="休整ms" value={CaoCaoStats.restTime} onChange={(value) => { CaoCaoStats.restTime = value; setVersion(version + 1); }} />
               <BooleanField label="召唤功能开关" value={CaoCaoStats.summonEnabled} onChange={(value) => { CaoCaoStats.summonEnabled = value; setVersion(version + 1); }} />
             </fieldset>

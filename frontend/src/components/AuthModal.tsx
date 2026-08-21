@@ -12,6 +12,7 @@ export function AuthModal() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [displayName, setDisplayName] = useState("");
+  const [error, setError] = useState("");
 
   if (!authOpen) {
     return null;
@@ -19,6 +20,7 @@ export function AuthModal() {
 
   const handleSubmit = async (event: FormEvent) => {
     event.preventDefault();
+    setError("");
     const endpoint = authMode === "login" ? "/api/auth/login" : "/api/auth/register";
     const body =
       authMode === "login"
@@ -42,7 +44,7 @@ export function AuthModal() {
       setAuthOpen(false);
       showToast(authMode === "login" ? "登录成功" : "注册成功");
     } catch (error) {
-      showToast(error instanceof Error ? error.message : "操作失败");
+      setError(error instanceof Error ? error.message : "操作失败");
     }
   };
 
@@ -57,6 +59,7 @@ export function AuthModal() {
           <p className="section-eyebrow">{authMode === "login" ? "欢迎回来" : "创建账号"}</p>
           <h2>{authMode === "login" ? "登录 Mini Playbox" : "注册 Mini Playbox"}</h2>
           <form className="auth-form" onSubmit={handleSubmit}>
+            {error && <p className="auth-error" role="alert">{error}</p>}
             <label>
               <span>用户名</span>
               <input value={username} onChange={(event) => setUsername(event.target.value)} />

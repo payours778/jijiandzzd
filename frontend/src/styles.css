@@ -1490,8 +1490,8 @@ img { max-width: 100%; display: block; }
    ========================================================= */
 .toast {
   position: fixed;
-  left: 50%; bottom: 28px;
-  z-index: 150;
+  left: 50%; top: 76px;
+  z-index: 10000;
   transform: translateX(-50%);
   max-width: calc(100vw - 32px);
   padding: 12px 18px;
@@ -1642,7 +1642,7 @@ img { max-width: 100%; display: block; }
 }
 
 .auth-modal {
-  z-index: 160;
+  z-index: 9999;
 }
 
 .auth-card {
@@ -1663,6 +1663,17 @@ img { max-width: 100%; display: block; }
   flex-direction: column;
   gap: 14px;
   margin-top: 20px;
+}
+
+.auth-error {
+  margin: 0;
+  padding: 10px 12px;
+  border: 1px solid rgba(239, 68, 68, 0.45);
+  border-radius: var(--tag-radius);
+  background: rgba(239, 68, 68, 0.12);
+  color: #ef4444;
+  font-size: 13px;
+  font-weight: 700;
 }
 
 .auth-form label {
