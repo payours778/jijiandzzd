@@ -11,6 +11,7 @@ export interface AuthUser {
   createdAt: string;
   lastSeenAt: string;
   isGuest: boolean;
+  coins?: number;
 }
 
 interface AppState {
@@ -28,6 +29,7 @@ interface AppState {
   authOpen: boolean;
   authMode: "login" | "register";
   user: AuthUser | null;
+  coins: number;
   setTheme: (theme: Theme) => void;
   setCategory: (category: string) => void;
   setQuery: (query: string) => void;
@@ -42,6 +44,8 @@ interface AppState {
   setAuthOpen: (open: boolean) => void;
   setAuthMode: (mode: "login" | "register") => void;
   setUser: (user: AuthUser | null) => void;
+  setCoins: (coins: number) => void;
+  addCoins: (amount: number) => void;
 }
 
 let toastTimer: ReturnType<typeof setTimeout> | null = null;
@@ -67,6 +71,7 @@ export const useAppStore = create<AppState>()(
       authOpen: false,
       authMode: "login",
       user: null,
+      coins: 0,
       setTheme: (theme) => set({ theme }),
       setCategory: (category) => set({ category }),
       setQuery: (query) => set({ query }),
@@ -109,7 +114,9 @@ export const useAppStore = create<AppState>()(
       setMenuOpen: (menuOpen) => set({ menuOpen }),
       setAuthOpen: (authOpen) => set({ authOpen }),
       setAuthMode: (authMode) => set({ authMode }),
-      setUser: (user) => set({ user }),
+      setUser: (user) => set({ user, coins: user?.coins ?? 0 }),
+      setCoins: (coins) => set({ coins }),
+      addCoins: (amount) => set((state) => ({ coins: state.coins + amount })),
       showToast: (message) => {
         if (toastTimer) {
           window.clearTimeout(toastTimer);

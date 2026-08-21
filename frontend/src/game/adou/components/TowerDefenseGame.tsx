@@ -8,6 +8,7 @@ import { GameStartScreen } from "./GameStartScreen";
 import { loadDevConfig } from "../devConfig";
 import { AudioToggleButton } from "../../../audio/AudioToggleButton";
 import { playMusic, playSfx, stopMusic, unlock } from "../../../audio/audioSystem";
+import { useAppStore } from "../../../store/useAppStore";
 
 export function TowerDefenseGame({
   mode = "game",
@@ -65,22 +66,40 @@ export function TowerDefenseGame({
   // 监听游戏结算事件，将本局波次提交到全服排行榜（只保留用户最高波次）。
   useEffect(() => {
     const handleGameOver = async (event: Event) => {
-      const wave = (event as CustomEvent).detail?.wave;
+      const detail = (event as CustomEvent).detail || {};
+      const wave = detail.wave;
+      const coins = detail.coins || 0;
       const token = localStorage.getItem("mini-playbox-token");
 
-      if (!token || !Number.isInteger(wave)) {
+      if (!token) {
         return;
       }
 
       try {
-        await fetch("/api/adou/best-wave", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify({ wave, mode: "normal" }),
-        });
+        if (Number.isInteger(wave)) {
+          await fetch("/api/adou/best-wave", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
+            },
+            body: JSON.stringify({ wave, mode: "normal" }),
+          });
+        }
+        if (Number.isInteger(coins) && coins > 0) {
+          const response = await fetch("/api/adou/coins", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
+            },
+            body: JSON.stringify({ amount: coins }),
+          });
+          if (response.ok) {
+            const data = await response.json();
+            useAppStore.getState().setCoins(data.coins);
+          }
+        }
       } catch {
         // 提交失败不影响游戏流程。
       }

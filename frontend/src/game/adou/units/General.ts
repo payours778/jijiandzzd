@@ -576,7 +576,7 @@ export class General extends Unit {
 
     const blade = scene.add
       .image(this.x, this.y, "guanping-saber")
-      .setOrigin(0.5, 0.5)
+      .setOrigin(0.5, 1)
       .setDepth(86)
       .setDisplaySize(12, 35);
 
@@ -602,6 +602,25 @@ export class General extends Unit {
             zombie.takeDamage(currentDamage);
           });
           blade.setPosition(target.x, target.y);
+          blade.setAngle(0);
+          blade.setScale(1);
+          blade.setAlpha(1);
+          scene.tweens.add({
+            targets: blade,
+            angle: 360,
+            scale: (Config.cellWidth * 1.5) / 35,
+            alpha: 0,
+            duration: 280,
+            ease: "Cubic.easeOut",
+            onComplete: () => {
+              if (!alive) {
+                return;
+              }
+              blade.setAngle(0);
+              blade.setScale(1);
+              blade.setAlpha(1);
+            },
+          });
           const hitText = scene.add
             .text(target.x, target.y - 16, "刀", {
               fontFamily: Config.fontFamily,
@@ -622,11 +641,21 @@ export class General extends Unit {
           });
         };
         hit();
-        scene.time.addEvent({
-          delay: bladeInterval,
-          repeat: Math.max(0, Math.floor(bladeDuration / bladeInterval) - 1),
-          callback: hit,
-        });
+        let remaining = bladeDuration;
+        const schedule = () => {
+          if (!alive) {
+            return;
+          }
+          remaining -= bladeInterval;
+          if (remaining <= 0) {
+            alive = false;
+            blade.destroy();
+            return;
+          }
+          hit();
+          scene.time.delayedCall(bladeInterval, schedule);
+        };
+        scene.time.delayedCall(bladeInterval, schedule);
       },
     });
   }

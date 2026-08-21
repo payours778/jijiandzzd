@@ -47,13 +47,16 @@ export class GamePlayScene extends Phaser.Scene {
   private gameOver = false;
   private gameOverShown = false;
   private wave = 1;
+  private earnedCoins = 0;
   private zombiesSpawnedInWave = 0;
   private waveSize = 5;
   private bossSpawnedInWave = false;
   private refreshCost = Config.refreshStartCost;
+  private drawCount = 0;
   private fragmentPool: Record<string, number> = {};
 
   private mantouText!: Phaser.GameObjects.Text;
+  private coinText!: Phaser.GameObjects.Text;
   private messageText!: Phaser.GameObjects.Text;
   private drawButton!: Phaser.GameObjects.Text;
   private selectedText!: Phaser.GameObjects.Text;
@@ -123,9 +126,11 @@ export class GamePlayScene extends Phaser.Scene {
     this.gameOver = false;
     this.gameOverShown = false;
     this.wave = 1;
+    this.earnedCoins = 0;
     this.zombiesSpawnedInWave = 0;
     this.bossSpawnedInWave = false;
     this.mantou = Config.startingMantou;
+    this.drawCount = 0;
     this.hand = [];
     this.handTexts = [];
     this.zombies = [];
@@ -402,6 +407,7 @@ export class GamePlayScene extends Phaser.Scene {
 
     this.zombies = this.zombies.filter((zombie) => {
       if (zombie.dead) {
+        this.awardCoins(zombie);
         if (
           (zombie instanceof LuBu || zombie instanceof DiaoChan || zombie instanceof CaoCao) &&
           zombie.hitByZhaoyun
@@ -421,6 +427,7 @@ export class GamePlayScene extends Phaser.Scene {
     }
 
     this.cleanupBoard();
+    this.checkWaveCleared();
     this.checkGameOver();
   }
 
@@ -452,6 +459,12 @@ export class GamePlayScene extends Phaser.Scene {
       fontFamily: Config.fontFamily,
       fontSize: "22px",
       color: "#facc15",
+      fontStyle: "bold",
+    });
+    this.coinText = this.add.text(this.px(2.5), this.py(6), "", {
+      fontFamily: Config.fontFamily,
+      fontSize: "18px",
+      color: "#fde68a",
       fontStyle: "bold",
     });
 
@@ -513,6 +526,7 @@ export class GamePlayScene extends Phaser.Scene {
       });
 
     this.updateMantouText();
+    this.updateCoinText();
     this.updateDrawButton();
     this.updateWaveText();
   }
@@ -830,10 +844,13 @@ export class GamePlayScene extends Phaser.Scene {
     }
 
     this.mantou -= this.refreshCost;
-    this.hand = Array.from(
-      { length: Math.min(Config.refreshCardCount, Config.handLimit) },
-      () => this.makeHandCard(this.randomCard()),
-    );
+    const cardCount = Math.min(Config.refreshCardCount, Config.handLimit);
+    const cards: CardType[] = [];
+    for (let index = 0; index < cardCount; index += 1) {
+      cards.push(this.drawCount === 0 && index === 0 ? "农" : this.randomCard());
+    }
+    this.hand = cards.map((card) => this.makeHandCard(card));
+    this.drawCount += 1;
     this.refreshCost += Config.refreshCostStep;
     this.updateMantouText();
     this.updateDrawButton();
@@ -1255,18 +1272,28 @@ export class GamePlayScene extends Phaser.Scene {
       if (this.gameOver) return;
       this.spawnZombie();
       this.zombiesSpawnedInWave += 1;
-      if (this.zombiesSpawnedInWave >= this.waveSize) {
-        this.zombiesSpawnedInWave = 0;
-        this.wave += 1;
-        this.bossSpawnedInWave = false;
-        this.updateWaveText();
-        this.messageText.setText(`进入第 ${this.wave} 波`);
-        if (this.wave % 5 === 0) {
-          this.showBossWarning(this.getBossForWave(this.wave));
-        }
+      if (this.zombiesSpawnedInWave < this.waveSize) {
+        this.scheduleNextZombie();
       }
-      this.scheduleNextZombie();
     });
+  }
+
+  private checkWaveCleared() {
+    if (this.gameOver) {
+      return;
+    }
+    if (this.zombies.length > 0 || this.zombiesSpawnedInWave < this.waveSize) {
+      return;
+    }
+    this.zombiesSpawnedInWave = 0;
+    this.wave += 1;
+    this.bossSpawnedInWave = false;
+    this.updateWaveText();
+    this.messageText.setText(`进入第 ${this.wave} 波`);
+    if (this.wave % 5 === 0) {
+      this.showBossWarning(this.getBossForWave(this.wave));
+    }
+    this.scheduleNextZombie();
   }
 
   private spawnZombie() {
@@ -1384,7 +1411,9 @@ export class GamePlayScene extends Phaser.Scene {
     // 结算事件：每局只触发一次（showGameOverPanel 受 gameOverShown 防重入保护），
     // 由 React 层监听后提交全服排行榜。
     window.dispatchEvent(
-      new CustomEvent("adou-game-over", { detail: { wave: this.wave } }),
+      new CustomEvent("adou-game-over", {
+        detail: { wave: this.wave, coins: this.earnedCoins },
+      }),
     );
 
     const cx = this.px(50);
@@ -1453,6 +1482,17 @@ export class GamePlayScene extends Phaser.Scene {
 
   private updateMantouText() {
     this.mantouText.setText(`馒头：${this.mantou}`);
+  }
+
+  private awardCoins(zombie: Zombie) {
+    const isBoss =
+      zombie instanceof LuBu || zombie instanceof DiaoChan || zombie instanceof CaoCao;
+    this.earnedCoins += isBoss ? 5 : 1;
+    this.updateCoinText();
+  }
+
+  private updateCoinText() {
+    this.coinText.setText(`金币：${this.earnedCoins}`);
   }
 
   getCellCenter(row: number, col: number) {

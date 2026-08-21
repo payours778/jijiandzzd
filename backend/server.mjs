@@ -42,6 +42,11 @@ db.exec(`
     PRIMARY KEY (account_id, mode)
   );
 `);
+try {
+  db.exec("ALTER TABLE accounts ADD COLUMN coins INTEGER NOT NULL DEFAULT 0");
+} catch {
+  // 老数据库已存在该列时忽略。
+}
 
 const mimeTypes = {
   ".html": "text/html; charset=utf-8",
@@ -222,12 +227,22 @@ function getSessionFromRequest(req) {
 }
 
 function publicSession(session) {
+  let coins = 0;
+  if (session.accountId) {
+    const row = db
+      .prepare("SELECT coins FROM accounts WHERE id = ?")
+      .get(session.accountId);
+    if (row) {
+      coins = row.coins || 0;
+    }
+  }
   return {
     id: session.id,
     displayName: session.displayName,
     createdAt: session.createdAt,
     lastSeenAt: session.lastSeenAt,
     isGuest: !session.accountId,
+    coins,
   };
 }
 
@@ -380,6 +395,32 @@ async function handleApi(req, res, pathname) {
       playCount: record.play_count,
       isNewBest: record.best_wave === wave,
     });
+    return;
+  }
+
+  if (pathname === "/api/adou/coins" && req.method === "POST") {
+    const session = getSessionFromRequest(req);
+
+    if (!session || !session.accountId) {
+      sendJson(res, 401, { error: "Unauthorized" });
+      return;
+    }
+
+    const body = await readBody(req);
+    const amount = Number(body.amount);
+    if (!Number.isInteger(amount) || amount < 1 || amount > 100000) {
+      sendJson(res, 400, { error: "无效的金币数量" });
+      return;
+    }
+
+    db.prepare("UPDATE accounts SET coins = coins + ? WHERE id = ?").run(
+      amount,
+      session.accountId,
+    );
+    const row = db
+      .prepare("SELECT coins FROM accounts WHERE id = ?")
+      .get(session.accountId);
+    sendJson(res, 200, { ok: true, coins: row.coins });
     return;
   }
 
