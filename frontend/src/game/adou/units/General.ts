@@ -175,6 +175,8 @@ export class General extends Unit {
   private xpBar?: Phaser.GameObjects.Rectangle;
   private xpBarBackground?: Phaser.GameObjects.Rectangle;
   private xpText?: Phaser.GameObjects.Text;
+  private xpBarTargetScale = 0;
+  private xpBarTween?: Phaser.Tweens.Tween;
 
   constructor(
     scene: Phaser.Scene,
@@ -553,8 +555,9 @@ export class General extends Unit {
       .setOrigin(0.5)
       .setDepth(56);
     this.xpBar = this.scene.add
-      .rectangle(this.x - 17, this.y - 21, 0, 3, 0xfbbf24)
+      .rectangle(this.x - 17, this.y - 21, 34, 3, 0xfbbf24)
       .setOrigin(0, 0.5)
+      .setScale(0, 1)
       .setDepth(57);
     this.xpText = this.scene.add
       .text(this.x, this.y - 10, "0/60", {
@@ -580,7 +583,20 @@ export class General extends Unit {
       ? 1
       : Math.max(0, Math.min(1, this.xp / need));
     this.xpBarBackground.setPosition(this.x, y);
-    this.xpBar.setPosition(this.x - 17, y).setDisplaySize(34 * progress, 3);
+    this.xpBar.setPosition(this.x - 17, y);
+    if (Math.abs(this.xpBarTargetScale - progress) > 0.001) {
+      this.xpBarTargetScale = progress;
+      this.xpBarTween?.remove();
+      this.xpBarTween = this.scene.tweens.add({
+        targets: this.xpBar,
+        scaleX: progress,
+        duration: 320,
+        ease: "Sine.easeOut",
+        onComplete: () => {
+          this.xpBarTween = undefined;
+        },
+      });
+    }
     if (this.xpText) {
       this.xpText.setPosition(this.x, this.y - 10);
       this.xpText.setText(
@@ -726,6 +742,8 @@ export class General extends Unit {
     this.reviveCross?.destroy();
     this.guanpingWeapon?.destroy();
     this.guanpingWeapon = undefined;
+    this.xpBarTween?.remove();
+    this.xpBarTween = undefined;
     this.xpBar?.destroy();
     this.xpBar = undefined;
     this.xpBarBackground?.destroy();
