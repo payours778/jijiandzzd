@@ -58,7 +58,9 @@ export class GamePlayScene extends Phaser.Scene {
   private selectedCard: CardType | null = null;
   private selectedHandIndex = -1;
   private selectedHandLevel = 1;
-  private draggingHandIndex = -1;
+  private handTapDownIndex = -1;
+  private tapStartX = 0;
+  private tapStartY = 0;
   private gameOver = false;
   private gameOverShown = false;
   private wave = 1;
@@ -798,16 +800,18 @@ export class GamePlayScene extends Phaser.Scene {
       const isSelected = this.selectedHandIndex === index;
       text.setBackgroundColor(isSelected ? "#7c3aed" : "#252a33");
 
-      text.on("dragstart", () => {
-        this.draggingHandIndex = index;
-        text.setBackgroundColor("transparent");
+      text.on("pointerdown", (pointer: Phaser.Input.Pointer) => {
+        this.handTapDownIndex = index;
+        this.tapStartX = pointer.x;
+        this.tapStartY = pointer.y;
       });
-      text.on("pointerup", () => {
-        if (this.draggingHandIndex === index) {
-          this.draggingHandIndex = -1;
-          return;
+      text.on("dragstart", () => text.setBackgroundColor("transparent"));
+      text.on("pointerup", (pointer: Phaser.Input.Pointer) => {
+        const tapDistance = Math.hypot(pointer.x - this.tapStartX, pointer.y - this.tapStartY);
+        if (this.handTapDownIndex === index && tapDistance <= 10) {
+          this.selectHandCard(index);
         }
-        this.selectHandCard(index);
+        this.handTapDownIndex = -1;
       });
       text.on("pointerover", () => this.showCardTooltip(card, text));
       text.on("pointerout", () => this.hideCardTooltip());
