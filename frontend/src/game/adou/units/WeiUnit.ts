@@ -42,7 +42,6 @@ export class WeiUnit extends Zombie {
 
     if (time >= this.expireAt) {
       this.dead = true;
-      this.destroy();
       return;
     }
 
@@ -72,7 +71,6 @@ export class WeiUnit extends Zombie {
       this.x = rightBoundary;
       this.setX(this.x);
       this.dead = true;
-      this.destroy();
       return;
     }
 

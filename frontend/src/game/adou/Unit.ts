@@ -12,6 +12,7 @@ export abstract class Unit extends Phaser.GameObjects.Text {
   stunUntil = 0;
   level = 1;
   baseText: string;
+  isDestroyed = false;
   protected healthBar?: Phaser.GameObjects.Rectangle;
   protected healthBarBackground?: Phaser.GameObjects.Rectangle;
   protected healthBarWidth = 34;
@@ -352,6 +353,7 @@ export abstract class Unit extends Phaser.GameObjects.Text {
 
   override destroy(fromScene?: boolean) {
     this.dead = true;
+    this.isDestroyed = true;
     this.onDestroyed();
     super.destroy(fromScene);
   }

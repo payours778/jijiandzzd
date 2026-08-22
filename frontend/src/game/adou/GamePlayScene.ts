@@ -407,6 +407,9 @@ export class GamePlayScene extends Phaser.Scene {
 
     this.zombies = this.zombies.filter((zombie) => {
       if (zombie.dead) {
+        if (!zombie.isDestroyed) {
+          zombie.destroy();
+        }
         this.awardCoins(zombie);
         if (
           (zombie instanceof LuBu || zombie instanceof DiaoChan || zombie instanceof CaoCao) &&
