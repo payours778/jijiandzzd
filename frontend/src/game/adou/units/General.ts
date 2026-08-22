@@ -137,8 +137,10 @@ function playGeneralAttackSfx(name: keyof typeof GeneralConfig) {
       break;
     case "张飞":
     case "张苞":
-    case "马超":
       playSfx("spear");
+      break;
+    case "马超":
+      playSfx("machao_attack");
       break;
     case "关平":
       playSfx("melee");
@@ -189,6 +191,9 @@ export class General extends Unit {
         .setOrigin(0.5, 1)
         .setDepth(80)
         .setDisplaySize(12, 35);
+    }
+    if (generalName === "魏延") {
+      playSfx("weiyan_enter");
     }
   }
 
@@ -410,6 +415,9 @@ export class General extends Unit {
           this.heal(totalDamage * (config.weiYanLifestealRatio ?? 1));
           scene.showHeavyThrust(this);
           playGeneralAttackSfx(this.generalName);
+          if (targets.some((zombie) => zombie.dead)) {
+            playSfx("weiyan_kill");
+          }
           this.attackTimer = config.cooldown * cooldownMultiplier;
         }
         return;
@@ -422,6 +430,9 @@ export class General extends Unit {
         target.takeDamage(config.damage * damageMultiplier);
         scene.showHeavyThrust(this);
         playGeneralAttackSfx(this.generalName);
+        if (target.dead) {
+          playSfx("weiyan_kill");
+        }
         this.attackTimer = config.cooldown * cooldownMultiplier;
       }
       return;

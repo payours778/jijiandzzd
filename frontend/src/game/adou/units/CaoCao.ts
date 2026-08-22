@@ -113,6 +113,7 @@ export class CaoCao extends Zombie {
 
     scene.showCaoCaoJianxiong(this, Math.min(Config.cols - 1, startCol));
     playSfx("melee");
+    playSfx("caocao_skill1_voice");
     this.skillCooldown = CaoCaoStats.skillCooldown;
     this.restTimer = CaoCaoStats.restTime;
   }
@@ -127,6 +128,7 @@ export class CaoCao extends Zombie {
     this.chargeRemaining = CaoCaoStats.summonChargeTime;
     scene.showCaoCaoCharge(this);
     playSfx("cavalry");
+    playSfx("caocao_skill2_voice");
   }
 
   private summonWei(scene: GamePlayScene) {
