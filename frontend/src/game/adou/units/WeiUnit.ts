@@ -41,10 +41,7 @@ export class WeiUnit extends Zombie {
     this.syncHealthBar();
 
     if (time >= this.expireAt) {
-      this.dead = true;
-      this.isDestroyed = true;
-      this.setVisible(false);
-      this.setActive(false);
+      this.disappear();
       return;
     }
 
@@ -73,10 +70,7 @@ export class WeiUnit extends Zombie {
     if (this.x >= rightBoundary) {
       this.x = rightBoundary;
       this.setX(this.x);
-      this.dead = true;
-      this.isDestroyed = true;
-      this.setVisible(false);
-      this.setActive(false);
+      this.disappear();
       return;
     }
 
@@ -99,10 +93,7 @@ export class WeiUnit extends Zombie {
 
     // 进入最后一格且没有撞到目标时直接消失，不继续冲出棋盘。
     if (currentCol >= Config.cols - 1) {
-      this.dead = true;
-      this.isDestroyed = true;
-      this.setVisible(false);
-      this.setActive(false);
+      this.disappear();
       return;
     }
 
@@ -110,6 +101,14 @@ export class WeiUnit extends Zombie {
       scene.showWeiChargeTrail(this);
       this.trailTimer = 110;
     }
+  }
+
+  private disappear() {
+    this.dead = true;
+    this.isDestroyed = true;
+    this.onDestroyed();
+    this.setVisible(false);
+    this.setActive(false);
   }
 
   private retreat(delta: number) {
