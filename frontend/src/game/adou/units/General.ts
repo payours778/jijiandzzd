@@ -448,10 +448,11 @@ export class General extends Unit {
         .getZombiesInRow(this.row)
         .filter((zombie) => zombie.x < this.x)
         .sort((a, b) => b.x - a.x)[0] || null;
+      if (!machaoTarget) {
+        return;
+      }
       const machaoStartX = this.x;
-      const machaoTargetX = machaoTarget
-        ? machaoTarget.x
-        : scene.getCellCenter(this.row, 0).x;
+      const machaoTargetX = machaoTarget.x;
       this.machaoCharging = true;
       this.setDamageReduction(config.chargeDamageReduction ?? 0.2);
       this.attackTimer = config.cooldown * cooldownMultiplier;
