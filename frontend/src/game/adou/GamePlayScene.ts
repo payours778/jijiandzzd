@@ -56,6 +56,9 @@ export class GamePlayScene extends Phaser.Scene {
   private handTrayObjects: Phaser.GameObjects.GameObject[] = [];
   private mantou = Config.startingMantou;
   private selectedCard: CardType | null = null;
+  private selectedHandIndex = -1;
+  private selectedHandLevel = 1;
+  private draggingHandIndex = -1;
   private gameOver = false;
   private gameOverShown = false;
   private wave = 1;
@@ -154,7 +157,7 @@ export class GamePlayScene extends Phaser.Scene {
     this.handTexts = [];
     this.zombies = [];
     this.pendingZombies = [];
-    this.selectedCard = null;
+    this.clearHandSelection();
     this.board = Array.from(
       { length: Config.rows },
       () => new Array<Unit | null>(Config.cols).fill(null),
@@ -738,6 +741,35 @@ export class GamePlayScene extends Phaser.Scene {
     return graphics;
   }
 
+  private clearHandSelection() {
+    this.selectedCard = null;
+    this.selectedHandIndex = -1;
+    this.selectedHandLevel = 1;
+  }
+
+  private selectHandCard(index: number) {
+    if (this.gameOver) {
+      return;
+    }
+    const handCard = this.hand[index];
+    if (!handCard) {
+      return;
+    }
+    if (this.selectedHandIndex === index && this.selectedCard === handCard.card) {
+      this.clearHandSelection();
+      this.renderHand();
+      this.selectedText.setText("");
+      return;
+    }
+    this.selectedCard = handCard.card;
+    this.selectedHandIndex = index;
+    this.selectedHandLevel = handCard.level;
+    this.renderHand();
+    this.selectedText.setText(
+      handCard.level > 1 ? `${handCard.card}${handCard.level}级` : handCard.card,
+    );
+  }
+
   private renderHand() {
     this.handTexts.forEach((text) => text.destroy());
     this.handLevelTexts.forEach((text) => text.destroy());
@@ -763,7 +795,20 @@ export class GamePlayScene extends Phaser.Scene {
         .setData("level", level)
         .setData("handIndex", index);
 
-      text.on("dragstart", () => text.setBackgroundColor("transparent"));
+      const isSelected = this.selectedHandIndex === index;
+      text.setBackgroundColor(isSelected ? "#7c3aed" : "#252a33");
+
+      text.on("dragstart", () => {
+        this.draggingHandIndex = index;
+        text.setBackgroundColor("transparent");
+      });
+      text.on("pointerup", () => {
+        if (this.draggingHandIndex === index) {
+          this.draggingHandIndex = -1;
+          return;
+        }
+        this.selectHandCard(index);
+      });
       text.on("pointerover", () => this.showCardTooltip(card, text));
       text.on("pointerout", () => this.hideCardTooltip());
 
@@ -858,7 +903,23 @@ export class GamePlayScene extends Phaser.Scene {
       return;
     }
 
-    this.messageText.setText("请将手牌拖动到棋盘");
+    const clickedHandCard = this.handTexts.some((text) =>
+      text.getBounds().contains(pointer.x, pointer.y),
+    );
+    if (clickedHandCard || !this.selectedCard || this.selectedHandIndex < 0) {
+      if (!clickedHandCard) {
+        this.messageText.setText(this.selectedCard ? "请选择一张手牌，再点击棋盘" : "点击手牌选中，再点击棋盘放置");
+      }
+      return;
+    }
+
+    const row = Math.floor((pointer.y - Config.boardY) / Config.cellHeight);
+    const col = Math.floor((pointer.x - Config.boardX) / Config.cellWidth);
+    if (row < 0 || row >= this.board.length || col < 0 || col >= Config.cols) {
+      return;
+    }
+
+    this.placeCard(this.selectedCard, row, col, this.selectedHandLevel, this.selectedHandIndex);
   }
 
   private drawCard() {
@@ -875,6 +936,7 @@ export class GamePlayScene extends Phaser.Scene {
       cards.push(this.drawCount === 0 && index === 0 ? "农" : this.randomCard());
     }
     this.hand = cards.map((card) => this.makeHandCard(card));
+    this.clearHandSelection();
     this.drawCount += 1;
     this.refreshCost += Config.refreshCostStep;
     this.updateMantouText();
@@ -927,7 +989,7 @@ export class GamePlayScene extends Phaser.Scene {
         existing.setLevel(existing.level + 1);
         existing.playUpgradeSfx();
         this.removeHandCardAt(handIndex);
-        this.selectedCard = null;
+        this.clearHandSelection();
         this.renderHand();
         this.messageText.setText(`${existing.baseText} 融合文字升级到 ${existing.level} 级`);
         return;
@@ -943,7 +1005,7 @@ export class GamePlayScene extends Phaser.Scene {
           existing.nextProduceAt = this.time.now + existing.getProduceInterval();
         }
         this.removeHandCardAt(handIndex);
-        this.selectedCard = null;
+        this.clearHandSelection();
         this.renderHand();
         this.messageText.setText(`${card} 升级到 ${existing.level} 级`);
         if (existing instanceof General) {
@@ -973,7 +1035,7 @@ export class GamePlayScene extends Phaser.Scene {
       unit.setLevel(level);
     }
     this.removeHandCardAt(handIndex);
-    this.selectedCard = null;
+    this.clearHandSelection();
     this.renderHand();
     this.messageText.setText(`已放置：${card}`);
     playSfx("place");
@@ -1097,7 +1159,7 @@ export class GamePlayScene extends Phaser.Scene {
         this.removeHandCardAt(handIndex);
         const mergedIndex = handIndex < targetIndex ? targetIndex - 1 : targetIndex;
         const mergedLevel = this.hand[mergedIndex].level;
-        this.selectedCard = null;
+        this.clearHandSelection();
         this.renderHand();
         this.messageText.setText(`${card} 在手牌中升级到 ${mergedLevel} 级`);
         playSfx("synthesize");
@@ -1113,7 +1175,7 @@ export class GamePlayScene extends Phaser.Scene {
       if (card in FragmentPool) {
         this.fragmentPool[card] += 1;
       }
-      this.selectedCard = null;
+      this.clearHandSelection();
       this.renderHand();
       this.messageText.setText(`${card} 已回收`);
       playSfx("recycle");
