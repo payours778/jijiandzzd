@@ -195,11 +195,11 @@ export const CaoCaoStats = {
 };
 
 export const GeneralXpConfig = {
-  normalKillXp: 15,
-  coneKillXp: 25,
-  bossXpPool: 120,
+  normalKillXp: 5,
+  coneKillXp: 9,
+  bossXpPool: 80,
   participantRate: 0.5,
-  levelUpRequirements: [20, 45, 90, 160],
+  levelUpRequirements: [60, 150, 280, 440],
   maxXpLevel: 5,
 };
 
