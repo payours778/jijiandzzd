@@ -18,7 +18,51 @@ let settings = loadSettings();
 let audioContext: AudioContext | null = null;
 let musicElement: HTMLAudioElement | null = null;
 let currentMusicKey: MusicKey | null = null;
-let lastHitAt = 0;
+const MAX_SFX_INSTANCES_PER_SRC = 3;
+const SFX_MIN_GAP_MS: Partial<Record<SfxKey, number>> = {
+  hit: 45,
+  melee: 120,
+  spear: 120,
+  bow: 140,
+  cavalry: 170,
+  zombie_bite: 90,
+  wei_hit: 90,
+  general_liubei: 160,
+  general_zhaoyun: 160,
+  general_guanyu: 160,
+  machao_attack: 160,
+  diaochan_attack: 160,
+  lubu_attack: 160,
+  lubu_skill1: 240,
+  lubu_skill2: 240,
+  diaochan_skill1: 240,
+  diaochan_skill2: 240,
+  zhangfei_roar: 300,
+  boss_warning: 400,
+  game_over: 500,
+};
+
+const PRELOAD_SFX_KEYS: SfxKey[] = [
+  "click",
+  "place",
+  "melee",
+  "spear",
+  "bow",
+  "cavalry",
+  "wei_hit",
+  "zombie_bite",
+  "general_liubei",
+  "general_zhaoyun",
+  "general_guanyu",
+  "machao_attack",
+  "diaochan_attack",
+  "lubu_attack",
+];
+
+const lastSfxAt = new Map<SfxKey, number>();
+const sfxPools = new Map<string, HTMLAudioElement[]>();
+const nextSfxSlot = new Map<string, number>();
+let preloadStarted = false;
 const listeners = new Set<() => void>();
 
 function loadSettings(): AudioSettings {
@@ -53,6 +97,66 @@ function notify() {
   listeners.forEach((listener) => listener());
 }
 
+function sfxShouldThrottle(key: SfxKey) {
+  const gap = SFX_MIN_GAP_MS[key] ?? 60;
+  const now = performance.now();
+  if (now - (lastSfxAt.get(key) ?? 0) < gap) {
+    return true;
+  }
+  lastSfxAt.set(key, now);
+  return false;
+}
+
+function getSfxPool(src: string) {
+  let pool = sfxPools.get(src);
+  if (!pool) {
+    pool = [];
+    sfxPools.set(src, pool);
+  }
+  return pool;
+}
+
+function getSfxElement(src: string) {
+  const pool = getSfxPool(src);
+  const idle = pool.find((sound) => sound.paused);
+  if (idle) {
+    idle.currentTime = 0;
+    idle.volume = settings.sfxVolume;
+    return idle;
+  }
+
+  if (pool.length < MAX_SFX_INSTANCES_PER_SRC) {
+    const sound = new Audio(src);
+    sound.preload = "auto";
+    sound.volume = settings.sfxVolume;
+    pool.push(sound);
+    return sound;
+  }
+
+  const index = nextSfxSlot.get(src) ?? 0;
+  const sound = pool[index % pool.length];
+  nextSfxSlot.set(src, index + 1);
+  sound.pause();
+  sound.currentTime = 0;
+  sound.volume = settings.sfxVolume;
+  return sound;
+}
+
+export function preloadSfx() {
+  if (preloadStarted || typeof Audio === "undefined") {
+    return;
+  }
+  preloadStarted = true;
+  for (const key of PRELOAD_SFX_KEYS) {
+    const src = SFX_FILES[key];
+    if (!src) {
+      continue;
+    }
+    const sound = getSfxElement(src);
+    sound.load();
+  }
+}
+
 function getContext(): AudioContext | null {
   if (audioContext) {
     return audioContext;
@@ -72,6 +176,8 @@ export function unlock() {
   if (ctx && ctx.state === "suspended") {
     ctx.resume().catch(() => {});
   }
+
+  preloadSfx();
 
   if (musicElement && musicElement.paused && currentMusicKey) {
     musicElement.play().catch(() => {});
@@ -116,6 +222,11 @@ export function setMusicVolume(volume: number) {
 
 export function setSfxVolume(volume: number) {
   settings.sfxVolume = clampVolume(volume, 0);
+  for (const pool of sfxPools.values()) {
+    for (const sound of pool) {
+      sound.volume = settings.sfxVolume;
+    }
+  }
   saveSettings();
   notify();
 }
@@ -182,17 +293,13 @@ export function playSfx(key: SfxKey) {
 
   unlock();
 
-  if (key === "hit" && performance.now() - lastHitAt < 45) {
+  if (sfxShouldThrottle(key)) {
     return;
-  }
-  if (key === "hit") {
-    lastHitAt = performance.now();
   }
 
   const src = SFX_FILES[key];
   if (src && typeof Audio !== "undefined") {
-    const sound = new Audio(src);
-    sound.volume = settings.sfxVolume;
+    const sound = getSfxElement(src);
     sound.play().catch(() => {});
     return;
   }
