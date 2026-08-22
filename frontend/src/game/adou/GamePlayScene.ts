@@ -65,14 +65,6 @@ export class GamePlayScene extends Phaser.Scene {
     return Math.min(10, 5 + Math.floor((wave - 1) / 3));
   }
 
-  private getZombieStrength(wave: number) {
-    return 1 + (wave - 1) * 0.18;
-  }
-
-  private getBossStrength(wave: number) {
-    return 1 + Math.max(0, wave - 5) * 0.1;
-  }
-
   private bossSpawnedInWave = false;
   private bossQueue: Array<"吕布" | "貂蝉" | "曹操"> = [];
   private bossWaveCache: Record<number, "吕布" | "貂蝉" | "曹操"> = {};
@@ -1337,9 +1329,7 @@ export class GamePlayScene extends Phaser.Scene {
     }
     const type = isBossWave ? "cone" : "normal";
     const y = Config.boardY + row * Config.cellHeight + Config.cellHeight / 2;
-    const strengthMultiplier = isBossWave
-      ? this.getBossStrength(this.wave)
-      : this.getZombieStrength(this.wave);
+    const strengthMultiplier = Math.pow(1.2, this.wave - 1);
     const zombie = isBossWave
       ? this.createBoss(this.getBossForWave(this.wave), y, row, strengthMultiplier)
       : new Zombie(this, Config.boardX - 16, y, row, type, strengthMultiplier);
