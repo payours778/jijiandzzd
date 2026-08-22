@@ -396,6 +396,8 @@ export class General extends Unit {
             onComplete: () => {
               this.machaoCharging = false;
               this.setDamageReduction(1);
+              const center = scene.getCellCenter(this.row, this.col);
+              this.setPosition(center.x, center.y);
               this.syncHealthBar();
             },
           });
@@ -733,6 +735,9 @@ export class General extends Unit {
               onComplete: () => {
                 this.guanYuLeaping = false;
                 this.setInvincible(false);
+                const center = scene.getCellCenter(this.row, this.col);
+                this.setPosition(center.x, center.y);
+                this.syncHealthBar();
               },
             });
           },
