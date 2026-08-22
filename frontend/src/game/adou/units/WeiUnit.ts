@@ -91,6 +91,12 @@ export class WeiUnit extends Zombie {
       }
     }
 
+    // 进入最后一格且没有撞到目标时直接消失，不继续冲出棋盘。
+    if (currentCol >= Config.cols - 1) {
+      this.dead = true;
+      return;
+    }
+
     if (this.trailTimer <= 0) {
       scene.showWeiChargeTrail(this);
       this.trailTimer = 110;
