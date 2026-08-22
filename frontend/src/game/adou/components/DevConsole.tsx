@@ -121,7 +121,7 @@ const defaults = {
       damage: 5,
       cooldown: 100,
       weiYanRageThresholdRatio: 0.5,
-      weiYanRageDuration: 5000,
+      weiYanRageDuration: 15000,
       weiYanRageCooldown: 60000,
       weiYanRageRangeMultiplier: 2,
       weiYanLifestealRatio: 1,

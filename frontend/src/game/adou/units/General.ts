@@ -114,7 +114,7 @@ export const GeneralConfig: Record<string, GeneralConfigItem> = {
     cooldown: 100,
     color: "#4ade80",
     weiYanRageThresholdRatio: 0.5,
-    weiYanRageDuration: 5000,
+    weiYanRageDuration: 15000,
     weiYanRageCooldown: 60000,
     weiYanRageRangeMultiplier: 2,
     weiYanLifestealRatio: 1,
