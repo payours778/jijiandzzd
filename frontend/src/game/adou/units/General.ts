@@ -174,7 +174,6 @@ export class General extends Unit {
   xp = 0;
   private xpBar?: Phaser.GameObjects.Rectangle;
   private xpBarBackground?: Phaser.GameObjects.Rectangle;
-  private xpText?: Phaser.GameObjects.Text;
   private xpBarTargetScale = 0;
   private xpBarTween?: Phaser.Tweens.Tween;
 
@@ -559,17 +558,6 @@ export class General extends Unit {
       .setOrigin(0, 0.5)
       .setScale(0, 1)
       .setDepth(57);
-    this.xpText = this.scene.add
-      .text(this.x, this.y - 10, "0/60", {
-        fontFamily: Config.fontFamily,
-        fontSize: "11px",
-        color: "#fbbf24",
-        fontStyle: "bold",
-        stroke: "#111",
-        strokeThickness: 2,
-      })
-      .setOrigin(0.5)
-      .setDepth(58);
     this.syncXpBar();
   }
 
@@ -596,14 +584,6 @@ export class General extends Unit {
           this.xpBarTween = undefined;
         },
       });
-    }
-    if (this.xpText) {
-      this.xpText.setPosition(this.x, this.y - 10);
-      this.xpText.setText(
-        this.level >= Config.maxLevel
-          ? "MAX"
-          : `${Math.floor(this.xp)}/${need}`,
-      );
     }
   }
 
@@ -748,8 +728,6 @@ export class General extends Unit {
     this.xpBar = undefined;
     this.xpBarBackground?.destroy();
     this.xpBarBackground = undefined;
-    this.xpText?.destroy();
-    this.xpText = undefined;
     super.onDestroyed();
   }
 
