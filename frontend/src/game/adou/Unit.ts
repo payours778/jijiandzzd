@@ -72,6 +72,9 @@ export abstract class Unit extends Phaser.GameObjects.Text {
   }
 
   syncHealthBar() {
+    if (this.isDestroyed || !this.scene) {
+      return;
+    }
     const hud = this.getHudPosition();
     this.healthBar?.setPosition(hud.x, hud.y - 32);
     this.healthBarBackground?.setPosition(hud.x, hud.y - 32);
@@ -112,6 +115,9 @@ export abstract class Unit extends Phaser.GameObjects.Text {
   }
 
   syncOutline() {
+    if (this.isDestroyed || !this.scene) {
+      return;
+    }
     if (!this.outlineGraphics) {
       return;
     }
@@ -137,11 +143,17 @@ export abstract class Unit extends Phaser.GameObjects.Text {
   }
 
   syncLevelText() {
+    if (this.isDestroyed || !this.scene) {
+      return;
+    }
     const hud = this.getHudPosition();
     this.levelText?.setPosition(hud.x + 22, hud.y - 22);
   }
 
   setLevel(level: number) {
+    if (this.isDestroyed || !this.scene) {
+      return;
+    }
     const oldLevel = this.level;
     this.level = Math.min(level, 5);
     this.setText(this.baseText);
@@ -182,7 +194,7 @@ export abstract class Unit extends Phaser.GameObjects.Text {
   }
 
   takeDamage(damage: number) {
-    if (this.reviving || this.invincible) {
+    if (this.isDestroyed || !this.scene || this.reviving || this.invincible) {
       return;
     }
     const actualDamage = damage * this.damageReduction;
@@ -208,7 +220,7 @@ export abstract class Unit extends Phaser.GameObjects.Text {
   }
 
   heal(amount: number) {
-    if (this.dead || this.reviving) {
+    if (this.dead || this.reviving || this.isDestroyed || !this.scene) {
       return;
     }
     this.hp = Math.min(this.maxHp, this.hp + amount);
@@ -220,7 +232,7 @@ export abstract class Unit extends Phaser.GameObjects.Text {
   }
 
   stun(duration: number) {
-    if (this.invincible) {
+    if (this.isDestroyed || !this.scene || this.invincible) {
       return;
     }
     this.stunUntil = this.scene.time.now + duration;
@@ -239,7 +251,7 @@ export abstract class Unit extends Phaser.GameObjects.Text {
   }
 
   charm(duration: number) {
-    if (this.invincible) {
+    if (this.isDestroyed || !this.scene || this.invincible) {
       return;
     }
     this.stunUntil = this.scene.time.now + duration;
@@ -258,6 +270,9 @@ export abstract class Unit extends Phaser.GameObjects.Text {
   }
 
   applyHeavyWound(durationMs: number, maxHpRatio: number) {
+    if (this.isDestroyed || !this.scene) {
+      return;
+    }
     if (this.baseMaxHp === 0) {
       this.baseMaxHp = this.maxHp;
     }
@@ -272,6 +287,9 @@ export abstract class Unit extends Phaser.GameObjects.Text {
   }
 
   tickDebuffs() {
+    if (this.isDestroyed || !this.scene) {
+      return;
+    }
     if (this.heavyWoundUntil > 0 && this.scene.time.now >= this.heavyWoundUntil) {
       this.heavyWoundUntil = 0;
       this.maxHp = this.baseMaxHp || this.maxHp;
@@ -354,6 +372,9 @@ export abstract class Unit extends Phaser.GameObjects.Text {
   }
 
   freezeHud() {
+    if (this.isDestroyed || !this.scene) {
+      return;
+    }
     if (!this.hudFrozen) {
       this.hudAnchorX = this.x;
       this.hudAnchorY = this.y;
@@ -363,7 +384,9 @@ export abstract class Unit extends Phaser.GameObjects.Text {
 
   unfreezeHud() {
     this.hudFrozen = false;
-    this.syncHealthBar();
+    if (!this.isDestroyed && this.scene) {
+      this.syncHealthBar();
+    }
   }
 
   setInvincible(invincible: boolean) {
@@ -392,3 +415,5 @@ export abstract class Unit extends Phaser.GameObjects.Text {
     // 子类按需覆盖。
   }
 }
+
+

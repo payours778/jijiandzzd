@@ -17,6 +17,13 @@ interface LeaderboardEntry {
   bestWave: number;
 }
 
+
+/** 检测是否为移动端 */
+function isMobileDevice(): boolean {
+  if (typeof window === "undefined") return false;
+  const hasTouch = "ontouchstart" in window || navigator.maxTouchPoints > 0;
+  return hasTouch && window.innerWidth < 900;
+}
 interface MyRank {
   rank: number;
   bestWave: number;
@@ -41,11 +48,24 @@ export function GameStartScreen({
   const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([]);
   const [myRank, setMyRank] = useState<MyRank | null>(null);
   const [leaderboardUnavailable, setLeaderboardUnavailable] = useState(false);
+  const [isPortraitMobile, setIsPortraitMobile] = useState(false);
+  const [showRotateHint, setShowRotateHint] = useState(true);
 
+
+  // 监听移动端方向
   useEffect(() => {
-    unlock();
-    playMusic("menu");
-    return () => stopMusic();
+    const check = () => {
+      const mobile = isMobileDevice();
+      const portrait = window.innerHeight > window.innerWidth;
+      setIsPortraitMobile(mobile && portrait);
+    };
+    check();
+    window.addEventListener("resize", check);
+    window.addEventListener("orientationchange", check);
+    return () => {
+      window.removeEventListener("resize", check);
+      window.removeEventListener("orientationchange", check);
+    };
   }, []);
 
   useEffect(() => {
@@ -94,6 +114,29 @@ export function GameStartScreen({
 
   return (
     <div className="game-start-screen">
+      {/* 移动端竖屏横屏提示 */}
+      {isPortraitMobile && showRotateHint && (
+        <div className="orientation-hint">
+          <svg className="orientation-hint__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+            <rect x="5" y="2" width="14" height="20" rx="2" />
+            <line x1="12" y1="18" x2="12.01" y2="18" />
+          </svg>
+          <div className="orientation-hint__title">建议横屏游玩</div>
+          <div className="orientation-hint__desc">
+            横屏模式下视野更开阔，操作更顺手
+          </div>
+          <button
+            className="orientation-hint__close"
+            type="button"
+            onClick={() => {
+              playSfx("click");
+              setShowRotateHint(false);
+            }}
+          >
+            知道了
+          </button>
+        </div>
+      )}
       <button
         className="game-start-back"
         type="button"
@@ -256,3 +299,4 @@ export function GameStartScreen({
     </div>
   );
 }
+

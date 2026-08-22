@@ -10,6 +10,14 @@ import { AudioToggleButton } from "../../../audio/AudioToggleButton";
 import { playMusic, playSfx, stopMusic, unlock } from "../../../audio/audioSystem";
 import { useAppStore } from "../../../store/useAppStore";
 
+/** 检测是否为移动端（触屏 + 窄屏） */
+function isMobileDevice(): boolean {
+  if (typeof window === "undefined") return false;
+  const hasTouch = "ontouchstart" in window || navigator.maxTouchPoints > 0;
+  const narrow = window.innerWidth < 900;
+  return hasTouch && narrow;
+}
+
 export function TowerDefenseGame({
   mode = "game",
   onBack,
@@ -20,6 +28,8 @@ export function TowerDefenseGame({
   const containerRef = useRef<HTMLDivElement>(null);
   const [consoleOpen, setConsoleOpen] = useState(false);
   const [started, setStarted] = useState(false);
+  const [showOrientationHint, setShowOrientationHint] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
   const fromTraining =
     typeof window !== "undefined" &&
     sessionStorage.getItem("mini-playbox-return-to") === "training";
@@ -33,6 +43,24 @@ export function TowerDefenseGame({
     }
     onBack();
   };
+
+  // 检测移动设备 + 方向
+  useEffect(() => {
+    const check = () => {
+      const mobile = isMobileDevice();
+      setIsMobile(mobile);
+      // 仅移动端竖屏时显示提示，且已开始游戏时才显示
+      const isPortrait = window.innerHeight > window.innerWidth;
+      setShowOrientationHint(mobile && isPortrait && started);
+    };
+    check();
+    window.addEventListener("resize", check);
+    window.addEventListener("orientationchange", check);
+    return () => {
+      window.removeEventListener("resize", check);
+      window.removeEventListener("orientationchange", check);
+    };
+  }, [started]);
 
   useEffect(() => {
     loadDevConfig();
@@ -52,6 +80,14 @@ export function TowerDefenseGame({
         mode: Phaser.Scale.FIT,
         autoCenter: Phaser.Scale.CENTER_BOTH,
       },
+      input: {
+        activePointers: 3,
+      },
+      render: {
+        antialias: true,
+        pixelArt: false,
+        roundPixels: false,
+      },
     });
 
     unlock();
@@ -63,7 +99,7 @@ export function TowerDefenseGame({
     };
   }, [mode, started]);
 
-  // 监听游戏结算事件，将本局波次提交到全服排行榜（只保留用户最高波次）。
+  // 监听游戏结算事件，将本局波次提交到全服排行榜
   useEffect(() => {
     const handleGameOver = async (event: Event) => {
       const detail = (event as CustomEvent).detail || {};
@@ -81,7 +117,7 @@ export function TowerDefenseGame({
             method: "POST",
             headers: {
               "Content-Type": "application/json",
-              Authorization: `Bearer ${token}`,
+              Authorization: "Bearer " + token,
             },
             body: JSON.stringify({ wave, mode: "normal" }),
           });
@@ -91,7 +127,7 @@ export function TowerDefenseGame({
             method: "POST",
             headers: {
               "Content-Type": "application/json",
-              Authorization: `Bearer ${token}`,
+              Authorization: "Bearer " + token,
             },
             body: JSON.stringify({ amount: coins }),
           });
@@ -120,13 +156,35 @@ export function TowerDefenseGame({
   }
 
   return (
-    <div className="tower-defense-page">
+    <div className={"tower-defense-page" + (started ? " is-game-active" : "")}>
+      {/* 横屏方向提示 */}
+      {showOrientationHint && (
+        <div className="orientation-hint" role="dialog" aria-label="请旋转屏幕">
+          <svg className="orientation-hint__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+            <rect x="5" y="2" width="14" height="20" rx="2" />
+            <line x1="12" y1="18" x2="12.01" y2="18" />
+          </svg>
+          <div className="orientation-hint__title">请横屏游玩</div>
+          <div className="orientation-hint__desc">
+            将手机旋转至横屏方向，获得最佳的游戏视野和操作体验
+          </div>
+          <button
+            className="orientation-hint__close"
+            type="button"
+            onClick={() => setShowOrientationHint(false)}
+          >
+            继续竖屏游玩
+          </button>
+        </div>
+      )}
+
       <button
         className="tower-defense-back"
         type="button"
         onClick={handleBack}
+        aria-label="返回"
       >
-        {fromTraining ? "返回军营" : "返回网站"}
+        {isMobile ? "← 返回" : fromTraining ? "返回军营" : "返回网站"}
       </button>
       <button
         className="tower-defense-dev"
@@ -136,7 +194,7 @@ export function TowerDefenseGame({
           setConsoleOpen(true);
         }}
       >
-        开发者控制台
+        {isMobile ? "⚙ 调试" : "开发者控制台"}
       </button>
       <AudioToggleButton />
       <div ref={containerRef} className="tower-defense-container" />

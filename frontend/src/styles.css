@@ -2930,3 +2930,934 @@ img { max-width: 100%; display: block; }
 .tg-hero.is-selected .pixel-hero {
   filter: drop-shadow(0 0 6px rgba(251, 191, 36, 0.7)) drop-shadow(0 2px 0 rgba(0, 0, 0, 0.5));
 }
+
+/* =========================================================
+   移动端深度优化 —— 横屏优先 + 触控友好 + payours.me 风格
+   ========================================================= */
+
+/* ---------- 基础触控优化 ---------- */
+@media (hover: none) and (pointer: coarse) {
+  button,
+  [role="button"],
+  .badge,
+  .search-form button,
+  .game-card,
+  .category-chip,
+  .quick-item,
+  .user-chip,
+  .header-nav a,
+  .footer-links a {
+    min-height: 44px;
+    min-width: 44px;
+    -webkit-tap-highlight-color: transparent;
+    -webkit-touch-callout: none;
+    user-select: none;
+  }
+  .game-card:active {
+    transform: scale(0.97);
+    transition: transform 0.12s ease;
+  }
+}
+
+/* ---------- 门户移动端：更精致 ---------- */
+@media (max-width: 620px) {
+  /* Header 更紧凑，减少左右边距 */
+  .header-inner {
+    padding: 10px 14px !important;
+    gap: 8px !important;
+  }
+  .header-brand-logo {
+    width: 32px; height: 32px;
+  }
+  .header-brand-name {
+    font-size: 16px !important;
+  }
+  .header-right {
+    gap: 6px !important;
+  }
+  .user-chip {
+    max-width: 100px;
+    font-size: 11px;
+    padding: 0 8px;
+  }
+
+  /* Hero 更沉浸，高度加到 280px */
+  .hero-banner {
+    height: 280px !important;
+    border-radius: 16px !important;
+  }
+  .hero-mobile-inner h1 {
+    font-size: 20px !important;
+    line-height: 1.3 !important;
+  }
+  .hero-mobile-inner p {
+    font-size: 13px !important;
+    line-height: 1.5 !important;
+  }
+  .hero-quick-grid {
+    gap: 10px !important;
+  }
+  .quick-item {
+    padding: 10px 12px !important;
+    border-radius: 12px !important;
+  }
+  .quick-item strong {
+    font-size: 13px !important;
+  }
+  .quick-item small {
+    font-size: 10px !important;
+  }
+
+  /* 分类标签：横向滚动，间距更紧 */
+  .category-nav {
+    gap: 6px !important;
+    padding: 0 4px !important;
+  }
+  .category-chip {
+    padding: 0 12px !important;
+    height: 36px !important;
+    font-size: 13px !important;
+    border-radius: 10px !important;
+  }
+
+  /* 游戏卡片：圆角更大，阴影更柔和（payours.me 风格） */
+  .game-card {
+    border-radius: 16px !important;
+    overflow: hidden;
+  }
+  .game-card-media {
+    aspect-ratio: 4 / 3 !important;
+  }
+  .game-card-body {
+    padding: 10px 12px !important;
+    gap: 8px !important;
+  }
+  .game-title {
+    font-size: 14px !important;
+    line-height: 1.4 !important;
+  }
+  .card-meta-line {
+    font-size: 11px !important;
+    gap: 6px !important;
+  }
+  .game-card-tags {
+    gap: 4px !important;
+  }
+  .badge {
+    height: 20px !important;
+    padding: 0 6px !important;
+    font-size: 10px !important;
+    border-radius: 6px !important;
+  }
+
+  /* 底部工具栏更紧凑 */
+  .section-toolbar {
+    padding: 0 !important;
+    margin-bottom: 12px !important;
+  }
+  .section-toolbar h2 {
+    font-size: 18px !important;
+  }
+
+  /* sidebar 分块间距更紧 */
+  .sidebar {
+    gap: 12px !important;
+  }
+
+  /* 游戏详情弹窗：改为底部抽屉样式（移动端更友好） */
+  .modal-content {
+    width: 100% !important;
+    max-width: 100% !important;
+    max-height: 92vh !important;
+    margin: 0 !important;
+    border-radius: 20px 20px 0 0 !important;
+    position: absolute !important;
+    bottom: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    top: auto !important;
+    transform: none !important;
+    animation: slideUp 0.35s cubic-bezier(0.2, 0.8, 0.2, 1) !important;
+    overflow-y: auto !important;
+    -webkit-overflow-scrolling: touch;
+  }
+  @keyframes slideUp {
+    from { transform: translateY(100%); }
+    to { transform: translateY(0); }
+  }
+  .modal-close {
+    width: 36px !important;
+    height: 36px !important;
+    top: 12px !important;
+    right: 12px !important;
+    font-size: 20px !important;
+  }
+  .modal-game-cover {
+    aspect-ratio: 16 / 9 !important;
+    border-radius: 16px !important;
+  }
+  .modal-body {
+    padding: 16px !important;
+  }
+  .modal-body h2 {
+    font-size: 20px !important;
+  }
+  .modal-actions {
+    position: sticky;
+    bottom: 0;
+    padding: 12px 16px;
+    margin: 0 -16px -16px;
+    background: var(--surface);
+    border-top: 1px solid var(--border);
+    z-index: 2;
+    gap: 10px !important;
+  }
+  .modal-actions .button {
+    height: 48px !important;
+    font-size: 16px !important;
+    font-weight: 700 !important;
+    border-radius: 12px !important;
+  }
+  .button.button-primary {
+    flex: 1;
+  }
+}
+
+/* 小屏手机（<420px）：卡片单列改为大卡片更易点 */
+@media (max-width: 420px) {
+  .game-grid {
+    grid-template-columns: 1fr !important;
+    gap: 16px !important;
+  }
+  .game-card-media {
+    aspect-ratio: 16 / 9 !important;
+  }
+  .game-title {
+    font-size: 16px !important;
+  }
+  .card-meta-line {
+    font-size: 12px !important;
+  }
+}
+
+/* ---------- 游戏弹窗底部手柄（移动端） ---------- */
+@media (max-width: 620px) {
+  .modal-overlay {
+    align-items: flex-end !important;
+    justify-content: center !important;
+  }
+  .modal-content::before {
+    content: "";
+    display: block;
+    width: 36px;
+    height: 4px;
+    margin: 10px auto 0;
+    border-radius: 2px;
+    background: var(--muted);
+    opacity: 0.3;
+  }
+}
+
+/* ---------- 保卫阿斗游戏：移动端横屏优化 ---------- */
+.tower-defense-page {
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+  background: #0f1114;
+}
+.tower-defense-container {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 100%;
+  height: 100%;
+}
+.tower-defense-back {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  z-index: 50;
+  padding: 8px 14px;
+  border-radius: 8px;
+  background: rgba(17, 19, 24, 0.78);
+  border: 1px solid rgba(255,255,255,0.1);
+  color: #e5e7eb;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  min-width: 44px;
+  min-height: 44px;
+}
+.tower-defense-dev {
+  position: absolute;
+  top: 12px;
+  right: 120px;
+  z-index: 50;
+  padding: 8px 14px;
+  border-radius: 8px;
+  background: rgba(17, 19, 24, 0.78);
+  border: 1px solid rgba(168, 85, 247, 0.3);
+  color: #c084fc;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+}
+.tower-defense-back:hover,
+.tower-defense-dev:hover {
+  background: rgba(30, 32, 40, 0.92);
+}
+
+/* 音频按钮：右上角 */
+.tower-defense-page .audio-toggle {
+  position: absolute;
+  top: 12px;
+  right: 64px;
+  z-index: 50;
+}
+
+/* CRT 滤镜：移动端调低强度 */
+.crt-overlay {
+  pointer-events: none;
+  position: absolute;
+  inset: 0;
+  z-index: 40;
+  background: repeating-linear-gradient(
+    0deg,
+    rgba(0, 0, 0, 0.12) 0px,
+    rgba(0, 0, 0, 0.12) 1px,
+    transparent 1px,
+    transparent 3px
+  );
+  mix-blend-mode: multiply;
+  opacity: 0.4;
+}
+
+/* ---------- 横屏方向提示（竖屏时显示） ---------- */
+.orientation-hint {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  background: rgba(5, 7, 10, 0.96);
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 24px;
+  color: #fbbf24;
+  font-size: 18px;
+  font-weight: 700;
+  text-align: center;
+  padding: 24px;
+}
+.orientation-hint__icon {
+  width: 80px;
+  height: 80px;
+  animation: rotatePhone 2s ease-in-out infinite;
+}
+@keyframes rotatePhone {
+  0%, 100% { transform: rotate(-90deg); }
+  50% { transform: rotate(0deg); }
+}
+.orientation-hint__title {
+  font-size: 22px;
+  color: #fbbf24;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+}
+.orientation-hint__desc {
+  font-size: 14px;
+  color: #9ca3af;
+  line-height: 1.6;
+  max-width: 280px;
+}
+.orientation-hint__close {
+  margin-top: 8px;
+  padding: 10px 24px;
+  border-radius: 8px;
+  background: rgba(251, 191, 36, 0.15);
+  border: 1px solid rgba(251, 191, 36, 0.4);
+  color: #fbbf24;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  min-height: 44px;
+}
+
+/* 手机竖屏时显示横屏提示（游戏页内） */
+@media (max-width: 768px) and (orientation: portrait) {
+  .tower-defense-page.is-game-active .orientation-hint {
+    display: flex;
+  }
+}
+/* 平板竖屏也提示 */
+@media (min-width: 768px) and (max-width: 900px) and (orientation: portrait) {
+  .tower-defense-page.is-game-active .orientation-hint {
+    display: flex;
+  }
+}
+
+/* ---------- 移动端游戏内触控优化 ---------- */
+@media (max-width: 900px) and (orientation: landscape) {
+  /* 横屏手机：放大文字和按钮，方便手指操作 */
+  .tower-defense-back {
+    top: 8px;
+    left: 8px;
+    padding: 6px 12px;
+    font-size: 12px;
+    min-height: 36px;
+  }
+  .tower-defense-dev {
+    top: 8px;
+    right: 100px;
+    padding: 6px 12px;
+    font-size: 11px;
+  }
+  /* CRT 效果在手机上减弱 */
+  .crt-overlay {
+    opacity: 0.2;
+  }
+}
+
+/* ---------- 练兵场：移动端横屏优先 ---------- */
+.training-ground {
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+}
+
+/* 移动端（<820px）练兵场全面重做 */
+@media (max-width: 820px) {
+  .tg-body {
+    grid-template-columns: 1fr !important;
+    height: 100% !important;
+  }
+  /* 左侧菜单改为底部 Tab 栏 */
+  .tg-leftmenu {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    top: auto !important;
+    width: 100% !important;
+    height: auto !important;
+    z-index: 20;
+    padding: 8px 12px calc(8px + env(safe-area-inset-bottom)) !important;
+    background: linear-gradient(to top, rgba(10, 12, 16, 0.98), rgba(10, 12, 16, 0.85)) !important;
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border-top: 1px solid rgba(255, 255, 255, 0.06);
+    border-right: none !important;
+  }
+  .tg-leftmenu__list {
+    flex-direction: row !important;
+    justify-content: space-around;
+    gap: 4px !important;
+    padding: 0 !important;
+  }
+  .tg-leftmenu__item {
+    flex-direction: column !important;
+    gap: 4px !important;
+    padding: 8px 12px !important;
+    min-height: 56px;
+    border-radius: 12px !important;
+    font-size: 11px !important;
+    text-align: center;
+  }
+  .tg-leftmenu__item svg {
+    width: 22px !important;
+    height: 22px !important;
+  }
+  .tg-leftmenu__text {
+    align-items: center !important;
+    min-width: 0;
+  }
+  .tg-leftmenu__label {
+    font-size: 11px !important;
+  }
+  .tg-leftmenu__subtitle {
+    display: none !important;
+  }
+  .tg-leftmenu__indicator {
+    left: 50% !important;
+    top: auto !important;
+    bottom: 2px !important;
+    transform: translateX(-50%) !important;
+    width: 20px !important;
+    height: 3px !important;
+  }
+  /* 底部品牌信息隐藏 */
+  .tg-leftmenu__footer {
+    display: none !important;
+  }
+  /* 主舞台占满高度 */
+  .tg-main {
+    height: 100% !important;
+  }
+  /* 舞台顶部标题 */
+  .tg-stage-header {
+    top: 12px !important;
+    left: 12px !important;
+    right: 12px !important;
+  }
+  .tg-stage-title {
+    font-size: 20px !important;
+  }
+  .tg-stage-subtitle {
+    font-size: 10px !important;
+    letter-spacing: 0.2em !important;
+  }
+  /* 底部音频栏上移（避开菜单） */
+  .tg-audio-bar {
+    bottom: calc(80px + env(safe-area-inset-bottom)) !important;
+    left: 12px !important;
+    right: 12px !important;
+  }
+  /* 武将详情抽屉高度适配 */
+  .tg-drawer {
+    max-height: 75vh !important;
+  }
+  .tg-drawer__content {
+    padding-bottom: calc(20px + env(safe-area-inset-bottom)) !important;
+  }
+  /* 武将点击区域放大 */
+  .tg-hero__hitbox {
+    width: 48px !important;
+    height: 60px !important;
+  }
+  .pixel-hero {
+    transform: scale(var(--s, 1)) scale(1.1) !important;
+    transform-origin: bottom center !important;
+  }
+}
+
+/* 横屏手机练兵场：底部菜单更紧凑 */
+@media (max-width: 900px) and (orientation: landscape) {
+  .tg-leftmenu {
+    width: 180px !important;
+    padding: 12px 10px !important;
+  }
+  .tg-leftmenu__item {
+    padding: 8px 10px !important;
+    min-height: 40px;
+  }
+  .pixel-hero {
+    transform: scale(var(--s, 1)) scale(0.9) !important;
+    transform-origin: bottom center !important;
+  }
+  .tg-hero__hitbox {
+    width: 36px !important;
+    height: 46px !important;
+  }
+}
+
+/* ---------- 游戏开始界面：移动端优化 ---------- */
+@media (max-width: 620px) {
+  .game-start-screen {
+    padding: 16px 14px calc(16px + env(safe-area-inset-bottom)) !important;
+    overflow-y: auto !important;
+    -webkit-overflow-scrolling: touch;
+  }
+  .game-start-header {
+    flex-direction: column;
+    gap: 12px;
+    text-align: center;
+    margin-bottom: 16px !important;
+  }
+  .game-start-user {
+    order: 2;
+    justify-content: center !important;
+  }
+  .game-start-title {
+    order: 1;
+    text-align: center;
+  }
+  .game-start-title h1 {
+    font-size: 28px !important;
+  }
+  .game-start-title p {
+    font-size: 13px !important;
+  }
+  .game-start-modes {
+    grid-template-columns: 1fr !important;
+  }
+  .game-mode-card {
+    padding: 14px !important;
+  }
+  .game-mode-card strong {
+    font-size: 16px !important;
+  }
+  .game-mode-card span {
+    font-size: 12px !important;
+  }
+  .game-start-section-heading h2 {
+    font-size: 16px !important;
+  }
+  .weapon-item {
+    padding: 8px 10px !important;
+  }
+  .weapon-item span {
+    font-size: 11px !important;
+  }
+  .weapon-item strong {
+    font-size: 13px !important;
+  }
+  .leaderboard-item {
+    padding: 10px 12px !important;
+    font-size: 13px !important;
+  }
+  .game-start-button {
+    min-height: 52px !important;
+    font-size: 17px !important;
+    border-radius: 12px !important;
+  }
+}
+
+/* 游戏开始界面：横屏手机优化 */
+@media (max-width: 900px) and (orientation: landscape) {
+  .game-start-screen {
+    padding: 12px 24px !important;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  .game-start-header {
+    margin-bottom: 12px !important;
+  }
+  .game-start-title h1 {
+    font-size: 24px !important;
+  }
+  .game-start-main {
+    grid-template-columns: 1fr 1fr 1fr !important;
+    gap: 16px !important;
+  }
+  .game-start-modes {
+    grid-column: auto !important;
+  }
+  .game-start-button {
+    min-height: 44px !important;
+    font-size: 15px !important;
+  }
+}
+
+/* ---------- 登录注册弹窗：移动端底部抽屉 ---------- */
+@media (max-width: 620px) {
+  .auth-modal .modal-content {
+    width: 100% !important;
+    max-width: 100% !important;
+    max-height: 88vh !important;
+    margin: 0 !important;
+    border-radius: 20px 20px 0 0 !important;
+    position: absolute !important;
+    bottom: 0 !important;
+    top: auto !important;
+    left: 0 !important;
+    right: 0 !important;
+    transform: none !important;
+    animation: slideUp 0.35s cubic-bezier(0.2, 0.8, 0.2, 1) !important;
+  }
+  .auth-modal .modal-body {
+    padding: 20px 16px calc(20px + env(safe-area-inset-bottom)) !important;
+  }
+  .auth-modal input {
+    height: 48px !important;
+    font-size: 16px !important;
+    border-radius: 10px !important;
+  }
+  .auth-modal .button {
+    height: 48px !important;
+    font-size: 16px !important;
+    border-radius: 10px !important;
+  }
+}
+
+/* ---------- 开发控制台：移动端优化 ---------- */
+@media (max-width: 620px) {
+  .dev-console {
+    width: 100% !important;
+    max-width: 100% !important;
+    max-height: 85vh !important;
+    border-radius: 16px 16px 0 0 !important;
+    bottom: 0 !important;
+    top: auto !important;
+    right: 0 !important;
+    left: 0 !important;
+    transform: none !important;
+  }
+  .dev-console__tabs {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  .dev-console__tab {
+    flex-shrink: 0;
+    min-width: 56px;
+  }
+}
+
+/* ---------- 安全区域适配（刘海屏） ---------- */
+@supports (padding: env(safe-area-inset-top)) {
+  .header {
+    padding-top: calc(8px + env(safe-area-inset-top)) !important;
+  }
+  .tower-defense-back {
+    top: calc(12px + env(safe-area-inset-top)) !important;
+  }
+  .tower-defense-dev {
+    top: calc(12px + env(safe-area-inset-top)) !important;
+  }
+  .tower-defense-page .audio-toggle {
+    top: calc(12px + env(safe-area-inset-top)) !important;
+  }
+}
+
+/* ---------- 横屏模式下的侧边滚动条优化 ---------- */
+@media (orientation: landscape) and (max-height: 500px) {
+  .game-start-screen,
+  .tower-defense-page {
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+}
+
+/* =========================================================
+   移动端优化补充修复
+   ========================================================= */
+
+/* 练兵场竖屏：主舞台需要给底部菜单留空间 */
+@media (max-width: 820px) {
+  .tg-main {
+    padding-bottom: 90px;
+  }
+  /* 底部音频栏在移动端移到顶部右侧，或缩小 */
+  .tg-bottombar {
+    bottom: calc(72px + env(safe-area-inset-bottom)) !important;
+    left: 12px !important;
+    right: auto !important;
+    transform: none !important;
+    padding: 6px 10px !important;
+    border-radius: 999px !important;
+    background: rgba(10, 12, 16, 0.75) !important;
+    backdrop-filter: blur(8px) !important;
+    -webkit-backdrop-filter: blur(8px) !important;
+    border: 1px solid rgba(255,255,255,0.08) !important;
+  }
+  .tg-bottombar__hint,
+  .tg-bottombar__time {
+    display: none !important;
+  }
+  .tg-bottombar__bgm span {
+    display: none !important;
+  }
+  .tg-bottombar__bgm {
+    gap: 8px !important;
+    font-size: 12px !important;
+  }
+}
+
+/* 横屏手机练兵场：左菜单更紧凑，舞台给底部音频栏留空间 */
+@media (max-width: 900px) and (orientation: landscape) {
+  .tg-main {
+    padding-bottom: 40px;
+  }
+}
+
+/* 首页移动端：卡片视觉优化（更接近 payours.me 风格） */
+@media (max-width: 620px) {
+  .hero-wrap {
+    padding: 10px 14px 0 !important;
+  }
+  .content-shell {
+    padding: 16px 14px 32px !important;
+  }
+  /* 搜索框高度加大，方便手指点击 */
+  .search-form {
+    height: 44px !important;
+  }
+  .search-form input {
+    font-size: 15px !important;
+  }
+  /* 分类标签支持横向滚动 */
+  .category-nav {
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch;
+    flex-wrap: nowrap !important;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+  .category-nav::-webkit-scrollbar {
+    display: none;
+  }
+  .category-chip {
+    flex-shrink: 0 !important;
+  }
+  /* 快速入口：2 列更平衡 */
+  .hero-quick-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 10px !important;
+  }
+}
+
+/* 小屏（<380px）优化 */
+@media (max-width: 380px) {
+  .game-title {
+    font-size: 13px !important;
+  }
+  .card-meta-line {
+    font-size: 11px !important;
+  }
+  .badge {
+    font-size: 9px !important;
+    padding: 0 5px !important;
+    height: 18px !important;
+  }
+}
+
+/* 游戏弹窗：抽屉样式完善 */
+@media (max-width: 620px) {
+  .modal-overlay {
+    align-items: flex-end !important;
+  }
+  .modal-content {
+    animation: modalSlideUp 0.32s cubic-bezier(0.2, 0.8, 0.2, 1) !important;
+    transform: translateY(0) !important;
+  }
+  @keyframes modalSlideUp {
+    from { transform: translateY(100%) !important; }
+    to { transform: translateY(0) !important; }
+  }
+}
+
+/* 横屏游戏内优化：UI 更靠边，给游戏画面留更多空间 */
+@media (orientation: landscape) and (max-height: 500px) {
+  .tower-defense-back,
+  .tower-defense-dev {
+    font-size: 11px !important;
+    padding: 4px 10px !important;
+    top: 6px !important;
+  }
+  .tower-defense-back {
+    left: 6px !important;
+  }
+  .tower-defense-dev {
+    right: 100px !important;
+  }
+  .crt-overlay {
+    opacity: 0.15 !important;
+  }
+}
+
+/* 练兵场武将点击区域在移动端放大 */
+@media (max-width: 820px) {
+  .tg-hero__hitbox {
+    width: 56px !important;
+    height: 70px !important;
+  }
+}
+
+/* =========================================================
+   练兵场竖屏最终优化：底部 Tab 栏半透明浮动 + 舞台占满
+   ========================================================= */
+@media (max-width: 820px) {
+  .tg-body {
+    grid-template-columns: 1fr !important;
+    position: relative !important;
+    overflow: hidden !important;
+  }
+  .tg-leftmenu {
+    position: absolute !important;
+    left: 50% !important;
+    transform: translateX(-50%) !important;
+    bottom: calc(12px + env(safe-area-inset-bottom)) !important;
+    top: auto !important;
+    width: auto !important;
+    height: auto !important;
+    z-index: 30;
+    padding: 6px !important;
+    border-radius: 16px !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    border-right: 1px solid rgba(255, 255, 255, 0.1) !important;
+    background: rgba(15, 17, 20, 0.72) !important;
+    backdrop-filter: blur(16px) saturate(1.4) !important;
+    -webkit-backdrop-filter: blur(16px) saturate(1.4) !important;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4) !important;
+  }
+  .tg-leftmenu__title {
+    display: none !important;
+  }
+  .tg-leftmenu__nav {
+    flex-direction: row !important;
+    gap: 2px !important;
+  }
+  .tg-leftmenu__item {
+    flex-direction: column !important;
+    gap: 3px !important;
+    padding: 8px 14px !important;
+    min-height: 52px !important;
+    min-width: 64px !important;
+    border-radius: 10px !important;
+  }
+  .tg-leftmenu__item svg {
+    width: 20px !important;
+    height: 20px !important;
+  }
+  .tg-leftmenu__text {
+    align-items: center !important;
+  }
+  .tg-leftmenu__label {
+    font-size: 10px !important;
+    font-weight: 600 !important;
+  }
+  .tg-leftmenu__subtitle {
+    display: none !important;
+  }
+  .tg-leftmenu__indicator {
+    left: 50% !important;
+    top: auto !important;
+    bottom: 2px !important;
+    transform: translateX(-50%) !important;
+    width: 16px !important;
+    height: 2px !important;
+  }
+  .tg-leftmenu__foot {
+    display: none !important;
+  }
+  /* 主舞台占满全部空间 */
+  .tg-main {
+    padding-bottom: 0 !important;
+  }
+  /* 底部音频栏移到左下角 */
+  .tg-bottombar {
+    bottom: calc(90px + env(safe-area-inset-bottom)) !important;
+    left: 12px !important;
+    right: auto !important;
+    transform: none !important;
+  }
+  /* 顶部栏下移一点避免刘海 */
+  .tg-stage-header {
+    top: calc(12px + env(safe-area-inset-top)) !important;
+  }
+}
+
+/* 更小屏幕下 Tab 更紧凑 */
+@media (max-width: 380px) {
+  .tg-leftmenu__item {
+    padding: 6px 10px !important;
+    min-width: 52px !important;
+    min-height: 48px !important;
+  }
+  .tg-leftmenu__label {
+    font-size: 9px !important;
+  }
+  .tg-leftmenu__item svg {
+    width: 18px !important;
+    height: 18px !important;
+  }
+}
