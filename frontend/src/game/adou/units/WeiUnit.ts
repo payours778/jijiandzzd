@@ -42,6 +42,9 @@ export class WeiUnit extends Zombie {
 
     if (time >= this.expireAt) {
       this.dead = true;
+      this.isDestroyed = true;
+      this.setVisible(false);
+      this.setActive(false);
       return;
     }
 
@@ -71,6 +74,9 @@ export class WeiUnit extends Zombie {
       this.x = rightBoundary;
       this.setX(this.x);
       this.dead = true;
+      this.isDestroyed = true;
+      this.setVisible(false);
+      this.setActive(false);
       return;
     }
 
@@ -94,6 +100,9 @@ export class WeiUnit extends Zombie {
     // 进入最后一格且没有撞到目标时直接消失，不继续冲出棋盘。
     if (currentCol >= Config.cols - 1) {
       this.dead = true;
+      this.isDestroyed = true;
+      this.setVisible(false);
+      this.setActive(false);
       return;
     }
 
