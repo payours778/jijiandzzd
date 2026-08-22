@@ -26,6 +26,10 @@ export interface GeneralConfigItem {
   chargeSelfCostRatio?: number;
   chargeDamageRatio?: number;
   chargeDamageReduction?: number;
+  weiYanRageThresholdRatio?: number;
+  weiYanRageDuration?: number;
+  weiYanRageRangeMultiplier?: number;
+  weiYanLifestealRatio?: number;
 }
 
 export const GeneralConfig: Record<string, GeneralConfigItem> = {
@@ -102,6 +106,16 @@ export const GeneralConfig: Record<string, GeneralConfigItem> = {
     chargeDamageRatio: 0.2,
     chargeDamageReduction: 0.2,
   },
+  魏延: {
+    hp: 800,
+    damage: 5,
+    cooldown: 100,
+    color: "#4ade80",
+    weiYanRageThresholdRatio: 0.5,
+    weiYanRageDuration: 5000,
+    weiYanRageRangeMultiplier: 2,
+    weiYanLifestealRatio: 1,
+  },
 };
 
 function playGeneralAttackSfx(name: keyof typeof GeneralConfig) {
@@ -127,6 +141,9 @@ function playGeneralAttackSfx(name: keyof typeof GeneralConfig) {
     case "关平":
       playSfx("melee");
       break;
+    case "魏延":
+      playSfx("melee");
+      break;
   }
 }
 
@@ -146,6 +163,7 @@ export class General extends Unit {
   private zhangFeiDamageAccumulator = 0;
   private guanpingWeapon?: Phaser.GameObjects.Image;
   private guanpingWeaponAnimating = false;
+  private weiYanRageRemaining = 0;
 
   constructor(
     scene: Phaser.Scene,
@@ -349,6 +367,52 @@ export class General extends Unit {
         if (Math.random() < (config.bladeChance ?? 0.05)) {
           this.triggerGuanpingBlade(scene);
         }
+        this.attackTimer = config.cooldown * cooldownMultiplier;
+      }
+      return;
+    }
+
+    if (this.generalName === "魏延") {
+      if (
+        this.hp <= this.maxHp * (config.weiYanRageThresholdRatio ?? 0.5) &&
+        this.weiYanRageRemaining <= 0
+      ) {
+        this.weiYanRageRemaining = config.weiYanRageDuration ?? 5000;
+        this.showFloatingText("狂骨", "#f87171");
+      }
+      if (this.weiYanRageRemaining > 0) {
+        this.weiYanRageRemaining -= delta;
+      }
+
+      const rageActive = this.weiYanRageRemaining > 0;
+      const range = rageActive
+        ? Math.round(2 * (config.weiYanRageRangeMultiplier ?? 2))
+        : 2;
+
+      if (rageActive) {
+        const targets = scene.getZombiesInRange(this.row, this.col - range, this.col - 1);
+        if (targets.length > 0) {
+          let totalDamage = 0;
+          targets.forEach((zombie) => {
+            const damage = config.damage * damageMultiplier;
+            totalDamage += damage;
+            zombie.takeDamage(damage);
+          });
+          this.heal(totalDamage * (config.weiYanLifestealRatio ?? 1));
+          scene.showHeavyThrust(this);
+          playGeneralAttackSfx(this.generalName);
+          this.attackTimer = config.cooldown * cooldownMultiplier;
+        }
+        return;
+      }
+
+      const target = scene
+        .getZombiesInRange(this.row, this.col - range, this.col - 1)
+        .sort((a, b) => b.x - a.x)[0] || null;
+      if (target) {
+        target.takeDamage(config.damage * damageMultiplier);
+        scene.showHeavyThrust(this);
+        playGeneralAttackSfx(this.generalName);
         this.attackTimer = config.cooldown * cooldownMultiplier;
       }
       return;

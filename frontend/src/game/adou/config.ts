@@ -42,7 +42,9 @@ export type CardType =
   | "苞"
   | "平"
   | "马"
-  | "超";
+  | "超"
+  | "魏"
+  | "延";
 
 export type GeneralKey =
   | "刘备"
@@ -53,7 +55,8 @@ export type GeneralKey =
   | "黄祖"
   | "张苞"
   | "关平"
-  | "马超";
+  | "马超"
+  | "魏延";
 
 export interface FragmentPair {
   first: string;
@@ -71,6 +74,7 @@ export const FragmentPairs: FragmentPair[] = [
   { first: "张", second: "苞", general: "张苞" },
   { first: "关", second: "平", general: "关平" },
   { first: "马", second: "超", general: "马超" },
+  { first: "魏", second: "延", general: "魏延" },
 ];
 
 export function findGeneral(first: string, second: string): GeneralKey | null {
@@ -98,6 +102,8 @@ export const FragmentPool: Record<string, number> = {
   平: 2,
   马: 2,
   超: 2,
+  魏: 2,
+  延: 2,
 };
 
 export const GeneralPieces: Record<string, [string, string]> = {
@@ -110,6 +116,7 @@ export const GeneralPieces: Record<string, [string, string]> = {
   张苞: ["张", "苞"],
   关平: ["关", "平"],
   马超: ["马", "超"],
+  魏延: ["魏", "延"],
 };
 
 export const SoldierStats = {

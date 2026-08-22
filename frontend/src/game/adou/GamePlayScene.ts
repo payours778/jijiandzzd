@@ -30,7 +30,18 @@ interface HandCard {
   level: number;
 }
 
-const TEST_GENERALS = ["刘备", "赵云", "黄忠", "关羽", "张飞", "黄祖", "张苞", "关平", "马超"];
+const TEST_GENERALS = [
+  "刘备",
+  "赵云",
+  "黄忠",
+  "关羽",
+  "张飞",
+  "黄祖",
+  "张苞",
+  "关平",
+  "马超",
+  "魏延",
+];
 const TEST_SOLDIERS = ["刀", "枪", "骑", "弓"];
 
 export class GamePlayScene extends Phaser.Scene {
