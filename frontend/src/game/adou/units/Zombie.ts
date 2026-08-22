@@ -9,6 +9,8 @@ export class Zombie extends Unit {
   biteTimer = 0;
   strengthMultiplier: number;
   hitByZhaoyun = false;
+  damageContributors = new Map<Unit, number>();
+  lastHitBy?: Unit;
 
   constructor(
     scene: GamePlayScene,
@@ -51,6 +53,16 @@ export class Zombie extends Unit {
 
     this.x += (stats.speed * delta) / 1000;
     this.setX(this.x);
+  }
+
+  protected override onDamaged(damage: number, source?: Unit) {
+    this.lastHitBy = source;
+    if (source && !source.dead && source.isAlly()) {
+      this.damageContributors.set(
+        source,
+        (this.damageContributors.get(source) ?? 0) + damage,
+      );
+    }
   }
 
   markZhaoyunHit() {

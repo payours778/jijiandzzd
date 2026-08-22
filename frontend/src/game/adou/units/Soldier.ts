@@ -43,7 +43,7 @@ export class Soldier extends Unit {
         this.col - 1,
       );
       if (target) {
-        target.takeDamage(stats.damage * damageMultiplier);
+        target.takeDamage(stats.damage * damageMultiplier, false, this);
         scene.animateDaoSlash(this, target);
         playSfx("melee");
         this.attackTimer = stats.cooldown * cooldownMultiplier;
@@ -58,7 +58,7 @@ export class Soldier extends Unit {
         this.col - 1,
       );
       if (targets.length > 0) {
-        targets.forEach((zombie) => zombie.takeDamage(stats.damage * damageMultiplier));
+        targets.forEach((zombie) => zombie.takeDamage(stats.damage * damageMultiplier, false, this));
         scene.animateThrust(this, this.col - 3);
         playSfx("spear");
         this.attackTimer = stats.cooldown * cooldownMultiplier;
@@ -69,7 +69,7 @@ export class Soldier extends Unit {
     if (this.soldierType === "弓") {
       const target = scene.getNearestZombieInRow(this.row, this.x);
       if (target) {
-        scene.shootArrow(this.x, this.y, target, stats.damage * damageMultiplier);
+        scene.shootArrow(this.x, this.y, target, stats.damage * damageMultiplier, this);
         playSfx("bow");
         this.attackTimer = stats.cooldown * cooldownMultiplier;
       }
@@ -79,7 +79,7 @@ export class Soldier extends Unit {
     if (this.soldierType === "骑") {
       const targets = scene.getZombiesInCircle(this.row, this.col, stats.range);
       if (targets.length > 0) {
-        targets.forEach((zombie) => zombie.takeDamage(stats.damage * damageMultiplier));
+        targets.forEach((zombie) => zombie.takeDamage(stats.damage * damageMultiplier, false, this));
         scene.animateCavalrySlash(this);
         playSfx("cavalry");
         this.attackTimer = stats.cooldown * cooldownMultiplier;

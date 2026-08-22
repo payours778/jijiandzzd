@@ -194,6 +194,15 @@ export const CaoCaoStats = {
   summonEnabled: true,
 };
 
+export const GeneralXpConfig = {
+  normalKillXp: 15,
+  coneKillXp: 25,
+  bossXpPool: 120,
+  participantRate: 0.5,
+  levelUpRequirements: [20, 45, 90, 160],
+  maxXpLevel: 5,
+};
+
 export const RefreshProbability = {
   soldier: 0.6,
   farm: 0.15,

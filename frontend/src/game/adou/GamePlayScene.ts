@@ -1,6 +1,7 @@
 import Phaser from "phaser";
 import {
   Config,
+  GeneralXpConfig,
   RefreshProbability,
   FragmentPool,
   GeneralPieces,
@@ -425,6 +426,7 @@ export class GamePlayScene extends Phaser.Scene {
         if (!zombie.isDestroyed) {
           zombie.destroy();
         }
+        this.awardZombieXp(zombie);
         this.awardCoins(zombie);
         if (
           (zombie instanceof LuBu || zombie instanceof DiaoChan || zombie instanceof CaoCao) &&
@@ -1524,6 +1526,68 @@ export class GamePlayScene extends Phaser.Scene {
     this.updateCoinText();
   }
 
+  private awardZombieXp(zombie: Zombie) {
+    const participants: General[] = [];
+    zombie.damageContributors.forEach((_, unit) => {
+      if (unit instanceof General && !unit.dead && !unit.reviving) {
+        participants.push(unit);
+      }
+    });
+
+    const tail =
+      zombie.lastHitBy instanceof General &&
+      !zombie.lastHitBy.dead &&
+      !zombie.lastHitBy.reviving
+        ? zombie.lastHitBy
+        : undefined;
+    if (tail && !participants.includes(tail)) {
+      participants.push(tail);
+    }
+
+    const isBoss =
+      zombie instanceof LuBu || zombie instanceof DiaoChan || zombie instanceof CaoCao;
+    if (isBoss) {
+      this.awardBossXp(participants, tail);
+      return;
+    }
+
+    const base =
+      zombie.zombieType === "cone"
+        ? GeneralXpConfig.coneKillXp
+        : GeneralXpConfig.normalKillXp;
+    const tailWinner = tail && tail.level < Config.maxLevel ? tail : undefined;
+    if (tailWinner) {
+      tailWinner.addXp(base);
+    }
+    const share = base * GeneralXpConfig.participantRate;
+    participants.forEach((general) => {
+      if (general !== tailWinner && general.level < Config.maxLevel) {
+        general.addXp(share);
+      }
+    });
+  }
+
+  private awardBossXp(participants: General[], tail?: General) {
+    const pool = GeneralXpConfig.bossXpPool;
+    if (tail && tail.level < Config.maxLevel) {
+      tail.gainBossLevel();
+      const others = participants.filter(
+        (general) => general !== tail && general.level < Config.maxLevel,
+      );
+      if (others.length > 0) {
+        const share = pool / others.length;
+        others.forEach((general) => general.addXp(share));
+      }
+      return;
+    }
+
+    const receivers = participants.filter((general) => general.level < Config.maxLevel);
+    if (receivers.length > 0) {
+      const share = pool / receivers.length;
+      receivers.forEach((general) => general.addXp(share));
+    }
+  }
+
   private updateCoinText() {
     this.coinText?.setText(`获得金币：${this.earnedCoins}`);
   }
@@ -1603,7 +1667,7 @@ export class GamePlayScene extends Phaser.Scene {
     });
   }
 
-  shootArrow(fromX: number, fromY: number, target: Zombie, damage: number) {
+  shootArrow(fromX: number, fromY: number, target: Zombie, damage: number, source?: Unit) {
     const arrow = this.arrowPool.shift() ?? this.add.graphics();
     arrow.clear();
     arrow.setPosition(fromX, fromY);
@@ -1620,7 +1684,7 @@ export class GamePlayScene extends Phaser.Scene {
       duration: 420,
       onComplete: () => {
         if (!target.dead) {
-          target.takeDamage(damage);
+          target.takeDamage(damage, false, source);
         }
         arrow.setVisible(false);
         if (this.arrowPool.length < 12) {
@@ -2401,10 +2465,10 @@ export class GamePlayScene extends Phaser.Scene {
     });
   }
 
-  rainArrowsAll(damage: number) {
+  rainArrowsAll(damage: number, source?: Unit) {
     this.zombies.forEach((zombie) => {
       if (!zombie.dead) {
-        zombie.takeDamage(damage);
+        zombie.takeDamage(damage, false, source);
       }
     });
 

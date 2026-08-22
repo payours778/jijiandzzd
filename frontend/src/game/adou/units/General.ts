@@ -1,4 +1,4 @@
-import { Config } from "../config";
+import { Config, GeneralXpConfig } from "../config";
 import { Unit } from "../Unit";
 import type { GamePlayScene } from "../GamePlayScene";
 import { playSfx, playVoiceOnce } from "../../../audio/audioSystem";
@@ -171,6 +171,9 @@ export class General extends Unit {
   private guanpingWeaponAnimating = false;
   private weiYanRageRemaining = 0;
   private weiYanRageCooldownRemaining = 0;
+  xp = 0;
+  private xpBar?: Phaser.GameObjects.Rectangle;
+  private xpBarBackground?: Phaser.GameObjects.Rectangle;
 
   constructor(
     scene: Phaser.Scene,
@@ -187,6 +190,7 @@ export class General extends Unit {
     this.attachHealthBar(36, 0x22c55e);
     this.attachOutline(0xfbbf24);
     this.showHpText(true);
+    this.attachXpBar();
     if (generalName === "关平") {
       this.guanpingWeapon = this.scene.add
         .image(x + 26, y + 12, "guanping-saber")
@@ -209,6 +213,7 @@ export class General extends Unit {
       return;
     }
 
+    this.syncXpBar();
     this.updateLongDanLabel();
     this.updateGuanpingWeapon();
     const config = GeneralConfig[this.generalName];
@@ -250,7 +255,7 @@ export class General extends Unit {
     if (this.generalName === "刘备") {
       const targets = scene.getZombiesInRange(this.row, this.col - 3, this.col - 1);
       if (targets.length > 0) {
-        targets.forEach((zombie) => zombie.takeDamage(config.damage * damageMultiplier));
+        targets.forEach((zombie) => zombie.takeDamage(config.damage * damageMultiplier, false, this));
         scene.showHealRing(this);
         playGeneralAttackSfx(this.generalName);
         this.attackTimer = config.cooldown * cooldownMultiplier;
@@ -264,7 +269,7 @@ export class General extends Unit {
       if (targets.length > 0) {
         targets.forEach((zombie) => {
           zombie.markZhaoyunHit();
-          zombie.takeDamage(config.damage * damageMultiplier * longDanMultiplier);
+          zombie.takeDamage(config.damage * damageMultiplier * longDanMultiplier, false, this);
         });
         scene.showZhaoyunStab(this);
         playGeneralAttackSfx(this.generalName);
@@ -276,12 +281,12 @@ export class General extends Unit {
     if (this.generalName === "黄忠") {
       const targets = scene.getZombiesInRow(this.row);
       if (targets.length > 0) {
-        targets.forEach((zombie) => zombie.takeDamage(config.damage * damageMultiplier));
+        targets.forEach((zombie) => zombie.takeDamage(config.damage * damageMultiplier, false, this));
         scene.huangzhongArrowRow(this.row, config.damage * damageMultiplier);
         scene.showHuangzhongBow(this);
         playGeneralAttackSfx(this.generalName);
         if (Math.random() < (config.arrowStormChance ?? 0.1)) {
-          scene.rainArrowsAll(config.damage * damageMultiplier);
+          scene.rainArrowsAll(config.damage * damageMultiplier, this);
         }
         this.attackTimer = config.cooldown * cooldownMultiplier;
       }
@@ -302,7 +307,7 @@ export class General extends Unit {
         return;
       }
       if (guanYuTarget) {
-        guanYuTarget.takeDamage(config.damage * damageMultiplier);
+        guanYuTarget.takeDamage(config.damage * damageMultiplier, false, this);
         scene.showGuanyuSlash(this);
         playGeneralAttackSfx(this.generalName);
         this.attackTimer = config.cooldown * cooldownMultiplier;
@@ -317,7 +322,7 @@ export class General extends Unit {
         this.col - 1,
       );
       if (zhangFeiTargets.length > 0) {
-        zhangFeiTargets.forEach((zombie) => zombie.takeDamage(config.damage * damageMultiplier));
+        zhangFeiTargets.forEach((zombie) => zombie.takeDamage(config.damage * damageMultiplier, false, this));
         scene.animateZhangfeiThrust(this, this.col - 3);
         scene.showHeavyThrust(this);
         playSfx("zhangfei_attack");
@@ -339,7 +344,7 @@ export class General extends Unit {
         if (this.huangZuRapidAttackTimer <= 0) {
           const rapidTarget = scene.getHighestHpZombie();
           if (rapidTarget) {
-            scene.shootArrow(this.x, this.y, rapidTarget, config.damage * damageMultiplier);
+            scene.shootArrow(this.x, this.y, rapidTarget, config.damage * damageMultiplier, this);
             playSfx("bow");
             this.huangZuRapidAttackTimer =
               (config.cooldown * cooldownMultiplier) / (config.rapidSpeedMultiplier ?? 3);
@@ -349,7 +354,7 @@ export class General extends Unit {
       }
       const huangZuTarget = scene.getNearestZombieInRow(this.row, this.x);
       if (huangZuTarget) {
-        scene.shootArrow(this.x, this.y, huangZuTarget, config.damage * damageMultiplier);
+        scene.shootArrow(this.x, this.y, huangZuTarget, config.damage * damageMultiplier, this);
         playSfx("bow");
         this.attackTimer = config.cooldown * cooldownMultiplier;
       }
@@ -359,7 +364,7 @@ export class General extends Unit {
     if (this.generalName === "张苞") {
       const targets = scene.getZombiesInRange(this.row, this.col - 3, this.col - 1);
       if (targets.length > 0) {
-        targets.forEach((zombie) => zombie.takeDamage(config.damage * damageMultiplier));
+        targets.forEach((zombie) => zombie.takeDamage(config.damage * damageMultiplier, false, this));
         scene.animateThrust(this, this.col - 3);
         playGeneralAttackSfx(this.generalName);
         if (Math.random() < (config.stunChance ?? 0.1)) {
@@ -375,7 +380,7 @@ export class General extends Unit {
     if (this.generalName === "关平") {
       const targets = scene.getZombiesInCircle(this.row, this.col, 1.5);
       if (targets.length > 0) {
-        targets.forEach((zombie) => zombie.takeDamage(config.damage * damageMultiplier));
+        targets.forEach((zombie) => zombie.takeDamage(config.damage * damageMultiplier, false, this));
         this.animateGuanpingWeaponAttack(scene);
         playGeneralAttackSfx(this.generalName);
         if (Math.random() < (config.bladeChance ?? 0.05)) {
@@ -410,7 +415,7 @@ export class General extends Unit {
           targets.forEach((zombie) => {
             const damage = config.damage * damageMultiplier;
             totalDamage += damage;
-            zombie.takeDamage(damage);
+            zombie.takeDamage(damage, false, this);
           });
           this.heal(totalDamage * (config.weiYanLifestealRatio ?? 1));
           scene.showHeavyThrust(this);
@@ -428,7 +433,7 @@ export class General extends Unit {
         .getZombiesInRange(this.row, this.col - range, this.col - 1)
         .sort((a, b) => b.x - a.x)[0] || null;
       if (target) {
-        target.takeDamage(config.damage * damageMultiplier);
+        target.takeDamage(config.damage * damageMultiplier, false, this);
         scene.showHeavyThrust(this);
         playGeneralAttackSfx(this.generalName);
         if (target.dead) {
@@ -467,7 +472,7 @@ export class General extends Unit {
         onComplete: () => {
           if (machaoTarget && !machaoTarget.dead) {
             const machaoSelfCost = this.hp * (config.chargeSelfCostRatio ?? 0.1);
-            machaoTarget.takeDamage(this.maxHp * (config.chargeDamageRatio ?? 0.2));
+            machaoTarget.takeDamage(this.maxHp * (config.chargeDamageRatio ?? 0.2), false, this);
             this.hp -= machaoSelfCost;
             this.showDamageNumber(machaoSelfCost);
             this.syncHealthBar();
@@ -502,6 +507,74 @@ export class General extends Unit {
     this.updateLongDanLabel();
     playSfx("zhaoyun_longdan");
     this.showFloatingText(`龙胆 x${this.longDanStacks}`, "#fde68a");
+  }
+
+  addXp(amount: number) {
+    if (this.dead || this.reviving || this.isDestroyed || !this.scene || this.level >= Config.maxLevel) {
+      return;
+    }
+    this.xp += amount;
+    let leveled = false;
+    while (this.level < Config.maxLevel && this.xp >= this.getXpNeedForNext()) {
+      this.xp -= this.getXpNeedForNext();
+      this.setLevel(this.level + 1);
+      leveled = true;
+    }
+    if (leveled) {
+      this.showFloatingText("升级", "#fbbf24");
+      playSfx("synthesize");
+    }
+    this.syncXpBar();
+  }
+
+  gainBossLevel(): boolean {
+    if (this.dead || this.reviving || this.isDestroyed || !this.scene || this.level >= Config.maxLevel) {
+      return false;
+    }
+    this.setLevel(this.level + 1);
+    this.showFloatingText("升级", "#fbbf24");
+    playSfx("synthesize");
+    this.syncXpBar();
+    return true;
+  }
+
+  override setLevel(level: number) {
+    super.setLevel(level);
+    this.syncXpBar();
+  }
+
+  private attachXpBar() {
+    if (this.isDestroyed || !this.scene) {
+      return;
+    }
+    this.xpBarBackground = this.scene.add
+      .rectangle(this.x, this.y - 21, 34, 3, 0x2e1065)
+      .setOrigin(0.5)
+      .setDepth(56);
+    this.xpBar = this.scene.add
+      .rectangle(this.x - 17, this.y - 21, 0, 3, 0xfbbf24)
+      .setOrigin(0, 0.5)
+      .setDepth(57);
+    this.syncXpBar();
+  }
+
+  private syncXpBar() {
+    if (this.isDestroyed || !this.scene || !this.xpBar || !this.xpBarBackground) {
+      return;
+    }
+    const y = this.y - 21;
+    const need = this.getXpNeedForNext();
+    const progress = Math.max(0, Math.min(1, this.xp / need));
+    this.xpBarBackground.setPosition(this.x, y);
+    this.xpBar.setPosition(this.x - 17, y).setDisplaySize(34 * progress, 3);
+  }
+
+  private getXpNeedForNext() {
+    const index = Math.min(
+      this.level - 1,
+      GeneralXpConfig.levelUpRequirements.length - 1,
+    );
+    return GeneralXpConfig.levelUpRequirements[Math.max(0, index)];
   }
 
   protected override onLethalDamage() {
@@ -631,6 +704,10 @@ export class General extends Unit {
     this.reviveCross?.destroy();
     this.guanpingWeapon?.destroy();
     this.guanpingWeapon = undefined;
+    this.xpBar?.destroy();
+    this.xpBar = undefined;
+    this.xpBarBackground?.destroy();
+    this.xpBarBackground = undefined;
     super.onDestroyed();
   }
 
@@ -689,7 +766,7 @@ export class General extends Unit {
           }
           const col = scene.getColFromX(target.x);
           scene.getZombiesInCircle(target.row, col, 1.5).forEach((zombie) => {
-            zombie.takeDamage(currentDamage);
+            zombie.takeDamage(currentDamage, false, this);
           });
           blade.setPosition(target.x, target.y);
           blade.setAngle(0);
@@ -812,7 +889,7 @@ export class General extends Unit {
           ease: "Quad.easeIn",
           onComplete: () => {
             if (!target.dead) {
-              target.takeDamage(baseDamage * 3);
+              target.takeDamage(baseDamage * 3, false, this);
             }
             scene.showGuanyuSlash(this);
             scene.tweens.add({
@@ -835,7 +912,7 @@ export class General extends Unit {
     });
   }
 
-  protected override onDamaged(damage: number) {
+  protected override onDamaged(damage: number, _source?: Unit) {
     if (this.generalName !== "张飞") {
       return;
     }

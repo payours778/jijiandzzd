@@ -193,7 +193,7 @@ export abstract class Unit extends Phaser.GameObjects.Text {
     this.syncHealthBar();
   }
 
-  takeDamage(damage: number, ignoreDamageReduction = false) {
+  takeDamage(damage: number, ignoreDamageReduction = false, source?: Unit) {
     if (this.isDestroyed || !this.scene || this.reviving || this.invincible) {
       return;
     }
@@ -202,8 +202,8 @@ export abstract class Unit extends Phaser.GameObjects.Text {
     this.showDamageNumber(actualDamage);
     if (this.isFriendly) {
       this.shakeOnHit();
-      this.onDamaged(actualDamage);
     }
+    this.onDamaged(actualDamage, source);
 
     if (this.hp <= 0) {
       this.onLethalDamage();
@@ -400,7 +400,7 @@ export abstract class Unit extends Phaser.GameObjects.Text {
     };
   }
 
-  protected onDamaged(_damage: number) {
+  protected onDamaged(_damage: number, _source?: Unit) {
     // 子类可按需统计承受伤害。
   }
 
