@@ -35,6 +35,12 @@ export type SfxKey =
   | "caocao_skill1_voice"
   | "caocao_skill2_voice"
   | "zhugeliang_skill"
+  | "huangzhong_skill"
+  | "huangzhong_skill_voice"
+  | "liubei_heal"
+  | "liubei_heal_voice"
+  | "guanyu_skill_voice"
+  | "huangzu_skill_voice"
   | "lubu_attack"
   | "lubu_skill1"
   | "lubu_skill2"
@@ -75,6 +81,12 @@ export const SFX_FILES: Record<SfxKey, string> = {
   general_liubei: "/assets/audio/sfx/刘备的普攻.ogg",
   general_zhaoyun: "/assets/audio/sfx/赵云攻击特效.wav",
   general_guanyu: "/assets/audio/sfx/关羽普攻.ogg",
+  huangzhong_skill: "/assets/audio/sfx/黄忠技能音效.mp3",
+  huangzhong_skill_voice: "/assets/audio/sfx/黄忠技能语音.ogg",
+  liubei_heal: "/assets/audio/sfx/刘备治疗技能.mp3",
+  liubei_heal_voice: "/assets/audio/sfx/刘备技能语音.ogg",
+  guanyu_skill_voice: "/assets/audio/sfx/关羽技能语音.mp3",
+  huangzu_skill_voice: "/assets/audio/sfx/黄祖技能语音.mp3",
   zhaoyun_longdan: "/assets/audio/sfx/赵云龙胆.mp3",
   zhaoyun_revive: "/assets/audio/sfx/赵云复活.mp3",
   zhangfei_roar: "/assets/audio/sfx/张飞咆哮.ogg",

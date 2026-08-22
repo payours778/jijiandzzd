@@ -13,6 +13,7 @@ export interface GeneralConfigItem {
   longDanDamageBonus?: number;
   reviveDelay?: number;
   arrowStormChance?: number;
+  arrowStormDuration?: number;
   skillCooldown?: number;
   roarThresholdRatio?: number;
   pushbackCells?: number;
@@ -57,6 +58,7 @@ export const GeneralConfig: Record<string, GeneralConfigItem> = {
     cooldown: 1800,
     color: "#fbbf24",
     arrowStormChance: 0.1,
+    arrowStormDuration: 4700,
   },
   关羽: {
     hp: 500,
@@ -241,7 +243,8 @@ export class General extends Unit {
       if (this.liuBeiHealTimer <= 0) {
         this.liuBeiHealTimer = config.liuBeiHealInterval ?? 5000;
         scene.healAllFriendlies(config.liuBeiHealPercent ?? 0.1);
-        playSfx("heal");
+        playSfx("liubei_heal");
+        playSfx("liubei_heal_voice");
       }
     }
 
@@ -288,7 +291,9 @@ export class General extends Unit {
         scene.showHuangzhongBow(this);
         playGeneralAttackSfx(this.generalName);
         if (Math.random() < (config.arrowStormChance ?? 0.1)) {
-          scene.rainArrowsAll(config.damage * damageMultiplier, this);
+          scene.rainArrowsAll(config.damage * damageMultiplier, this, config.arrowStormDuration ?? 4700);
+          playSfx("huangzhong_skill");
+          playSfx("huangzhong_skill_voice");
         }
         this.attackTimer = config.cooldown * cooldownMultiplier;
       }
@@ -340,6 +345,7 @@ export class General extends Unit {
         this.huangZuRapidAttackTimer = 0;
         scene.showHuangzhongBow(this);
         playSfx("bow");
+        playSfx("huangzu_skill_voice");
       }
       if (this.huangZuRapidRemaining > 0) {
         this.huangZuRapidAttackTimer -= delta;
@@ -896,6 +902,7 @@ export class General extends Unit {
     const startX = this.x;
     const startY = this.y;
     playGeneralAttackSfx(this.generalName);
+    playSfx("guanyu_skill_voice");
     scene.tweens.add({
       targets: this,
       y: startY - 46,

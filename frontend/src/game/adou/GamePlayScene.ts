@@ -2534,7 +2534,7 @@ export class GamePlayScene extends Phaser.Scene {
     });
   }
 
-  rainArrowsAll(damage: number, source?: Unit) {
+  rainArrowsAll(damage: number, source?: Unit, durationMs = 0) {
     this.zombies.forEach((zombie) => {
       if (!zombie.dead) {
         zombie.takeDamage(damage, false, source);
@@ -2543,6 +2543,18 @@ export class GamePlayScene extends Phaser.Scene {
 
     for (let row = 0; row < Config.rows; row += 1) {
       this.rainArrows(row);
+    }
+
+    if (durationMs > 0) {
+      const waveInterval = Math.max(1, Math.min(340, Math.floor((durationMs - 260) / 13)));
+      const waves = Math.max(0, Math.floor((durationMs - 260) / waveInterval));
+      for (let wave = 1; wave <= waves; wave += 1) {
+        this.time.delayedCall(260 + wave * waveInterval, () => {
+          for (let row = 0; row < Config.rows; row += 1) {
+            this.rainArrows(row);
+          }
+        });
+      }
     }
   }
 
