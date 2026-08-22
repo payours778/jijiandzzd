@@ -3861,3 +3861,510 @@ img { max-width: 100%; display: block; }
     height: 18px !important;
   }
 }
+
+/* 军械库 / 兵器谱 */
+.tg-armory {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 18px 20px 16px;
+  overflow: auto;
+  background:
+    linear-gradient(rgba(255, 255, 255, 0.025) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.025) 1px, transparent 1px),
+    linear-gradient(135deg, #191d22 0%, #111318 55%, #17120f 100%);
+  background-size: 32px 32px, 32px 32px, auto;
+  color: #e5e7eb;
+  border: 1px solid rgba(251, 191, 36, 0.14);
+}
+.tg-armory__header {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  gap: 16px;
+}
+.tg-armory__heading {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.tg-armory__eyebrow {
+  font-size: 11px;
+  font-weight: 800;
+  color: #fbbf24;
+  letter-spacing: 0.28em;
+}
+.tg-armory__heading h2 {
+  margin: 0;
+  font-size: 24px;
+  font-weight: 900;
+  color: #f8fafc;
+  letter-spacing: 0;
+}
+.tg-armory__tabs {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  padding: 4px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.22);
+}
+.tg-armory__tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  border: 0;
+  padding: 8px 14px;
+  border-radius: 6px;
+  background: transparent;
+  color: #a3a8b2;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+}
+.tg-armory__tab:hover { color: #e5e7eb; background: rgba(255, 255, 255, 0.06); }
+.tg-armory__tab.is-active {
+  color: #111;
+  background: #fbbf24;
+  box-shadow: 0 4px 18px rgba(251, 191, 36, 0.28);
+}
+.tg-armory__coins {
+  justify-self: end;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 112px;
+  justify-content: flex-end;
+  padding: 8px 12px;
+  border: 1px solid rgba(251, 191, 36, 0.32);
+  border-radius: 8px;
+  background: rgba(251, 191, 36, 0.08);
+  color: #fcd34d;
+  font-size: 14px;
+  font-weight: 800;
+}
+.tg-armory__filters {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  flex-wrap: wrap;
+  padding: 10px 12px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.2);
+}
+.tg-armory__filter {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.tg-armory__filter-label {
+  font-size: 12px;
+  font-weight: 800;
+  color: #8e93a0;
+  min-width: 30px;
+}
+.tg-armory__segments {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-wrap: wrap;
+}
+.tg-armory__segments button,
+.tg-armory__quality button {
+  min-height: 30px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.04);
+  color: #c7ccd6;
+  font-size: 12px;
+  font-weight: 700;
+  padding: 5px 10px;
+  cursor: pointer;
+}
+.tg-armory__segments button:hover,
+.tg-armory__quality button:hover {
+  border-color: rgba(251, 191, 36, 0.45);
+  color: #fff;
+}
+.tg-armory__segments button.is-active,
+.tg-armory__quality button.is-active {
+  color: #18191d;
+  background: #fbbf24;
+  border-color: #fbbf24;
+}
+.tg-armory__quality {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  flex-wrap: wrap;
+}
+.tg-armory__quality button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  position: relative;
+}
+.tg-armory__quality button:not(.is-active) { color: var(--q, #e5e7eb); }
+.tg-armory__quality button .tg-armory__dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: var(--q, #d4d4d8);
+  box-shadow: 0 0 10px var(--q-glow, transparent);
+}
+.tg-armory__body {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 320px;
+  gap: 14px;
+  flex: 1;
+  min-height: 0;
+}
+.tg-armory__catalog {
+  min-height: 0;
+  overflow: auto;
+  padding-right: 4px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.tg-armory__group-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin: 2px 0 10px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+.tg-armory__group-head strong {
+  color: #f8fafc;
+  font-size: 15px;
+  font-weight: 800;
+}
+.tg-armory__group-head span {
+  color: #7d8290;
+  font-size: 12px;
+  font-weight: 600;
+}
+.tg-armory__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(148px, 1fr));
+  gap: 10px;
+}
+.tg-armory__card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  min-height: 172px;
+  padding: 11px;
+  border: 1px solid color-mix(in srgb, var(--q) 45%, rgba(255,255,255,0.12));
+  border-radius: 8px;
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--q) 12%, transparent), rgba(0,0,0,0.28));
+  color: #e5e7eb;
+  text-align: left;
+  cursor: pointer;
+  overflow: hidden;
+}
+.tg-armory__card::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  box-shadow: inset 0 0 26px var(--q-glow, transparent);
+  opacity: 0.7;
+}
+.tg-armory__card:hover { transform: translateY(-2px); border-color: var(--q); }
+.tg-armory__card.is-selected {
+  border-color: var(--q);
+  box-shadow: 0 0 0 2px var(--q-glow), 0 8px 22px rgba(0, 0, 0, 0.35);
+}
+.tg-armory__card-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  position: relative;
+  z-index: 1;
+}
+.tg-armory__series {
+  color: #9aa0ad;
+  font-size: 11px;
+  font-weight: 800;
+}
+.tg-armory__owned {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: #4ade80;
+  font-size: 10px;
+  font-weight: 800;
+}
+.tg-armory__glyph {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 52px;
+  height: 52px;
+  margin: 12px auto 8px;
+  border: 1px solid color-mix(in srgb, var(--q) 65%, transparent);
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.3);
+  color: var(--q);
+  font-size: 26px;
+  font-weight: 900;
+  box-shadow: 0 0 18px var(--q-glow);
+  position: relative;
+  z-index: 1;
+}
+.tg-armory__card > strong {
+  text-align: center;
+  color: #f1f3f7;
+  font-size: 14px;
+  font-weight: 800;
+  line-height: 1.25;
+  position: relative;
+  z-index: 1;
+}
+.tg-armory__quality-name {
+  text-align: center;
+  color: var(--q);
+  font-size: 11px;
+  font-weight: 800;
+  margin-top: 4px;
+  position: relative;
+  z-index: 1;
+}
+.tg-armory__stats {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 8px;
+  position: relative;
+  z-index: 1;
+}
+.tg-armory__stats em {
+  color: #8e93a0;
+  font-size: 11px;
+  font-style: normal;
+  font-weight: 700;
+}
+.tg-armory__card-cta {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  margin-top: 10px;
+  padding: 5px 8px;
+  border-radius: 6px;
+  background: rgba(0, 0, 0, 0.28);
+  color: #d4d4d8;
+  font-size: 11px;
+  font-weight: 800;
+  position: relative;
+  z-index: 1;
+}
+.tg-armory__card-cta.is-equipped { color: #4ade80; }
+.tg-armory__empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 26px 12px;
+  border: 1px dashed rgba(255, 255, 255, 0.12);
+  border-radius: 8px;
+  color: #7d8290;
+}
+.tg-armory__detail {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-height: 0;
+  padding: 16px;
+  border: 1px solid rgba(251, 191, 36, 0.22);
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.24);
+  overflow: auto;
+}
+.tg-armory__preview {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 150px;
+  border: 1px solid color-mix(in srgb, var(--q) 55%, transparent);
+  border-radius: 8px;
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--q) 8%, transparent), rgba(0,0,0,0.42));
+  box-shadow: inset 0 0 30px var(--q-glow);
+}
+.tg-armory__preview-glyph {
+  font-size: 72px;
+  font-weight: 900;
+  color: var(--q);
+  text-shadow: 0 0 26px var(--q-glow);
+}
+.tg-armory__detail-head {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+.tg-armory__detail-series {
+  color: #fbbf24;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.16em;
+}
+.tg-armory__detail-head h3 {
+  margin: 0;
+  font-size: 22px;
+  font-weight: 900;
+  color: #f8fafc;
+}
+.tg-armory__detail-head p {
+  margin: 0;
+  color: var(--q, #d4d4d8);
+  font-size: 12px;
+  font-weight: 700;
+}
+.tg-armory__detail-desc {
+  color: #a3a8b2;
+  font-size: 13px;
+  line-height: 1.6;
+}
+.tg-armory__attribute-list {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+.tg-armory__attribute {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 8px 10px;
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.04);
+}
+.tg-armory__attribute span { color: #7d8290; font-size: 11px; font-weight: 700; }
+.tg-armory__attribute strong { color: #f1f3f7; font-size: 13px; font-weight: 800; }
+.tg-armory__tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.tg-armory__tags span {
+  padding: 4px 8px;
+  border-radius: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: #d1d5db;
+  font-size: 11px;
+  font-weight: 700;
+  background: rgba(255, 255, 255, 0.04);
+}
+.tg-armory__actions {
+  display: flex;
+  gap: 8px;
+  margin-top: auto;
+}
+.tg-armory__actions button {
+  flex: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 38px;
+  border-radius: 7px;
+  font-size: 13px;
+  font-weight: 800;
+  cursor: pointer;
+}
+.tg-armory__buy {
+  border: 1px solid #fbbf24;
+  background: #fbbf24;
+  color: #111;
+}
+.tg-armory__buy:disabled {
+  border-color: rgba(255, 255, 255, 0.14);
+  background: rgba(255, 255, 255, 0.06);
+  color: #777c88;
+  cursor: not-allowed;
+}
+.tg-armory__equip {
+  border: 1px solid #4ade80;
+  background: rgba(74, 222, 128, 0.14);
+  color: #4ade80;
+}
+.tg-armory__equipped {
+  border: 1px solid rgba(74, 222, 128, 0.4);
+  background: rgba(74, 222, 128, 0.08);
+  color: #4ade80;
+  cursor: default;
+}
+.tg-armory__owned-strip {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.18);
+}
+.tg-armory__owned-strip > strong {
+  color: #a3a8b2;
+  font-size: 11px;
+  font-weight: 800;
+}
+.tg-armory__owned-strip > div {
+  display: flex;
+  gap: 6px;
+  overflow: auto;
+}
+.tg-armory__owned-strip button {
+  width: 36px;
+  height: 36px;
+  flex: 0 0 36px;
+  border: 1px solid color-mix(in srgb, var(--q) 45%, transparent);
+  border-radius: 7px;
+  background: rgba(0, 0, 0, 0.28);
+  color: var(--q);
+  font-size: 16px;
+  font-weight: 900;
+  cursor: pointer;
+}
+.tg-armory__owned-strip button.is-active {
+  box-shadow: 0 0 0 2px var(--q-glow);
+  transform: translateY(-1px);
+}
+.tg-armory__empty-detail {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 12px;
+  color: #7d8290;
+}
+
+@media (max-width: 1100px) {
+  .tg-armory { padding: 14px; }
+  .tg-armory__body { grid-template-columns: minmax(0, 1fr) 280px; }
+  .tg-armory__grid { grid-template-columns: repeat(auto-fill, minmax(128px, 1fr)); }
+}
+@media (max-width: 860px) {
+  .tg-armory__header { grid-template-columns: 1fr auto; }
+  .tg-armory__tabs { grid-row: 2; grid-column: 1 / -1; justify-self: center; }
+  .tg-armory__coins { grid-row: 1; }
+  .tg-armory__filters { gap: 10px; }
+  .tg-armory__body { grid-template-columns: 1fr; }
+  .tg-armory__detail { min-height: 260px; }
+}
+@media (orientation: portrait) and (max-width: 700px) {
+  .tg-armory { padding: 10px; gap: 10px; }
+  .tg-armory__heading h2 { font-size: 18px; }
+  .tg-armory__filter-label { min-width: 24px; }
+  .tg-armory__segments button,
+  .tg-armory__quality button { padding: 4px 7px; font-size: 11px; }
+}

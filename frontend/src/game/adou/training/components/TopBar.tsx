@@ -36,7 +36,7 @@ export function TopBar() {
         <button
           className="tg-topbar__icon-btn"
           aria-label="提示"
-          onClick={() => setToast("军械库与远征模式正在开发中")}
+          onClick={() => setToast("军械库已开放，远征模式正在开发")}
         >
           ?
         </button>
