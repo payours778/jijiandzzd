@@ -192,9 +192,6 @@ export class General extends Unit {
         .setDepth(80)
         .setDisplaySize(12, 35);
     }
-    if (generalName === "魏延") {
-      playSfx("weiyan_enter");
-    }
   }
 
   playUpgradeSfx() {
@@ -396,6 +393,7 @@ export class General extends Unit {
         this.weiYanRageRemaining = config.weiYanRageDuration ?? 5000;
         this.weiYanRageCooldownRemaining = config.weiYanRageCooldown ?? 60000;
         this.showFloatingText("狂骨", "#f87171");
+        playSfx("weiyan_enter");
       }
 
       const rageActive = this.weiYanRageRemaining > 0;
