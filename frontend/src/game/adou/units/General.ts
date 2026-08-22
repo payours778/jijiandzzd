@@ -174,6 +174,7 @@ export class General extends Unit {
   xp = 0;
   private xpBar?: Phaser.GameObjects.Rectangle;
   private xpBarBackground?: Phaser.GameObjects.Rectangle;
+  private xpText?: Phaser.GameObjects.Text;
 
   constructor(
     scene: Phaser.Scene,
@@ -555,6 +556,17 @@ export class General extends Unit {
       .rectangle(this.x - 17, this.y - 21, 0, 3, 0xfbbf24)
       .setOrigin(0, 0.5)
       .setDepth(57);
+    this.xpText = this.scene.add
+      .text(this.x, this.y - 10, "0/60", {
+        fontFamily: Config.fontFamily,
+        fontSize: "11px",
+        color: "#fbbf24",
+        fontStyle: "bold",
+        stroke: "#111",
+        strokeThickness: 2,
+      })
+      .setOrigin(0.5)
+      .setDepth(58);
     this.syncXpBar();
   }
 
@@ -564,9 +576,19 @@ export class General extends Unit {
     }
     const y = this.y - 21;
     const need = this.getXpNeedForNext();
-    const progress = Math.max(0, Math.min(1, this.xp / need));
+    const progress = this.level >= Config.maxLevel
+      ? 1
+      : Math.max(0, Math.min(1, this.xp / need));
     this.xpBarBackground.setPosition(this.x, y);
     this.xpBar.setPosition(this.x - 17, y).setDisplaySize(34 * progress, 3);
+    if (this.xpText) {
+      this.xpText.setPosition(this.x, this.y - 10);
+      this.xpText.setText(
+        this.level >= Config.maxLevel
+          ? "MAX"
+          : `${Math.floor(this.xp)}/${need}`,
+      );
+    }
   }
 
   private getXpNeedForNext() {
@@ -708,6 +730,8 @@ export class General extends Unit {
     this.xpBar = undefined;
     this.xpBarBackground?.destroy();
     this.xpBarBackground = undefined;
+    this.xpText?.destroy();
+    this.xpText = undefined;
     super.onDestroyed();
   }
 
