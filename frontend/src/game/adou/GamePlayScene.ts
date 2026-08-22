@@ -1504,7 +1504,7 @@ export class GamePlayScene extends Phaser.Scene {
   }
 
   private updateCoinText() {
-    this.coinText.setText(`获得金币：${this.earnedCoins}`);
+    this.coinText?.setText(`获得金币：${this.earnedCoins}`);
   }
 
   getCellCenter(row: number, col: number) {
