@@ -31,6 +31,7 @@ export interface GeneralConfigItem {
   weiYanRageCooldown?: number;
   weiYanRageRangeMultiplier?: number;
   weiYanLifestealRatio?: number;
+  weiYanKillHealRatio?: number;
 }
 
 export const GeneralConfig: Record<string, GeneralConfigItem> = {
@@ -117,6 +118,7 @@ export const GeneralConfig: Record<string, GeneralConfigItem> = {
     weiYanRageCooldown: 60000,
     weiYanRageRangeMultiplier: 2,
     weiYanLifestealRatio: 1,
+    weiYanKillHealRatio: 0.2,
   },
 };
 
@@ -415,6 +417,7 @@ export class General extends Unit {
           playGeneralAttackSfx(this.generalName);
           if (targets.some((zombie) => zombie.dead)) {
             playSfx("weiyan_kill");
+            this.heal(this.maxHp * (config.weiYanKillHealRatio ?? 0.2));
           }
           this.attackTimer = config.cooldown * cooldownMultiplier;
         }
@@ -430,6 +433,7 @@ export class General extends Unit {
         playGeneralAttackSfx(this.generalName);
         if (target.dead) {
           playSfx("weiyan_kill");
+          this.heal(this.maxHp * (config.weiYanKillHealRatio ?? 0.2));
         }
         this.attackTimer = config.cooldown * cooldownMultiplier;
       }
