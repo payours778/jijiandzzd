@@ -142,13 +142,14 @@ export const ZombieStats = {
 };
 
 export const LuBuStats = {
-  hp: 900,
+  hp: 2700,
   speed: 13,
   normalDamage: 42,
   slashDamage: 95,
+  slashMaxHpRatio: 0.5,
   arrowDamage: 180,
   normalCooldown: 1100,
-  skillCooldown: 2600,
+  skillCooldown: 10000,
   moveInterval: 1100,
   slashRest: 500,
   skill1Chance: 0.5,
@@ -158,11 +159,11 @@ export const LuBuStats = {
 };
 
 export const DiaoChanStats = {
-  hp: 800,
+  hp: 2400,
   speed: 9,
   normalDamage: 35,
   fanDamage: 60,
-  moonlightDamage: 90,
+  moonlightPercentDamage: 0.3,
   normalCooldown: 1200,
   fanCooldown: 10000,
   moonlightCooldown: 20000,
@@ -176,7 +177,7 @@ export const DiaoChanStats = {
 };
 
 export const CaoCaoStats = {
-  hp: 1500,
+  hp: 4500,
   speed: 10,
   normalDamage: 45,
   normalCooldown: 1200,

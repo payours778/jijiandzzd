@@ -137,12 +137,13 @@ const defaults = {
     biteInterval: 900,
   },
   lubu: {
-    hp: 900,
+    hp: 2700,
     speed: 13,
     normalDamage: 42,
     slashDamage: 95,
+    slashMaxHpRatio: 0.5,
     arrowDamage: 180,
-    skillCooldown: 2600,
+    skillCooldown: 10000,
     normalCooldown: 1100,
     slashRest: 500,
     skill1Chance: 0.5,
@@ -151,12 +152,12 @@ const defaults = {
     skill2FullScreen: true,
   },
   diaochan: {
-    hp: 800,
+    hp: 2400,
     speed: 9,
     normalDamage: 35,
     normalCooldown: 1200,
     fanDamage: 60,
-    moonlightDamage: 90,
+    moonlightPercentDamage: 0.3,
     fanCooldown: 10000,
     moonlightCooldown: 20000,
     restTime: 4000,
@@ -166,7 +167,7 @@ const defaults = {
     moonlightFullScreen: true,
   },
   caocao: {
-    hp: 1500,
+    hp: 4500,
     speed: 10,
     normalDamage: 45,
     normalCooldown: 1200,
@@ -384,11 +385,11 @@ export function DevConsole({ open, onClose }: { open: boolean; onClose: () => vo
               <NumberField label="血量" value={LuBuStats.hp} onChange={(value) => { LuBuStats.hp = value; setVersion(version + 1); }} />
               <NumberField label="移速" value={LuBuStats.speed} onChange={(value) => { LuBuStats.speed = value; setVersion(version + 1); }} />
               <NumberField label="普攻" value={LuBuStats.normalDamage} onChange={(value) => { LuBuStats.normalDamage = value; setVersion(version + 1); }} />
-              <NumberField label="斩击" value={LuBuStats.slashDamage} onChange={(value) => { LuBuStats.slashDamage = value; setVersion(version + 1); }} />
               <NumberField label="箭矢" value={LuBuStats.arrowDamage} onChange={(value) => { LuBuStats.arrowDamage = value; setVersion(version + 1); }} />
               <NumberField label="技能CDms" value={LuBuStats.skillCooldown} onChange={(value) => { LuBuStats.skillCooldown = value; setVersion(version + 1); }} />
               <NumberField label="普攻CDms" value={LuBuStats.normalCooldown} onChange={(value) => { LuBuStats.normalCooldown = value; setVersion(version + 1); }} />
               <NumberField label="技能1休整ms" value={LuBuStats.slashRest} onChange={(value) => { LuBuStats.slashRest = value; setVersion(version + 1); }} />
+              <NumberField label="技能1血量比例" value={LuBuStats.slashMaxHpRatio} onChange={(value) => { LuBuStats.slashMaxHpRatio = value; setVersion(version + 1); }} />
               <NumberField label="技能1概率" value={LuBuStats.skill1Chance} onChange={(value) => { LuBuStats.skill1Chance = value; setVersion(version + 1); }} />
               <NumberField label="技能1眩晕ms" value={LuBuStats.slashStunDuration} onChange={(value) => { LuBuStats.slashStunDuration = value; setVersion(version + 1); }} />
               <NumberField label="技能2充能ms" value={LuBuStats.skill2ChargeTime} onChange={(value) => { LuBuStats.skill2ChargeTime = value; setVersion(version + 1); }} />
@@ -401,7 +402,7 @@ export function DevConsole({ open, onClose }: { open: boolean; onClose: () => vo
               <NumberField label="普攻" value={DiaoChanStats.normalDamage} onChange={(value) => { DiaoChanStats.normalDamage = value; setVersion(version + 1); }} />
               <NumberField label="普攻CDms" value={DiaoChanStats.normalCooldown} onChange={(value) => { DiaoChanStats.normalCooldown = value; setVersion(version + 1); }} />
               <NumberField label="魅惑之舞" value={DiaoChanStats.fanDamage} onChange={(value) => { DiaoChanStats.fanDamage = value; setVersion(version + 1); }} />
-              <NumberField label="闭月流光" value={DiaoChanStats.moonlightDamage} onChange={(value) => { DiaoChanStats.moonlightDamage = value; setVersion(version + 1); }} />
+              <NumberField label="月光比例" value={DiaoChanStats.moonlightPercentDamage} onChange={(value) => { DiaoChanStats.moonlightPercentDamage = value; setVersion(version + 1); }} />
               <NumberField label="技能1CDms" value={DiaoChanStats.fanCooldown} onChange={(value) => { DiaoChanStats.fanCooldown = value; setVersion(version + 1); }} />
               <NumberField label="技能2CDms" value={DiaoChanStats.moonlightCooldown} onChange={(value) => { DiaoChanStats.moonlightCooldown = value; setVersion(version + 1); }} />
               <NumberField label="休整ms" value={DiaoChanStats.restTime} onChange={(value) => { DiaoChanStats.restTime = value; setVersion(version + 1); }} />

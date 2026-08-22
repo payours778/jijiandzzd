@@ -62,6 +62,8 @@ export class GamePlayScene extends Phaser.Scene {
   private zombiesSpawnedInWave = 0;
   private waveSize = 5;
   private bossSpawnedInWave = false;
+  private bossQueue: Array<"吕布" | "貂蝉" | "曹操"> = [];
+  private bossWaveCache: Record<number, "吕布" | "貂蝉" | "曹操"> = {};
   private refreshCost = Config.refreshStartCost;
   private drawCount = 0;
   private fragmentPool: Record<string, number> = {};
@@ -140,6 +142,8 @@ export class GamePlayScene extends Phaser.Scene {
     this.earnedCoins = 0;
     this.zombiesSpawnedInWave = 0;
     this.bossSpawnedInWave = false;
+    this.bossQueue = [];
+    this.bossWaveCache = {};
     this.mantou = Config.startingMantou;
     this.drawCount = 0;
     this.hand = [];
@@ -1328,10 +1332,16 @@ export class GamePlayScene extends Phaser.Scene {
   }
 
   private getBossForWave(wave: number): "吕布" | "貂蝉" | "曹操" {
-    const bossIndex = (Math.floor(wave / 5) - 1) % 3;
-    if (bossIndex === 1) return "貂蝉";
-    if (bossIndex === 2) return "曹操";
-    return "吕布";
+    const cached = this.bossWaveCache[wave];
+    if (cached) {
+      return cached;
+    }
+    if (this.bossQueue.length === 0) {
+      this.bossQueue = (["吕布", "貂蝉", "曹操"] as Array<"吕布" | "貂蝉" | "曹操">).sort(() => Math.random() - 0.5);
+    }
+    const next = this.bossQueue.shift() ?? "吕布";
+    this.bossWaveCache[wave] = next;
+    return next;
   }
 
   private createBoss(
@@ -1832,12 +1842,12 @@ export class GamePlayScene extends Phaser.Scene {
     return false;
   }
 
-  diaoChanMoonlight(damage: number) {
+  diaoChanMoonlight(percentDamage: number) {
     for (let row = 0; row < this.board.length; row += 1) {
       for (let col = 0; col < Config.cols; col += 1) {
         const unit = this.board[row][col];
         if (unit && !unit.dead) {
-          unit.takeDamage(damage);
+          unit.takeDamage(unit.maxHp * percentDamage, true);
         }
       }
     }

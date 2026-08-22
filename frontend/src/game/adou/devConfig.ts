@@ -69,6 +69,11 @@ export function loadDevConfig() {
     }
     if (data.zombie) Object.assign(ZombieStats, data.zombie);
     if (data.medic) Object.assign(MedicConfig, data.medic);
+    if (savedVersion < 6) {
+      delete data.lubu;
+      delete data.diaochan;
+      delete data.caocao;
+    }
     if (data.lubu) Object.assign(LuBuStats, data.lubu);
     if (data.diaochan) Object.assign(DiaoChanStats, data.diaochan);
     if (data.caocao) Object.assign(CaoCaoStats, data.caocao);
@@ -82,7 +87,7 @@ export function saveDevConfig() {
     localStorage.setItem(
       KEY,
       JSON.stringify({
-        version: 5,
+        version: 6,
         config: {
           startingMantou: Config.startingMantou,
           refreshStartCost: Config.refreshStartCost,

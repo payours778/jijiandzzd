@@ -193,11 +193,11 @@ export abstract class Unit extends Phaser.GameObjects.Text {
     this.syncHealthBar();
   }
 
-  takeDamage(damage: number) {
+  takeDamage(damage: number, ignoreDamageReduction = false) {
     if (this.isDestroyed || !this.scene || this.reviving || this.invincible) {
       return;
     }
-    const actualDamage = damage * this.damageReduction;
+    const actualDamage = ignoreDamageReduction ? damage : damage * this.damageReduction;
     this.hp -= actualDamage;
     this.showDamageNumber(actualDamage);
     if (this.isFriendly) {

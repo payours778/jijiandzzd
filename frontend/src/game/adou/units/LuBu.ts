@@ -105,15 +105,14 @@ export class LuBu extends Zombie {
   }
 
   private skillSlash(scene: GamePlayScene) {
-    const damage = LuBuStats.slashDamage * this.strengthMultiplier;
     const col = Math.min(Config.cols - 1, scene.getColFromX(this.x) + 1);
 
     for (let row = Math.max(0, this.row - 1); row <= Math.min(Config.rows - 1, this.row + 1); row += 1) {
       const target = scene.getUnitAt(row, col);
       if (target && !target.dead) {
-        target.takeDamage(damage);
+        target.takeDamage(target.maxHp * LuBuStats.slashMaxHpRatio);
         if (!target.dead) {
-        target.stun(LuBuStats.slashStunDuration);
+          target.stun(LuBuStats.slashStunDuration);
         }
       }
     }

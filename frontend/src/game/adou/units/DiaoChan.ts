@@ -53,7 +53,7 @@ export class DiaoChan extends Zombie {
       this.chargeRemaining -= delta;
       if (this.chargeRemaining <= 0) {
         playSfx("diaochan_skill2");
-        scene.diaoChanMoonlight(DiaoChanStats.moonlightDamage * this.strengthMultiplier);
+        scene.diaoChanMoonlight(DiaoChanStats.moonlightPercentDamage);
         this.charging = false;
         this.moonlightCooldown = DiaoChanStats.moonlightCooldown;
       }
