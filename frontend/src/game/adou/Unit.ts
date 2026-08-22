@@ -24,6 +24,9 @@ export abstract class Unit extends Phaser.GameObjects.Text {
   protected outlineColor = 0xffffff;
   protected damageReduction = 1;
   invincible = false;
+  private hudFrozen = false;
+  private hudAnchorX = 0;
+  private hudAnchorY = 0;
   private baseMaxHp = 0;
   private heavyWoundUntil = 0;
   private heavyWoundRatio = 1;
@@ -69,10 +72,11 @@ export abstract class Unit extends Phaser.GameObjects.Text {
   }
 
   syncHealthBar() {
-    this.healthBar?.setPosition(this.x, this.y - 32);
-    this.healthBarBackground?.setPosition(this.x, this.y - 32);
-    this.heavyWoundMarker?.setPosition(this.x, this.y - 46);
-    this.hpText?.setPosition(this.x, this.y - 44);
+    const hud = this.getHudPosition();
+    this.healthBar?.setPosition(hud.x, hud.y - 32);
+    this.healthBarBackground?.setPosition(hud.x, hud.y - 32);
+    this.heavyWoundMarker?.setPosition(hud.x, hud.y - 46);
+    this.hpText?.setPosition(hud.x, hud.y - 44);
     if (this.hpText?.visible) {
       this.hpText.setText(`${Math.round(this.hp)}/${Math.round(this.maxHp)}`);
     }
@@ -113,7 +117,8 @@ export abstract class Unit extends Phaser.GameObjects.Text {
     }
 
     this.outlineGraphics.clear();
-    this.outlineGraphics.setPosition(this.x, this.y);
+    const hud = this.getHudPosition();
+    this.outlineGraphics.setPosition(hud.x, hud.y);
     const lowHp = this.hp / this.maxHp < 0.3;
     const color = lowHp ? 0xef4444 : this.outlineColor;
     this.outlineGraphics.lineStyle(1, color, 0.9);
@@ -132,7 +137,8 @@ export abstract class Unit extends Phaser.GameObjects.Text {
   }
 
   syncLevelText() {
-    this.levelText?.setPosition(this.x + 22, this.y - 22);
+    const hud = this.getHudPosition();
+    this.levelText?.setPosition(hud.x + 22, hud.y - 22);
   }
 
   setLevel(level: number) {
@@ -292,13 +298,17 @@ export abstract class Unit extends Phaser.GameObjects.Text {
 
   private shakeOnHit() {
     const startX = this.x;
+    this.freezeHud();
     this.scene.tweens.add({
       targets: this,
       x: startX - 3,
       duration: 45,
       yoyo: true,
       repeat: 2,
-      onComplete: () => this.setX(startX),
+      onComplete: () => {
+        this.setX(startX);
+        this.unfreezeHud();
+      },
     });
   }
 
@@ -343,8 +353,28 @@ export abstract class Unit extends Phaser.GameObjects.Text {
     this.damageReduction = Math.max(0, Math.min(1, ratio));
   }
 
+  freezeHud() {
+    if (!this.hudFrozen) {
+      this.hudAnchorX = this.x;
+      this.hudAnchorY = this.y;
+      this.hudFrozen = true;
+    }
+  }
+
+  unfreezeHud() {
+    this.hudFrozen = false;
+    this.syncHealthBar();
+  }
+
   setInvincible(invincible: boolean) {
     this.invincible = invincible;
+  }
+
+  private getHudPosition() {
+    return {
+      x: this.hudFrozen ? this.hudAnchorX : this.x,
+      y: this.hudFrozen ? this.hudAnchorY : this.y,
+    };
   }
 
   protected onDamaged(_damage: number) {

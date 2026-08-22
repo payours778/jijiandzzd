@@ -2100,12 +2100,16 @@ export class GamePlayScene extends Phaser.Scene {
       .setTintFill(0x16181d)
       .setDisplaySize(bigWidth, height);
 
+    unit.freezeHud();
     this.tweens.add({
       targets: unit,
       x: startX - 6,
       duration: 70,
       yoyo: true,
-      onComplete: () => unit.setX(startX),
+      onComplete: () => {
+        unit.setX(startX);
+        unit.unfreezeHud();
+      },
     });
 
     this.tweens.add({

@@ -454,6 +454,7 @@ export class General extends Unit {
       const machaoStartX = this.x;
       const machaoTargetX = machaoTarget.x;
       this.machaoCharging = true;
+      this.freezeHud();
       this.setDamageReduction(config.chargeDamageReduction ?? 0.2);
       this.attackTimer = config.cooldown * cooldownMultiplier;
       scene.showChargeEffect(this);
@@ -485,7 +486,7 @@ export class General extends Unit {
               this.setDamageReduction(1);
               const center = scene.getCellCenter(this.row, this.col);
               this.setPosition(center.x, center.y);
-              this.syncHealthBar();
+              this.unfreezeHud();
             },
           });
         },
@@ -794,6 +795,7 @@ export class General extends Unit {
   private performGuanYuLeap(scene: GamePlayScene, target: Unit, baseDamage: number) {
     this.guanYuLeaping = true;
     this.setInvincible(true);
+    this.freezeHud();
     const startX = this.x;
     const startY = this.y;
     playGeneralAttackSfx(this.generalName);
@@ -824,7 +826,7 @@ export class General extends Unit {
                 this.setInvincible(false);
                 const center = scene.getCellCenter(this.row, this.col);
                 this.setPosition(center.x, center.y);
-                this.syncHealthBar();
+                this.unfreezeHud();
               },
             });
           },
