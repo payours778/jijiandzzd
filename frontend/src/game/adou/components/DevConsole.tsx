@@ -122,6 +122,7 @@ const defaults = {
       cooldown: 100,
       weiYanRageThresholdRatio: 0.5,
       weiYanRageDuration: 5000,
+      weiYanRageCooldown: 60000,
       weiYanRageRangeMultiplier: 2,
       weiYanLifestealRatio: 1,
     },
@@ -192,7 +193,7 @@ const generalSkillFields: Record<string, [keyof GeneralConfigItem, string][]> = 
   张苞: [["stunChance", "眩晕概率"], ["stunDuration", "眩晕时长ms"]],
   关平: [["bladeChance", "飞刀触发概率"], ["bladeDuration", "飞刀持续ms"], ["bladeInterval", "飞刀攻击间隔ms"]],
   马超: [["chargeSelfCostRatio", "冲锋自损比例"], ["chargeDamageRatio", "冲锋伤害比例"], ["chargeDamageReduction", "冲锋免伤比例"]],
-  魏延: [["weiYanRageThresholdRatio", "狂骨触发血线"], ["weiYanRageDuration", "狂骨持续ms"], ["weiYanRageRangeMultiplier", "狂骨距离倍率"], ["weiYanLifestealRatio", "狂骨吸血比例"]],
+  魏延: [["weiYanRageThresholdRatio", "狂骨触发血线"], ["weiYanRageDuration", "狂骨持续ms"], ["weiYanRageCooldown", "狂骨CDms"], ["weiYanRageRangeMultiplier", "狂骨距离倍率"], ["weiYanLifestealRatio", "狂骨吸血比例"]],
 };
 
 export function DevConsole({ open, onClose }: { open: boolean; onClose: () => void }) {

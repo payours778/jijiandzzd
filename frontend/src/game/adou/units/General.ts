@@ -28,6 +28,7 @@ export interface GeneralConfigItem {
   chargeDamageReduction?: number;
   weiYanRageThresholdRatio?: number;
   weiYanRageDuration?: number;
+  weiYanRageCooldown?: number;
   weiYanRageRangeMultiplier?: number;
   weiYanLifestealRatio?: number;
 }
@@ -113,6 +114,7 @@ export const GeneralConfig: Record<string, GeneralConfigItem> = {
     color: "#4ade80",
     weiYanRageThresholdRatio: 0.5,
     weiYanRageDuration: 5000,
+    weiYanRageCooldown: 60000,
     weiYanRageRangeMultiplier: 2,
     weiYanLifestealRatio: 1,
   },
@@ -164,6 +166,7 @@ export class General extends Unit {
   private guanpingWeapon?: Phaser.GameObjects.Image;
   private guanpingWeaponAnimating = false;
   private weiYanRageRemaining = 0;
+  private weiYanRageCooldownRemaining = 0;
 
   constructor(
     scene: Phaser.Scene,
@@ -373,11 +376,16 @@ export class General extends Unit {
     }
 
     if (this.generalName === "魏延") {
+      if (this.weiYanRageCooldownRemaining > 0) {
+        this.weiYanRageCooldownRemaining -= delta;
+      }
       if (
         this.hp <= this.maxHp * (config.weiYanRageThresholdRatio ?? 0.5) &&
-        this.weiYanRageRemaining <= 0
+        this.weiYanRageRemaining <= 0 &&
+        this.weiYanRageCooldownRemaining <= 0
       ) {
         this.weiYanRageRemaining = config.weiYanRageDuration ?? 5000;
+        this.weiYanRageCooldownRemaining = config.weiYanRageCooldown ?? 60000;
         this.showFloatingText("狂骨", "#f87171");
       }
       if (this.weiYanRageRemaining > 0) {
