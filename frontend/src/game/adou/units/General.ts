@@ -216,6 +216,13 @@ export class General extends Unit {
       }
     } else if (this.generalName === "关羽") {
       this.guanYuSkillCooldown -= delta;
+    } else if (this.generalName === "魏延") {
+      if (this.weiYanRageRemaining > 0) {
+        this.weiYanRageRemaining -= delta;
+      }
+      if (this.weiYanRageCooldownRemaining > 0) {
+        this.weiYanRageCooldownRemaining -= delta;
+      }
     }
 
     if (this.generalName === "刘备") {
@@ -376,9 +383,6 @@ export class General extends Unit {
     }
 
     if (this.generalName === "魏延") {
-      if (this.weiYanRageCooldownRemaining > 0) {
-        this.weiYanRageCooldownRemaining -= delta;
-      }
       if (
         this.hp <= this.maxHp * (config.weiYanRageThresholdRatio ?? 0.5) &&
         this.weiYanRageRemaining <= 0 &&
@@ -387,9 +391,6 @@ export class General extends Unit {
         this.weiYanRageRemaining = config.weiYanRageDuration ?? 5000;
         this.weiYanRageCooldownRemaining = config.weiYanRageCooldown ?? 60000;
         this.showFloatingText("狂骨", "#f87171");
-      }
-      if (this.weiYanRageRemaining > 0) {
-        this.weiYanRageRemaining -= delta;
       }
 
       const rageActive = this.weiYanRageRemaining > 0;
