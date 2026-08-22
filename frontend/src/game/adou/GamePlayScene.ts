@@ -798,7 +798,7 @@ export class GamePlayScene extends Phaser.Scene {
         .setData("handIndex", index);
 
       const isSelected = this.selectedHandIndex === index;
-      text.setBackgroundColor(isSelected ? "#7c3aed" : "#252a33");
+      text.setBackgroundColor(isSelected ? "#facc15" : "#252a33");
 
       text.on("pointerdown", (pointer: Phaser.Input.Pointer) => {
         this.handTapDownIndex = index;
