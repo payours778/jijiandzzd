@@ -1,5 +1,5 @@
 import type { FormEvent } from "react";
-import { Coins, Heart, LayoutGrid, Menu, Moon, Search, Sun, X } from "lucide-react";
+import { Heart, LayoutGrid, Menu, Moon, Search, Sun, X } from "lucide-react";
 import { categories, categoryLabels } from "../data/games";
 import { useAppStore } from "../store/useAppStore";
 
@@ -10,7 +10,6 @@ export function Header() {
   const menuOpen = useAppStore((state) => state.menuOpen);
   const favorites = useAppStore((state) => state.favorites);
   const user = useAppStore((state) => state.user);
-  const coins = useAppStore((state) => state.coins);
   const setAuthOpen = useAppStore((state) => state.setAuthOpen);
   const setAuthMode = useAppStore((state) => state.setAuthMode);
   const setUser = useAppStore((state) => state.setUser);
@@ -93,10 +92,6 @@ export function Header() {
             <>
               <div className="user-chip" title={user.id}>
                 {user.displayName}
-              </div>
-              <div className="user-chip user-coin-chip">
-                <Coins className="icon" aria-hidden="true" />
-                {coins}
               </div>
               <button
                 className="button button-secondary"

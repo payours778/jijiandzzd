@@ -1,9 +1,10 @@
-import { ArrowLeft, Coins, User } from "lucide-react";
+import { ArrowLeft, User } from "lucide-react";
 import { useAppStore } from "../../../../store/useAppStore";
 
 /** 顶部状态栏：返回 / 章节 / 账号 / 铜钱占位 */
 export function TopBar() {
   const user = useAppStore((s) => s.user);
+  const coins = useAppStore((s) => s.coins);
   const setToast = (msg: string) => {
     useAppStore.setState({ toast: msg });
     setTimeout(() => useAppStore.setState({ toast: null }), 2200);
@@ -22,9 +23,9 @@ export function TopBar() {
       </div>
 
       <div className="tg-topbar__right">
-        <div className="tg-topbar__coins" title="铜钱（即将开放）">
-          <Coins size={14} />
-          <span>---</span>
+        <div className="tg-topbar__coins" title="账户金币">
+          <img className="tg-topbar__coin-icon" src="/assets/training-ground/coin.png" alt="金币" />
+          <span>金币 {user ? coins : "---"}</span>
         </div>
         <div className="tg-topbar__user">
           <div className="tg-topbar__avatar">

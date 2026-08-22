@@ -461,12 +461,14 @@ export class GamePlayScene extends Phaser.Scene {
       color: "#facc15",
       fontStyle: "bold",
     });
-    this.coinText = this.add.text(this.px(2.5), this.py(6), "", {
-      fontFamily: Config.fontFamily,
-      fontSize: "18px",
-      color: "#fde68a",
-      fontStyle: "bold",
-    });
+    this.coinText = this.add
+      .text(this.px(97.5), this.py(3), "", {
+        fontFamily: Config.fontFamily,
+        fontSize: "18px",
+        color: "#fde68a",
+        fontStyle: "bold",
+      })
+      .setOrigin(1, 0);
 
     this.waveText = this.add
       .text(this.px(50), this.py(3), "", {
@@ -1420,17 +1422,17 @@ export class GamePlayScene extends Phaser.Scene {
     const cy = this.py(50);
     this.gameOverPanel = this.add.graphics();
     this.gameOverPanel.fillStyle(0x15171b, 0.97);
-    this.gameOverPanel.fillRoundedRect(cx - 180, cy - 110, 360, 220, 10);
+    this.gameOverPanel.fillRoundedRect(cx - 200, cy - 125, 400, 260, 10);
     this.gameOverPanel.lineStyle(1, 0x000000, 1);
-    this.gameOverPanel.strokeRoundedRect(cx - 179, cy - 109, 358, 218, 10);
+    this.gameOverPanel.strokeRoundedRect(cx - 199, cy - 124, 398, 258, 10);
     this.gameOverPanel.lineStyle(2, 0xef4444, 0.9);
-    this.gameOverPanel.strokeRoundedRect(cx - 180, cy - 110, 360, 220, 10);
+    this.gameOverPanel.strokeRoundedRect(cx - 200, cy - 125, 400, 260, 10);
     this.gameOverPanel.setDepth(140);
 
     this.add
-      .text(cx, cy - 60, "游戏失败", {
+      .text(cx, cy - 80, "游戏失败", {
         fontFamily: Config.fontFamily,
-        fontSize: "34px",
+        fontSize: "36px",
         color: "#f87171",
         fontStyle: "bold",
       })
@@ -1438,7 +1440,7 @@ export class GamePlayScene extends Phaser.Scene {
       .setDepth(141);
 
     this.add
-      .text(cx, cy - 16, `到达第 ${this.wave} 波`, {
+      .text(cx, cy - 36, `到达第 ${this.wave} 波`, {
         fontFamily: Config.fontFamily,
         fontSize: "22px",
         color: "#fbbf24",
@@ -1448,36 +1450,43 @@ export class GamePlayScene extends Phaser.Scene {
       .setDepth(141);
 
     this.add
-      .text(cx, cy + 12, "僵尸抵达终点", {
+      .text(cx, cy + 6, `本局获得金币：${this.earnedCoins}`, {
         fontFamily: Config.fontFamily,
-        fontSize: "18px",
-        color: "#d1d5db",
-      })
-      .setOrigin(0.5)
-      .setDepth(141);
-
-    this.add
-      .text(cx, cy + 34, "按 R 重新开始", {
-        fontFamily: Config.fontFamily,
-        fontSize: "14px",
-        color: "#9ca3af",
+        fontSize: "20px",
+        color: "#fde68a",
+        fontStyle: "bold",
       })
       .setOrigin(0.5)
       .setDepth(141);
 
     this.gameOverButton = this.add
-      .text(cx, cy + 70, "重新开始", {
+      .text(cx - 90, cy + 70, "重来", {
         fontFamily: Config.fontFamily,
-        fontSize: "18px",
+        fontSize: "20px",
         color: "#111",
         backgroundColor: "#fbbf24",
-        padding: { x: 16, y: 10 },
+        padding: { x: 24, y: 12 },
       })
       .setOrigin(0.5)
       .setDepth(142)
       .setInteractive({ useHandCursor: true });
 
     this.gameOverButton.on("pointerdown", () => this.scene.restart());
+
+    this.add
+      .text(cx + 90, cy + 70, "返回军营", {
+        fontFamily: Config.fontFamily,
+        fontSize: "20px",
+        color: "#111",
+        backgroundColor: "#9ca3af",
+        padding: { x: 24, y: 12 },
+      })
+      .setOrigin(0.5)
+      .setDepth(142)
+      .setInteractive({ useHandCursor: true })
+      .on("pointerdown", () => {
+        window.location.hash = "#/training-ground";
+      });
   }
 
   private updateMantouText() {
@@ -1492,7 +1501,7 @@ export class GamePlayScene extends Phaser.Scene {
   }
 
   private updateCoinText() {
-    this.coinText.setText(`金币：${this.earnedCoins}`);
+    this.coinText.setText(`获得金币：${this.earnedCoins}`);
   }
 
   getCellCenter(row: number, col: number) {

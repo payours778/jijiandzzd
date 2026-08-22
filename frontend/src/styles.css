@@ -2304,6 +2304,9 @@ img { max-width: 100%; display: block; }
   font-size: 12px; font-weight: 700;
   border: 1px solid rgba(234, 179, 8, 0.3);
 }
+.tg-topbar__coin-icon {
+  width: 16px; height: 16px; object-fit: contain;
+}
 .tg-topbar__user { display: inline-flex; align-items: center; gap: 8px; }
 .tg-topbar__avatar {
   width: 30px; height: 30px; border-radius: 50%;
