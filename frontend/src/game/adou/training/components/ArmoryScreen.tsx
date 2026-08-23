@@ -30,21 +30,7 @@ const QUALITY_META: Record<QualityKey, { label: string; color: string; glow: str
 
 const QUALITY_ORDER: QualityKey[] = ["white", "green", "purple", "gold", "red"];
 
-const DEFAULT_OWNED_WEAPONS = [
-  "rende-sword",
-  "qinglong-blade",
-  "longdan-spear",
-  "she-mao",
-  "lie-gong",
-  "du-gong",
-  "tie-qiang",
-  "da-dao",
-  "hutou-qiang",
-  "jian-of-heyi",
-  "podao",
-  "qixing-spear",
-  "tongbei-bow",
-];
+const DEFAULT_OWNED_WEAPONS: string[] = [];
 
 const OWNED_KEY = "mini-playbox-owned-weapons";
 const EQUIPPED_KEY = "mini-playbox-equipped-weapon";
