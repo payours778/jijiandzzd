@@ -4033,6 +4033,69 @@ img { max-width: 100%; display: block; }
   flex-direction: column;
   gap: 16px;
 }
+.tg-armory__recruit-shop {
+  display: grid;
+  grid-template-columns: 34px minmax(0, 1fr) auto auto;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border: 1px solid rgba(251, 191, 36, 0.3);
+  border-radius: 8px;
+  background:
+    linear-gradient(180deg, rgba(251, 191, 36, 0.1), rgba(251, 191, 36, 0.03)),
+    rgba(8, 10, 14, 0.55);
+}
+.tg-armory__recruit-icon {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border: 1px solid rgba(251, 191, 36, 0.35);
+  border-radius: 8px;
+  background: rgba(251, 191, 36, 0.1);
+  color: #fbbf24;
+}
+.tg-armory__recruit-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+.tg-armory__recruit-info strong {
+  color: #fde68a;
+  font-size: 13px;
+  font-weight: 900;
+}
+.tg-armory__recruit-info span {
+  color: #8b90a0;
+  font-size: 11px;
+  font-weight: 800;
+}
+.tg-armory__recruit-price {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: #fbbf24;
+  font-size: 14px;
+  font-weight: 900;
+}
+.tg-armory__recruit-buy {
+  border: 1px solid rgba(251, 191, 36, 0.42);
+  border-radius: 6px;
+  background: rgba(251, 191, 36, 0.16);
+  color: #fde68a;
+  padding: 7px 14px;
+  font-size: 12px;
+  font-weight: 900;
+  cursor: pointer;
+}
+.tg-armory__recruit-buy:hover:not(:disabled) {
+  background: rgba(251, 191, 36, 0.26);
+}
+.tg-armory__recruit-buy:disabled {
+  opacity: 0.42;
+  cursor: not-allowed;
+}
 .tg-armory__group-head {
   display: flex;
   align-items: center;
@@ -4930,6 +4993,25 @@ img { max-width: 100%; display: block; }
 }
 .tg-gacha__ticket strong {
   font-size: 16px;
+}
+.tg-gacha__source {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  padding: 2px 4px;
+  margin-top: 6px;
+  font-size: 11px;
+  color: #8b90a0;
+  font-weight: 900;
+}
+.tg-gacha__source span {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 8px;
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 99px;
+  background: rgba(255, 255, 255, 0.04);
 }
 .tg-gacha__stage {
   position: relative;

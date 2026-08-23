@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import {
   Check,
+  Coins,
   Crown,
   Dices,
   Gem,
@@ -16,9 +17,10 @@ import {
 } from "lucide-react";
 import { playSfx } from "../../../../audio/audioSystem";
 import { useTrainingGroundStore } from "../store";
+import { useAppStore } from "../../../../store/useAppStore";
 import {
+  BOSS_DROP_GUARANTEE,
   DEMO_TASK_LIMIT,
-  DEMO_TICKET_GRANT,
   DUPLICATE_FRAGMENT_REWARD,
   HERO_RARITY_META,
   HERO_RARITY_ORDER,
@@ -44,6 +46,7 @@ interface RecruitPool {
   id: RecruitPoolId;
   label: string;
   short: string;
+  costLabel: string;
   cost: number;
   epicPity: number;
   legendPity: number;
@@ -63,6 +66,7 @@ const RECRUIT_POOLS: RecruitPool[] = [
     id: "basic",
     label: "基础招募",
     short: "90 / 8 / 2",
+    costLabel: "100 金币",
     cost: RECRUIT_POOL_RULES.basic.cost,
     epicPity: RECRUIT_POOL_RULES.basic.epicPity,
     legendPity: RECRUIT_POOL_RULES.basic.legendPity,
@@ -72,7 +76,8 @@ const RECRUIT_POOLS: RecruitPool[] = [
   {
     id: "elite",
     label: "精英招募",
-    short: "85 / 12 / 3",
+    short: "82 / 14 / 4",
+    costLabel: "招募道具 ×1",
     cost: RECRUIT_POOL_RULES.elite.cost,
     epicPity: RECRUIT_POOL_RULES.elite.epicPity,
     legendPity: RECRUIT_POOL_RULES.elite.legendPity,
@@ -83,6 +88,7 @@ const RECRUIT_POOLS: RecruitPool[] = [
     id: "legend",
     label: "巅峰招募",
     short: "80 / 15 / 5",
+    costLabel: "巅峰招募卷 ×1",
     cost: RECRUIT_POOL_RULES.legend.cost,
     epicPity: RECRUIT_POOL_RULES.legend.epicPity,
     legendPity: RECRUIT_POOL_RULES.legend.legendPity,
@@ -93,6 +99,7 @@ const RECRUIT_POOLS: RecruitPool[] = [
     id: "targeted",
     label: "指定招募",
     short: "自主选择",
+    costLabel: "测试券 ×1",
     cost: RECRUIT_POOL_RULES.targeted.cost,
     epicPity: RECRUIT_POOL_RULES.targeted.epicPity,
     legendPity: RECRUIT_POOL_RULES.targeted.legendPity,
@@ -242,6 +249,9 @@ export function HeroCollectionScreen({
 
   const recruitedIds = useTrainingGroundStore((s) => s.recruitedHeroIds);
   const recruitTickets = useTrainingGroundStore((s) => s.recruitTickets);
+  const eliteRecruitItems = useTrainingGroundStore((s) => s.eliteRecruitItems);
+  const legendRecruitScrolls = useTrainingGroundStore((s) => s.legendRecruitScrolls);
+  const bossDropPity = useTrainingGroundStore((s) => s.bossDropPity);
   const poolStats = useTrainingGroundStore((s) => s.poolStats);
   const drawHistory = useTrainingGroundStore((s) => s.drawHistory);
   const demoTaskCount = useTrainingGroundStore((s) => s.demoTaskCount);
@@ -252,6 +262,7 @@ export function HeroCollectionScreen({
   const recordDraw = useTrainingGroundStore((s) => s.recordDraw);
   const collectDemoTickets = useTrainingGroundStore((s) => s.collectDemoTickets);
   const resetRecruitDemo = useTrainingGroundStore((s) => s.resetRecruitDemo);
+  const coins = useAppStore((s) => s.coins);
 
   const selectedHero = RECRUIT_HEROES.find((hero) => hero.id === selectedId) ?? RECRUIT_HEROES[0];
   const availablePools = RECRUIT_POOLS.filter((pool) => withTargetedRecruit || pool.id !== "targeted");
@@ -263,6 +274,23 @@ export function HeroCollectionScreen({
   const shownOffer = (revealing || drawResult) && !drawing ? (pendingResult ?? drawResult) : null;
   const shownRarity = shownOffer?.hero.rarity ?? "rare";
   const shownRarityStyle = shownOffer ? rarityStyle(shownOffer.hero.rarity) : undefined;
+  const activeResourceCount =
+    activeRules.resource === "gold"
+      ? coins
+      : activeRules.resource === "eliteItem"
+        ? eliteRecruitItems
+        : activeRules.resource === "legendScroll"
+          ? legendRecruitScrolls
+          : recruitTickets;
+  const canAffordActive = unlimitedTickets || activeResourceCount >= activeRules.cost;
+  const activeResourceLabel =
+    activeRules.resource === "gold"
+      ? "金币"
+      : activeRules.resource === "eliteItem"
+        ? "招募道具"
+        : activeRules.resource === "legendScroll"
+          ? "巅峰招募卷"
+          : "招募券";
 
   const rarityTotals: Record<HeroRarity, number> = { rare: 0, epic: 0, legendary: 0 };
   for (const pool of RECRUIT_POOLS) {
@@ -290,7 +318,7 @@ export function HeroCollectionScreen({
   }, []);
 
   const performDraw = () => {
-    if (drawing || pendingResult || revealing || (!unlimitedTickets && recruitTickets < activePool.cost)) return;
+    if (drawing || pendingResult || revealing || !canAffordActive) return;
     setDrawing(true);
     setDrawResult(null);
     setPendingResult(null);
@@ -308,7 +336,15 @@ export function HeroCollectionScreen({
     const fragmentReward = isNew ? 0 : DUPLICATE_FRAGMENT_REWARD[hero.rarity];
     drawTimer.current = window.setTimeout(() => {
       if (!unlimitedTickets) {
-        spendRecruitTicket(activePool.cost);
+        if (activeRules.resource === "gold") {
+          useAppStore.getState().addCoins(-activeRules.cost);
+        } else if (activeRules.resource === "eliteItem") {
+          useTrainingGroundStore.getState().spendEliteRecruitItems(activeRules.cost);
+        } else if (activeRules.resource === "legendScroll") {
+          useTrainingGroundStore.getState().spendLegendRecruitScrolls(activeRules.cost);
+        } else {
+          spendRecruitTicket(activeRules.cost);
+        }
       }
       if (isNew) {
         recruitHero(hero.id);
@@ -338,6 +374,14 @@ export function HeroCollectionScreen({
         window.setTimeout(() => playHeroRecruitVoice(result.hero), 420);
       }
     }, duration);
+  };
+
+  const collectRecruitSupplies = () => {
+    if (demoTaskCount >= DEMO_TASK_LIMIT) return;
+    collectDemoTickets();
+    useAppStore.getState().addCoins(5000);
+    useTrainingGroundStore.getState().addEliteRecruitItems(2);
+    useTrainingGroundStore.getState().addLegendRecruitScrolls(1);
   };
 
   const renderHeroGroups = (ownedOnly: boolean) =>
@@ -468,7 +512,7 @@ export function HeroCollectionScreen({
                         <Icon size={16} />
                         <span>{pool.label}</span>
                         <em>{pool.short}</em>
-                        <b className="tg-gacha__cost">×{pool.cost}</b>
+                        <b className="tg-gacha__cost">{pool.costLabel}</b>
                       </button>
                     );
                   })}
@@ -512,11 +556,23 @@ export function HeroCollectionScreen({
                     )}
                   </div>
                   <div className="tg-gacha__ticket">
-                    <Ticket size={15} />
-                    <span>招募券</span>
-                    <strong>{unlimitedTickets ? "∞" : recruitTickets}</strong>
+                    {activeRules.resource === "gold" ? <Coins size={15} /> : <Ticket size={15} />}
+                    <span>{activeResourceLabel}</span>
+                    <strong>{unlimitedTickets ? "∞" : activeResourceCount}</strong>
                   </div>
                 </div>
+
+                {!unlimitedTickets && (
+                  <div className="tg-gacha__source">
+                    {activePool.id === "basic" && <span>来源：战斗结算金币 · {activeRules.cost} 金币 / 次</span>}
+                    {activePool.id === "elite" && <span>来源：商店 500 金币购买招募道具</span>}
+                    {activePool.id === "legend" && (
+                      <span>
+                        来源：击败 Boss 概率掉落 · 保底 {bossDropPity}/{BOSS_DROP_GUARANTEE}
+                      </span>
+                    )}
+                  </div>
+                )}
 
                 {activePoolId === "targeted" ? (
                   <div className="tg-gacha__pity">
@@ -602,7 +658,7 @@ export function HeroCollectionScreen({
                   <button
                     type="button"
                     className="tg-gacha__draw"
-                    disabled={drawing || !!pendingResult || revealing || (!unlimitedTickets && recruitTickets < activePool.cost)}
+                    disabled={drawing || !!pendingResult || revealing || (!unlimitedTickets && !canAffordActive)}
                     onClick={performDraw}
                   >
                     <Dices size={16} />
@@ -612,7 +668,7 @@ export function HeroCollectionScreen({
                         ? "指定招募"
                         : unlimitedTickets
                           ? "招募一次"
-                          : `招募一次 · ${activePool.cost} 券`}
+                          : `${activePool.label} · ${activePool.costLabel}`}
                   </button>
                   {unlimitedTickets ? (
                     <span className="tg-gacha__unlimited">测试无限券</span>
@@ -621,10 +677,10 @@ export function HeroCollectionScreen({
                       type="button"
                       className="tg-gacha__replenish"
                       disabled={demoTaskCount >= DEMO_TASK_LIMIT}
-                      onClick={collectDemoTickets}
+                      onClick={collectRecruitSupplies}
                     >
                       <RefreshCw size={14} />
-                      演示任务 +{DEMO_TICKET_GRANT}
+                      试玩补给 +5000金 +2道具 +1卷
                     </button>
                   )}
                 </div>
@@ -681,7 +737,7 @@ export function HeroCollectionScreen({
                       <header>
                         <Icon size={16} />
                         <strong>{pool.label}</strong>
-                        <span>×{pool.cost} 券/次</span>
+                        <span>{pool.costLabel} / 次</span>
                       </header>
                       <div className="tg-collection__archive-stats">
                         <span>总抽 <b>{stats.total}</b></span>

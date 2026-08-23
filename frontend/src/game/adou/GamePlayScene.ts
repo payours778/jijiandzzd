@@ -25,6 +25,12 @@ import { WeiUnit } from "./units/WeiUnit";
 import { playSlashDownSwing } from "./effects/playSlashDownSwing";
 import { createBoardMap, preloadBoardMap } from "./boardMap";
 import { playMusic, playSfx } from "../../audio/audioSystem";
+import {
+  BOSS_DROP_GUARANTEE,
+  bossDropChanceForWave,
+  readBossDropPity,
+} from "./training/heroes";
+import { useTrainingGroundStore } from "./training/store";
 
 interface HandCard {
   card: CardType;
@@ -1623,8 +1629,23 @@ export class GamePlayScene extends Phaser.Scene {
   private awardCoins(zombie: Zombie) {
     const isBoss =
       zombie instanceof LuBu || zombie instanceof DiaoChan || zombie instanceof CaoCao;
-    this.earnedCoins += isBoss ? 5 : 1;
+    this.earnedCoins += isBoss ? 15 : 1;
+    if (isBoss) {
+      this.awardBossLegendScroll();
+    }
     this.updateCoinText();
+  }
+
+  private awardBossLegendScroll() {
+    const nextPity = Math.min(readBossDropPity() + 1, BOSS_DROP_GUARANTEE);
+    const guaranteed = nextPity >= BOSS_DROP_GUARANTEE;
+    const dropped = guaranteed || Math.random() < bossDropChanceForWave(this.wave);
+    useTrainingGroundStore.getState().recordBossDropAttempt(dropped);
+    if (dropped) {
+      this.messageText?.setText("击败 Boss · 获得巅峰招募卷");
+    } else {
+      this.messageText?.setText(`Boss 已击败 · 再 ${BOSS_DROP_GUARANTEE - nextPity} 只必掉巅峰卷`);
+    }
   }
 
   private awardZombieXp(zombie: Zombie) {

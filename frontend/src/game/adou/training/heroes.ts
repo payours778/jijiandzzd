@@ -1,5 +1,6 @@
 export type HeroRarity = "rare" | "epic" | "legendary";
 export type RecruitPoolId = "basic" | "elite" | "legend" | "targeted";
+export type RecruitResource = "gold" | "eliteItem" | "legendScroll" | "recruitTicket";
 
 export interface RecruitHero {
   id: string;
@@ -185,16 +186,17 @@ export function writeHeroFragments(fragments: Record<string, number>) {
 }
 
 export interface RecruitPoolRule {
+  resource: RecruitResource;
   cost: number;
   epicPity: number;
   legendPity: number;
 }
 
 export const RECRUIT_POOL_RULES: Record<RecruitPoolId, RecruitPoolRule> = {
-  basic: { cost: 1, epicPity: 10, legendPity: 80 },
-  elite: { cost: 2, epicPity: 10, legendPity: 50 },
-  legend: { cost: 3, epicPity: 10, legendPity: 30 },
-  targeted: { cost: 5, epicPity: 1, legendPity: 1 },
+  basic: { resource: "gold", cost: 100, epicPity: 10, legendPity: 50 },
+  elite: { resource: "eliteItem", cost: 1, epicPity: 10, legendPity: 40 },
+  legend: { resource: "legendScroll", cost: 1, epicPity: 10, legendPity: 30 },
+  targeted: { resource: "recruitTicket", cost: 1, epicPity: 1, legendPity: 1 },
 };
 
 export interface PoolDrawStats {
@@ -263,15 +265,23 @@ export interface DrawHistoryEntry {
 export const STARTING_DEMO_TICKETS = 50;
 export const DEMO_TICKET_GRANT = 8;
 export const DEMO_TASK_LIMIT = 5;
+export const STARTING_ELITE_RECRUIT_ITEMS = 3;
+export const STARTING_LEGEND_RECRUIT_SCROLLS = 2;
+export const BOSS_DROP_GUARANTEE = 5;
 
 const RECRUIT_TICKET_STORAGE_KEY = "mini-playbox-recruit-tickets";
+const ELITE_RECRUIT_ITEM_STORAGE_KEY = "mini-playbox-elite-recruit-items";
+const LEGEND_RECRUIT_SCROLL_STORAGE_KEY = "mini-playbox-legend-recruit-scrolls";
+const BOSS_DROP_PITY_STORAGE_KEY = "mini-playbox-boss-drop-pity";
 const RECRUIT_POOL_STATS_KEY = "mini-playbox-recruit-pool-stats";
 const RECRUIT_DRAW_HISTORY_KEY = "mini-playbox-recruit-history";
 const RECRUIT_DEMO_TASK_KEY = "mini-playbox-recruit-demo-tasks";
 
 export function readRecruitTickets(): number {
   try {
-    const value = Number(localStorage.getItem(RECRUIT_TICKET_STORAGE_KEY));
+    const raw = localStorage.getItem(RECRUIT_TICKET_STORAGE_KEY);
+    if (!raw) return STARTING_DEMO_TICKETS;
+    const value = Number(raw);
     if (Number.isFinite(value) && value >= 0) return Math.floor(value);
   } catch {
     // ignore
@@ -285,6 +295,76 @@ export function writeRecruitTickets(count: number) {
   } catch {
     // Storage may be unavailable.
   }
+}
+
+export function readEliteRecruitItems(): number {
+  try {
+    const raw = localStorage.getItem(ELITE_RECRUIT_ITEM_STORAGE_KEY);
+    if (!raw) return STARTING_ELITE_RECRUIT_ITEMS;
+    const value = Number(raw);
+    if (Number.isFinite(value) && value >= 0) return Math.floor(value);
+  } catch {
+    // ignore
+  }
+  return STARTING_ELITE_RECRUIT_ITEMS;
+}
+
+export function writeEliteRecruitItems(count: number) {
+  try {
+    localStorage.setItem(ELITE_RECRUIT_ITEM_STORAGE_KEY, String(Math.max(0, Math.floor(count))));
+  } catch {
+    // Storage may be unavailable.
+  }
+}
+
+export function readLegendRecruitScrolls(): number {
+  try {
+    const raw = localStorage.getItem(LEGEND_RECRUIT_SCROLL_STORAGE_KEY);
+    if (!raw) return STARTING_LEGEND_RECRUIT_SCROLLS;
+    const value = Number(raw);
+    if (Number.isFinite(value) && value >= 0) return Math.floor(value);
+  } catch {
+    // ignore
+  }
+  return STARTING_LEGEND_RECRUIT_SCROLLS;
+}
+
+export function writeLegendRecruitScrolls(count: number) {
+  try {
+    localStorage.setItem(LEGEND_RECRUIT_SCROLL_STORAGE_KEY, String(Math.max(0, Math.floor(count))));
+  } catch {
+    // Storage may be unavailable.
+  }
+}
+
+export function readBossDropPity(): number {
+  try {
+    const raw = localStorage.getItem(BOSS_DROP_PITY_STORAGE_KEY);
+    if (!raw) return 0;
+    const value = Number(raw);
+    if (Number.isFinite(value) && value >= 0) {
+      return Math.min(Math.floor(value), BOSS_DROP_GUARANTEE - 1);
+    }
+  } catch {
+    // ignore
+  }
+  return 0;
+}
+
+export function writeBossDropPity(count: number) {
+  try {
+    localStorage.setItem(BOSS_DROP_PITY_STORAGE_KEY, String(Math.max(0, Math.min(Math.floor(count), BOSS_DROP_GUARANTEE - 1))));
+  } catch {
+    // Storage may be unavailable.
+  }
+}
+
+export function bossDropChanceForWave(wave: number) {
+  if (wave >= 21) return 0.25;
+  if (wave >= 16) return 0.18;
+  if (wave >= 11) return 0.12;
+  if (wave >= 6) return 0.08;
+  return 0.04;
 }
 
 export function readPoolStats(): PoolStats {

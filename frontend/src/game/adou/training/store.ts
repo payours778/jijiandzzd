@@ -26,10 +26,19 @@ import {
   writePoolStats,
   writeRecruitedHeroIds,
   writeRecruitTickets,
+  readEliteRecruitItems,
+  readLegendRecruitScrolls,
+  writeEliteRecruitItems,
+  writeLegendRecruitScrolls,
+  readBossDropPity,
+  writeBossDropPity,
+  STARTING_ELITE_RECRUIT_ITEMS,
+  STARTING_LEGEND_RECRUIT_SCROLLS,
+  BOSS_DROP_GUARANTEE,
   type DrawHistoryEntry,
   type HeroRarity,
-  type PoolStats,
   type RecruitPoolId,
+  type PoolStats,
 } from "./heroes";
 
 interface TrainingGroundState {
@@ -37,6 +46,9 @@ interface TrainingGroundState {
   recruitedHeroIds: string[];
   heroFragments: Record<string, number>;
   recruitTickets: number;
+  eliteRecruitItems: number;
+  legendRecruitScrolls: number;
+  bossDropPity: number;
   poolStats: PoolStats;
   drawHistory: DrawHistoryEntry[];
   demoTaskCount: number;
@@ -48,6 +60,11 @@ interface TrainingGroundState {
   addHeroFragments: (id: string, count: number) => void;
   spendRecruitTicket: (cost: number) => void;
   addRecruitTickets: (count: number) => void;
+  spendEliteRecruitItems: (count: number) => void;
+  addEliteRecruitItems: (count: number) => void;
+  spendLegendRecruitScrolls: (count: number) => void;
+  addLegendRecruitScrolls: (count: number) => void;
+  recordBossDropAttempt: (dropped: boolean) => void;
   recordDraw: (
     poolId: RecruitPoolId,
     heroId: string,
@@ -67,6 +84,9 @@ export const useTrainingGroundStore = create<TrainingGroundState>((set) => ({
   recruitedHeroIds: readRecruitedHeroIds(),
   heroFragments: readHeroFragments(),
   recruitTickets: readRecruitTickets(),
+  eliteRecruitItems: readEliteRecruitItems(),
+  legendRecruitScrolls: readLegendRecruitScrolls(),
+  bossDropPity: readBossDropPity(),
   poolStats: readPoolStats(),
   drawHistory: readDrawHistory(),
   demoTaskCount: readDemoTaskCount(),
@@ -100,6 +120,44 @@ export const useTrainingGroundStore = create<TrainingGroundState>((set) => ({
       writeRecruitTickets(next);
       return { recruitTickets: next };
     }),
+  spendEliteRecruitItems: (count) =>
+    set((state) => {
+      const next = Math.max(0, state.eliteRecruitItems - count);
+      writeEliteRecruitItems(next);
+      return { eliteRecruitItems: next };
+    }),
+  addEliteRecruitItems: (count) =>
+    set((state) => {
+      const next = state.eliteRecruitItems + count;
+      writeEliteRecruitItems(next);
+      return { eliteRecruitItems: next };
+    }),
+  spendLegendRecruitScrolls: (count) =>
+    set((state) => {
+      const next = Math.max(0, state.legendRecruitScrolls - count);
+      writeLegendRecruitScrolls(next);
+      return { legendRecruitScrolls: next };
+    }),
+  addLegendRecruitScrolls: (count) =>
+    set((state) => {
+      const next = state.legendRecruitScrolls + count;
+      writeLegendRecruitScrolls(next);
+      return { legendRecruitScrolls: next };
+    }),
+  recordBossDropAttempt: (dropped) => {
+    const pity = Math.min(readBossDropPity() + 1, BOSS_DROP_GUARANTEE);
+    if (dropped) {
+      writeBossDropPity(0);
+      set((state) => {
+        const next = state.legendRecruitScrolls + 1;
+        writeLegendRecruitScrolls(next);
+        return { bossDropPity: 0, legendRecruitScrolls: next };
+      });
+    } else {
+      writeBossDropPity(pity);
+      set({ bossDropPity: pity });
+    }
+  },
   recordDraw: (poolId, heroId, rarity, isNew, fragmentReward) =>
     set((state) => {
       const nextStats: PoolStats = {
@@ -128,6 +186,9 @@ export const useTrainingGroundStore = create<TrainingGroundState>((set) => ({
     writeRecruitedHeroIds(DEFAULT_RECRUITED_IDS);
     writeHeroFragments({});
     writeRecruitTickets(STARTING_DEMO_TICKETS);
+    writeEliteRecruitItems(STARTING_ELITE_RECRUIT_ITEMS);
+    writeLegendRecruitScrolls(STARTING_LEGEND_RECRUIT_SCROLLS);
+    writeBossDropPity(0);
     writePoolStats(poolStats);
     writeDrawHistory([]);
     writeDemoTaskCount(0);
@@ -135,6 +196,9 @@ export const useTrainingGroundStore = create<TrainingGroundState>((set) => ({
       recruitedHeroIds: DEFAULT_RECRUITED_IDS.slice(),
       heroFragments: {},
       recruitTickets: STARTING_DEMO_TICKETS,
+      eliteRecruitItems: STARTING_ELITE_RECRUIT_ITEMS,
+      legendRecruitScrolls: STARTING_LEGEND_RECRUIT_SCROLLS,
+      bossDropPity: 0,
       poolStats,
       drawHistory: [],
       demoTaskCount: 0,
