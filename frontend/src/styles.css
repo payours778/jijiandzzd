@@ -6840,38 +6840,53 @@ body {
   gap: 8px;
   margin-bottom: 6px;
 }
-.tg-settings__row-icon { color: #9aa0ad; display: inline-flex; }
+.tg-settings__row-icon { color: var(--accent, #9aa0ad); display: inline-flex; }
 .tg-settings__row-label { flex: 1; font-size: 13px; font-weight: 700; color: #e5e7eb; }
-.tg-settings__row-value { font-size: 13px; font-weight: 900; color: #fbbf24; }
+.tg-settings__row-value { font-size: 13px; font-weight: 900; color: var(--accent, #fbbf24); font-variant-numeric: tabular-nums; }
 .tg-settings__range {
   width: 100%;
-  accent-color: #fbbf24;
   -webkit-appearance: none;
   appearance: none;
   height: 6px;
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.12);
+  /* 动态填充：左侧 accent 高亮，右侧灰色，比例由 --pct 控制 */
+  background: linear-gradient(
+    to right,
+    var(--accent, #fbbf24) calc(var(--pct, 0) * 1%),
+    rgba(255, 255, 255, 0.12) calc(var(--pct, 0) * 1%)
+  );
   outline: none;
+  cursor: pointer;
+  transition: filter 0.15s;
 }
+.tg-settings__range:hover { filter: brightness(1.08); }
 .tg-settings__range::-webkit-slider-thumb {
   -webkit-appearance: none;
   appearance: none;
   width: 18px;
   height: 18px;
   border-radius: 50%;
-  background: #fbbf24;
+  background: var(--accent, #fbbf24);
   border: 2px solid #111318;
-  box-shadow: 0 0 12px rgba(251, 191, 36, 0.5);
+  box-shadow: 0 0 0 4px rgba(255, 255, 255, 0.04), 0 0 12px var(--accent, #fbbf24);
   cursor: pointer;
+  transition: transform 0.12s;
 }
+.tg-settings__range::-webkit-slider-thumb:hover,
+.tg-settings__range::-webkit-slider-thumb:active { transform: scale(1.18); }
 .tg-settings__range::-moz-range-thumb {
   width: 18px;
   height: 18px;
   border-radius: 50%;
-  background: #fbbf24;
+  background: var(--accent, #fbbf24);
   border: 2px solid #111318;
+  box-shadow: 0 0 0 4px rgba(255, 255, 255, 0.04), 0 0 12px var(--accent, #fbbf24);
   cursor: pointer;
+  transition: transform 0.12s;
 }
+.tg-settings__range::-moz-range-thumb:hover,
+.tg-settings__range::-moz-range-thumb:active { transform: scale(1.18); }
+.tg-settings__range::-moz-range-track { background: transparent; }
 .tg-settings__mute {
   display: inline-flex;
   align-items: center;

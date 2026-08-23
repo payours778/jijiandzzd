@@ -259,8 +259,13 @@ function serveStatic(req, res) {
   }
 
   const ext = path.extname(filePath).toLowerCase();
+  // index.html 不缓存（确保总能加载最新 JS hash）；带 hash 的静态资源可长缓存
+  const cacheControl = relativePath === "index.html"
+    ? "no-cache, no-store, must-revalidate"
+    : "public, max-age=3600";
   res.writeHead(200, {
     "Content-Type": mimeTypes[ext] || "application/octet-stream",
+    "Cache-Control": cacheControl,
   });
   fs.createReadStream(filePath).pipe(res);
 }

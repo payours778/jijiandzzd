@@ -1,4 +1,5 @@
 import { Check, Music, Speaker, Volume2, VolumeX } from "lucide-react";
+import { useRef } from "react";
 import { useAudioSettings } from "../../../../audio/useAudioSettings";
 import {
   playSfx,
@@ -16,28 +17,49 @@ function SliderRow({
   value,
   onChange,
   accent,
+  onPreview,
 }: {
   label: string;
   icon: React.ReactNode;
   value: number;
   onChange: (v: number) => void;
   accent?: string;
+  /** 拖动时的预览回调（如播放音效试听） */
+  onPreview?: () => void;
 }) {
+  const lastPreviewAt = useRef(0);
+
+  const handleChange = (v: number) => {
+    onChange(v);
+    if (onPreview) {
+      // 节流预览，避免拖动时音效连发
+      const now = Date.now();
+      if (now - lastPreviewAt.current > 280) {
+        lastPreviewAt.current = now;
+        onPreview();
+      }
+    }
+  };
+
+  const pct = Math.round(value * 100);
+
   return (
-    <div className="tg-settings__row">
+    <div
+      className="tg-settings__row"
+      style={{ "--accent": accent ?? "#fbbf24", "--pct": pct } as React.CSSProperties}
+    >
       <div className="tg-settings__row-head">
         <span className="tg-settings__row-icon">{icon}</span>
         <span className="tg-settings__row-label">{label}</span>
-        <strong className="tg-settings__row-value">{Math.round(value * 100)}%</strong>
+        <strong className="tg-settings__row-value">{pct}%</strong>
       </div>
       <input
         className="tg-settings__range"
         type="range"
         min={0}
         max={100}
-        value={Math.round(value * 100)}
-        onChange={(e) => onChange(Number(e.target.value) / 100)}
-        style={{ "--accent": accent ?? "#fbbf24" } as React.CSSProperties}
+        value={pct}
+        onChange={(e) => handleChange(Number(e.target.value) / 100)}
       />
     </div>
   );
@@ -80,6 +102,7 @@ export function SettingsScreen() {
           value={audio.sfxVolume}
           onChange={setSfxVolume}
           accent="#60a5fa"
+          onPreview={() => playSfx("click")}
         />
 
         <button

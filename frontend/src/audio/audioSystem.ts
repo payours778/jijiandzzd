@@ -1,4 +1,4 @@
-import { MUSIC_FILES, SFX_FILES, type MusicKey, type SfxKey } from "./audioConfig";
+import { MUSIC_FILES, SFX_FILES, trainingBgmFile, type MusicKey, type SfxKey } from "./audioConfig";
 
 export interface AudioSettings {
   muted: boolean;
@@ -241,6 +241,9 @@ export function setMuted(muted: boolean) {
   settings.muted = muted;
   if (muted) {
     stopMusic();
+  } else {
+    // 取消静音后恢复军营 BGM（不重启正在播放的同一首）
+    resumeTrainingBgm();
   }
   saveSettings();
   notify();
@@ -251,15 +254,35 @@ export function toggleMuted() {
 }
 
 export function setMusicVolume(volume: number) {
+  const wasZero = settings.musicVolume <= 0;
   settings.musicVolume = clampVolume(volume, 0);
+  // 音量变化直接更新当前正在播放的 musicElement，无需重启
   if (musicElement) {
     musicElement.volume = settings.musicVolume;
   }
   if (settings.musicVolume <= 0) {
     stopMusic();
+  } else if (wasZero) {
+    // 从静音状态恢复到有音量，重新拉起 BGM
+    resumeTrainingBgm();
   }
   saveSettings();
   notify();
+}
+
+/**
+ * 根据当前设置恢复军营 BGM 播放。
+ * 仅在开关开启、未静音、音量>0、选择了非 off 的 BGM 时播放；
+ * 若当前音乐正是同一首且在播放，则不重启（避免音量调节时音乐中断）。
+ */
+function resumeTrainingBgm() {
+  if (!settings.bgmEnabled || settings.muted || settings.musicVolume <= 0) {
+    return;
+  }
+  const file = trainingBgmFile(settings.trainingBgm);
+  if (file) {
+    playLoopSrc(file);
+  }
 }
 
 export function setSfxVolume(volume: number) {

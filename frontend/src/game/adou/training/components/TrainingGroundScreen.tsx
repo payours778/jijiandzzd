@@ -27,11 +27,12 @@ export function TrainingGroundScreen({ onBack }: TrainingGroundScreenProps) {
 
   const audio = useAudioSettings();
 
-  // 军营 BGM 唯一控制点：根据开关/音量/自选 BGM 决定播放或停止
+  // 军营 BGM 唯一控制点：仅在 BGM 选择或总开关变化时播放/停止。
+  // 音量、静音变化由 setMusicVolume/setMuted 直接更新 musicElement，不在此重启音乐。
   useEffect(() => {
     const file = trainingBgmFile(audio.trainingBgm);
     const shouldPlay =
-      audio.bgmEnabled && !audio.muted && audio.musicVolume > 0 && audio.trainingBgm !== "off" && file;
+      audio.bgmEnabled && audio.musicVolume > 0 && audio.trainingBgm !== "off" && file;
     if (shouldPlay) {
       playLoopSrc(file);
     } else {
@@ -39,7 +40,7 @@ export function TrainingGroundScreen({ onBack }: TrainingGroundScreenProps) {
     }
     // 离开练兵场（回主界面/进塔防）时停止 BGM，确保音乐只在游戏内作用
     return () => stopMusic();
-  }, [audio.trainingBgm, audio.muted, audio.musicVolume, audio.bgmEnabled]);
+  }, [audio.trainingBgm, audio.bgmEnabled]);
 
   const handleStart = () => {
     if (!user) {
