@@ -6748,3 +6748,41 @@ body {
     height: 64px !important;
   }
 }
+
+/* =========================================================
+   抽卡系统大小自适应：内容随可用高度缩放，一屏可见无需滚动
+   ========================================================= */
+.tg-gacha {
+  flex: 1 1 auto;
+  min-height: 0;
+}
+.tg-gacha__stage {
+  flex: 1 1 auto;
+  min-height: min(320px, 40vh);
+}
+.tg-gacha__orb {
+  width: min(210px, 28vh);
+  height: min(210px, 28vh);
+}
+.tg-gacha__ring {
+  width: min(220px, 29vh);
+  height: min(220px, 29vh);
+  margin: calc(min(220px, 29vh) / -2) 0 0 calc(min(220px, 29vh) / -2);
+}
+.tg-gacha__cardback,
+.tg-gacha__result-card {
+  width: min(128px, 22vh);
+  min-height: min(180px, 24vh);
+}
+.tg-gacha__result-card {
+  min-height: min(200px, 27vh);
+}
+.tg-gacha__result-glyph {
+  width: min(62px, 13vh);
+  height: min(62px, 13vh);
+  font-size: min(36px, 10vh);
+}
+@media (max-height: 720px) {
+  .tg-gacha { gap: 10px; }
+  .tg-gacha__stage { min-height: min(300px, 34vh); }
+}
