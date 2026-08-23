@@ -100,6 +100,7 @@ export class GamePlayScene extends Phaser.Scene {
   private binText!: Phaser.GameObjects.Text;
   private selectedTestType: string | null = null;
   private testButtons: Phaser.GameObjects.Text[] = [];
+  private testSfxButtons: Phaser.GameObjects.Text[] = [];
   private cardTooltip?: Phaser.GameObjects.Text;
   private slashPool: Phaser.GameObjects.Graphics[] = [];
   private arrowPool: Phaser.GameObjects.Graphics[] = [];
@@ -280,6 +281,28 @@ export class GamePlayScene extends Phaser.Scene {
 
     this.createRecycleBin();
 
+    const testSfxList = [
+      { text: "吕布出场", sfx: "lubu_boss_entry" },
+      { text: "曹操出场", sfx: "caocao_boss_entry" },
+      { text: "貂蝉出场", sfx: "diaochan_boss_entry" },
+    ];
+    testSfxList.forEach((item, index) => {
+      const buttonX = 20 + index * 150;
+      const buttonY = 452;
+      this.drawRoundedPanel(buttonX, buttonY, 140, 28, 0x1f2937, 0.92, 0xfbbf24);
+      const button = this.add
+        .text(buttonX + 70, buttonY + 14, item.text, {
+          fontFamily: Config.fontFamily,
+          fontSize: "15px",
+          color: "#fde68a",
+          fontStyle: "bold",
+        })
+        .setOrigin(0.5)
+        .setInteractive({ useHandCursor: true })
+        .setData("sfx", item.sfx);
+      this.testSfxButtons.push(button);
+    });
+
     const bossLabels = ["吕布", "貂蝉", "曹操"];
     bossLabels.forEach((label, index) => {
       const buttonX = 20 + index * 100;
@@ -342,6 +365,15 @@ export class GamePlayScene extends Phaser.Scene {
   }
 
   private handleTestPointerDown(pointer: Phaser.Input.Pointer) {
+    for (const button of this.testSfxButtons) {
+      if (button.getBounds().contains(pointer.x, pointer.y)) {
+        const sfx = button.getData("sfx") as "lubu_boss_entry" | "caocao_boss_entry" | "diaochan_boss_entry";
+        playSfx(sfx);
+        this.messageText.setText(`${button.text}音效已播放`);
+        return;
+      }
+    }
+
     if (!this.selectedTestType) {
       this.messageText.setText("请先点击下方文字选择单位");
       return;
