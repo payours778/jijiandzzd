@@ -2,8 +2,8 @@
  * 练兵场主菜单 - 类型定义
  */
 
-/** 主菜单左侧 4 项 */
-export type MenuKey = "start" | "armory" | "expedition" | "settings";
+/** 主菜单 */
+export type MenuKey = "start" | "heroes" | "armory" | "expedition" | "settings";
 
 /** 菜单项配置 */
 export interface MenuItem {

@@ -2,6 +2,7 @@ import { TopBar } from "./TopBar";
 import { LeftMenu } from "./LeftMenu";
 import { Stage } from "./Stage";
 import { ArmoryScreen } from "./ArmoryScreen";
+import { HeroCollectionScreen } from "./HeroCollectionScreen";
 import { BottomBar } from "./BottomBar";
 import { ComingSoonOverlay } from "./ComingSoonOverlay";
 import { useTrainingGroundStore } from "../store";
@@ -34,7 +35,13 @@ export function TrainingGroundScreen({ onBack }: TrainingGroundScreenProps) {
       <div className="tg-body">
         <LeftMenu onStart={handleStart} />
         <main className="tg-main">
-          {activeMenu === "armory" ? <ArmoryScreen /> : <Stage />}
+          {activeMenu === "heroes" ? (
+            <HeroCollectionScreen />
+          ) : activeMenu === "armory" ? (
+            <ArmoryScreen />
+          ) : (
+            <Stage />
+          )}
         </main>
       </div>
       <BottomBar />
