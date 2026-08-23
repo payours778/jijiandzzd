@@ -5180,6 +5180,29 @@ img { max-width: 100%; display: block; }
     padding: 6px 20px;
   }
 }
+
+/* 五连抽发牌动画：卡牌从牌堆位置逐张发出，落位后等待玩家翻面 */
+.tg-gacha__fives.tg-fives-dealing .tg-batch-flip {
+  animation: adouDealIn 0.52s cubic-bezier(0.22, 1.2, 0.36, 1) both;
+  animation-delay: calc(var(--deal-index, 0) * 140ms);
+}
+.tg-gacha__fives.tg-fives-dealing .tg-gacha__fives-grid {
+  pointer-events: none;
+}
+@keyframes adouDealIn {
+  0% {
+    transform: translate(var(--deal-dx, -160px), var(--deal-dy, -120px)) scale(0.5) rotate(-12deg);
+    opacity: 0;
+  }
+  55% {
+    opacity: 1;
+  }
+  100% {
+    transform: translate(0, 0) scale(1) rotate(0deg);
+    opacity: 1;
+  }
+}
+
 .tg-gacha__stage {
   position: relative;
   width: 100%;

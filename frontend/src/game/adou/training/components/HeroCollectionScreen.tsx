@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type ReactNode } from "react";
+import { useEffect, useLayoutEffect, useRef, useState, type ReactNode } from "react";
 import {
   Check,
   Coins,
@@ -113,6 +113,9 @@ const FIVE_DRAW_MULTIPLIER: Record<RecruitPoolId, number> = {
   legend: 4,
   targeted: 4,
 };
+
+const DEAL_STAGGER_MS = 140;
+const DEAL_DURATION_MS = 520;
 
 function flipDurationMs(rarity: RecruitHero["rarity"]) {
   if (rarity === "legendary") return 1400;
@@ -234,7 +237,13 @@ function playHeroRecruitVoice(hero: RecruitHero) {
   }
 }
 
-function BatchFlipCard({ result }: { result: DrawResult }) {
+function BatchFlipCard({
+  result,
+  dealVars,
+}: {
+  result: DrawResult;
+  dealVars?: React.CSSProperties;
+}) {
   const [status, setStatus] = useState<"ready" | "flipping" | "flipped">("ready");
   const timer = useRef<number | null>(null);
 
@@ -269,6 +278,7 @@ function BatchFlipCard({ result }: { result: DrawResult }) {
         {
           "--flip-duration": `${flipDurationMs(result.hero.rarity)}ms`,
           ...(shownRarityStyle ?? {}),
+          ...(dealVars ?? {}),
         } as React.CSSProperties
       }
       role={status === "ready" ? "button" : undefined}
@@ -315,20 +325,56 @@ function BatchDrawPanel({
   onBack: () => void;
   canDrawAgain?: boolean;
 }) {
+  const gridRef = useRef<HTMLDivElement>(null);
+  const [dealing, setDealing] = useState(true);
+  const [dealOffsets, setDealOffsets] = useState<Array<{ dx: number; dy: number }>>([]);
+
+  useEffect(() => {
+    setDealing(true);
+    const total = (cards.length - 1) * DEAL_STAGGER_MS + DEAL_DURATION_MS;
+    const timer = window.setTimeout(() => setDealing(false), total);
+    return () => window.clearTimeout(timer);
+  }, [round, cards.length]);
+
+  useLayoutEffect(() => {
+    const el = gridRef.current;
+    if (!el) return;
+    const rect = el.getBoundingClientRect();
+    const deckX = rect.left + rect.width / 2;
+    const deckY = rect.top - 36;
+    const offsets = cards.map((_, index) => {
+      const colWidth = rect.width / cards.length;
+      const slotX = rect.left + colWidth * (index + 0.5);
+      const slotY = rect.top + rect.height / 2;
+      return { dx: deckX - slotX, dy: deckY - slotY };
+    });
+    setDealOffsets(offsets);
+  }, [cards.length, round]);
+
   return (
-    <div className="tg-gacha__fives">
+    <div className={`tg-gacha__fives ${dealing ? "tg-fives-dealing" : ""}`}>
       <div className="tg-gacha__fives-head">
         <strong>五连抽 · {poolLabel}</strong>
         <span>点击卡牌依次翻面</span>
         <button type="button" onClick={onBack}>返回单抽</button>
       </div>
-      <div className="tg-gacha__fives-grid">
-        {cards.map((result, index) => (
-          <BatchFlipCard key={`${round}-${index}`} result={result} />
-        ))}
+      <div className="tg-gacha__fives-grid" ref={gridRef}>
+        {cards.map((result, index) => {
+          const offset = dealOffsets[index];
+          const dealVars = offset
+            ? ({
+                "--deal-dx": `${offset.dx}px`,
+                "--deal-dy": `${offset.dy}px`,
+                "--deal-index": index,
+              } as React.CSSProperties)
+            : undefined;
+          return (
+            <BatchFlipCard key={`${round}-${index}`} result={result} dealVars={dealVars} />
+          );
+        })}
       </div>
       <div className="tg-gacha__fives-actions">
-        <button type="button" onClick={onDrawAgain} disabled={canDrawAgain === false}>再来五连</button>
+        <button type="button" onClick={onDrawAgain} disabled={dealing || canDrawAgain === false}>再来五连</button>
       </div>
     </div>
   );
@@ -852,27 +898,6 @@ export function HeroCollectionScreen({
                 )}
                 </div>
 
-                <div className="tg-gacha__recent">
-                  <span>最近招募</span>
-
-                  <div>
-                    {drawHistory.length === 0 ? (
-                      <em className="tg-gacha__recent-empty">暂无</em>
-                    ) : (
-                      drawHistory.slice(0, 5).map((entry) => {
-                        const hero = RECRUIT_HEROES.find((item) => item.id === entry.heroId);
-                        return (
-                          <i
-                            key={entry.id}
-                            style={{ color: HERO_RARITY_META[entry.rarity].color }}
-                          >
-                            {hero?.name[0] ?? "?"}
-                          </i>
-                        );
-                      })
-                    )}
-                  </div>
-                </div>
                 </section>
 
                 {renderHeroGroups(false)}
