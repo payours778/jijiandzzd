@@ -10,7 +10,7 @@ import { ComingSoonOverlay } from "./ComingSoonOverlay";
 import { useTrainingGroundStore } from "../store";
 import { useAppStore } from "../../../../store/useAppStore";
 import { useAudioSettings } from "../../../../audio/useAudioSettings";
-import { playLoopSrc } from "../../../../audio/audioSystem";
+import { playLoopSrc, stopMusic } from "../../../../audio/audioSystem";
 import { trainingBgmFile } from "../../../../audio/audioConfig";
 
 interface TrainingGroundScreenProps {
@@ -27,10 +27,19 @@ export function TrainingGroundScreen({ onBack }: TrainingGroundScreenProps) {
 
   const audio = useAudioSettings();
 
-  // 军营主界面循环播放玩家自选的背景音乐
+  // 军营 BGM 唯一控制点：根据开关/音量/自选 BGM 决定播放或停止
   useEffect(() => {
-    playLoopSrc(trainingBgmFile(audio.trainingBgm));
-  }, [audio.trainingBgm, audio.muted, audio.musicVolume]);
+    const file = trainingBgmFile(audio.trainingBgm);
+    const shouldPlay =
+      audio.bgmEnabled && !audio.muted && audio.musicVolume > 0 && audio.trainingBgm !== "off" && file;
+    if (shouldPlay) {
+      playLoopSrc(file);
+    } else {
+      stopMusic();
+    }
+    // 离开练兵场（回主界面/进塔防）时停止 BGM，确保音乐只在游戏内作用
+    return () => stopMusic();
+  }, [audio.trainingBgm, audio.muted, audio.musicVolume, audio.bgmEnabled]);
 
   const handleStart = () => {
     if (!user) {

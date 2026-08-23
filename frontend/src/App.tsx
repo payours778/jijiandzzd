@@ -11,6 +11,7 @@ import { Toast } from "./components/Toast";
 import { TowerDefenseGame, TrainingGroundScreen } from "./game/adou";
 import { useAppStore } from "./store/useAppStore";
 import { loadDevConfig } from "./game/adou/devConfig";
+import { stopMusic } from "./audio/audioSystem";
 
 export default function App() {
   const theme = useAppStore((state) => state.theme);
@@ -84,6 +85,13 @@ export default function App() {
     window.addEventListener("hashchange", handleHashChange);
     return () => window.removeEventListener("hashchange", handleHashChange);
   }, [setAuthOpen]);
+
+  // 回到门户主界面时停止 BGM，确保背景音乐只在游戏/练兵场内作用
+  useEffect(() => {
+    if (!trainingOpen && !gameOpen) {
+      stopMusic();
+    }
+  }, [trainingOpen, gameOpen]);
 
   if (trainingOpen) {
     return (

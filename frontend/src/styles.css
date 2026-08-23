@@ -6886,6 +6886,20 @@ body {
   cursor: pointer;
 }
 .tg-settings__mute.is-muted { color: #9ca3af; border-color: rgba(255,255,255,0.18); background: rgba(255,255,255,0.06); }
+.tg-settings__bgm-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  border: 1px solid rgba(96, 165, 250, 0.42);
+  border-radius: 8px;
+  background: rgba(96, 165, 250, 0.14);
+  color: #bfdbfe;
+  font-size: 13px;
+  font-weight: 900;
+  cursor: pointer;
+}
+.tg-settings__bgm-toggle.is-active { border-color: #fbbf24; background: rgba(251, 191, 36, 0.14); color: #fde68a; }
 .tg-settings__bgm-list { display: flex; flex-direction: column; gap: 8px; }
 .tg-settings__bgm {
   display: flex;

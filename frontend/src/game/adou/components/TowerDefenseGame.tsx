@@ -68,6 +68,8 @@ export function TowerDefenseGame({
     loadDevConfig();
 
     if (mode === "game" && !started) {
+      // 进入塔防界面（开始前）即停止军营背景音乐，避免残留到主界面
+      stopMusic();
       return;
     }
 

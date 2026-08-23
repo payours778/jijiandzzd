@@ -1,8 +1,8 @@
 import { Check, Music, Speaker, Volume2, VolumeX } from "lucide-react";
 import { useAudioSettings } from "../../../../audio/useAudioSettings";
 import {
-  playLoopSrc,
   playSfx,
+  setBgmEnabled,
   setMusicVolume,
   setSfxVolume,
   setTrainingBgm,
@@ -46,10 +46,10 @@ function SliderRow({
 export function SettingsScreen() {
   const audio = useAudioSettings();
 
-  const handleBgm = (id: string, file: string) => {
+  const handleBgm = (id: string, _file: string) => {
     playSfx("click");
+    // 仅修改状态，BGM 播放由 TrainingGroundScreen 的 effect 统一控制，避免双重播放
     setTrainingBgm(id);
-    playLoopSrc(file);
   };
 
   return (
@@ -92,6 +92,25 @@ export function SettingsScreen() {
         >
           {audio.muted ? <VolumeX size={16} /> : <Volume2 size={16} />}
           <span>{audio.muted ? "已静音" : "静音"}</span>
+        </button>
+      </section>
+
+      <section className="tg-settings__card">
+        <div className="tg-settings__card-title">
+          <Music size={16} />
+          <span>军营背景音乐 · 播放开关</span>
+        </div>
+        <p className="tg-settings__desc">控制整个背景音乐的开关，关闭后不再播放任何 BGM（不影响音效）。</p>
+        <button
+          type="button"
+          className={`tg-settings__bgm-toggle${audio.bgmEnabled ? " is-active" : ""}`}
+          onClick={() => {
+            playSfx("click");
+            setBgmEnabled(!audio.bgmEnabled);
+          }}
+        >
+          {audio.bgmEnabled ? <Volume2 size={16} /> : <VolumeX size={16} />}
+          <span>{audio.bgmEnabled ? "背景音乐已开启" : "背景音乐已关闭"}</span>
         </button>
       </section>
 

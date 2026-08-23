@@ -5,6 +5,8 @@ export interface AudioSettings {
   musicVolume: number;
   sfxVolume: number;
   trainingBgm: string;
+  /** 背景音乐总开关（仅控制 BGM，不影响音效） */
+  bgmEnabled: boolean;
 }
 
 const SETTINGS_KEY = "mini-playbox-audio-settings";
@@ -14,12 +16,15 @@ const DEFAULT_SETTINGS: AudioSettings = {
   musicVolume: 0.65,
   sfxVolume: 0.8,
   trainingBgm: "camp_main",
+  bgmEnabled: true,
 };
 
 let settings = loadSettings();
 let audioContext: AudioContext | null = null;
 let musicElement: HTMLAudioElement | null = null;
 let currentMusicKey: string | null = null;
+// 待用户手势后启动的音乐回调，避免多次注册累积监听器
+let pendingGestureHandler: (() => void) | null = null;
 const MAX_SFX_INSTANCES_PER_SRC = 3;
 const SFX_MIN_GAP_MS: Partial<Record<SfxKey, number>> = {
   hit: 45,
@@ -90,6 +95,8 @@ function loadSettings(): AudioSettings {
       sfxVolume: clampVolume(parsed.sfxVolume, DEFAULT_SETTINGS.sfxVolume),
       trainingBgm:
         typeof parsed.trainingBgm === "string" ? parsed.trainingBgm : DEFAULT_SETTINGS.trainingBgm,
+      bgmEnabled:
+        typeof parsed.bgmEnabled === "boolean" ? parsed.bgmEnabled : DEFAULT_SETTINGS.bgmEnabled,
     };
   } catch {
     return { ...DEFAULT_SETTINGS };
@@ -208,6 +215,15 @@ export function getTrainingBgm(): string {
   return settings.trainingBgm;
 }
 
+export function setBgmEnabled(enabled: boolean) {
+  settings.bgmEnabled = enabled;
+  if (!enabled) {
+    stopMusic();
+  }
+  saveSettings();
+  notify();
+}
+
 export function setTrainingBgm(id: string) {
   settings.trainingBgm = id;
   saveSettings();
@@ -257,6 +273,14 @@ export function setSfxVolume(volume: number) {
   notify();
 }
 
+function clearPendingGesture() {
+  if (pendingGestureHandler) {
+    window.removeEventListener("pointerdown", pendingGestureHandler);
+    window.removeEventListener("keydown", pendingGestureHandler);
+    pendingGestureHandler = null;
+  }
+}
+
 function startLoop(src: string, key: string) {
   // 无论新音乐是否为空，都先停止当前音乐，确保同时只播放一首 BGM
   if (musicElement) {
@@ -264,6 +288,8 @@ function startLoop(src: string, key: string) {
     musicElement.src = "";
     musicElement = null;
   }
+  // 清理待触发的手势监听，避免累积导致重复播放
+  clearPendingGesture();
   currentMusicKey = key;
 
   if (!src || typeof Audio === "undefined") {
@@ -289,9 +315,9 @@ function startLoop(src: string, key: string) {
   } else {
     const onGesture = () => {
       startMusic();
-      window.removeEventListener("pointerdown", onGesture);
-      window.removeEventListener("keydown", onGesture);
+      clearPendingGesture();
     };
+    pendingGestureHandler = onGesture;
     window.addEventListener("pointerdown", onGesture);
     window.addEventListener("keydown", onGesture);
   }
@@ -300,7 +326,7 @@ function startLoop(src: string, key: string) {
 export function playMusic(key: MusicKey) {
   unlock();
 
-  if (settings.muted || settings.musicVolume <= 0) {
+  if (!settings.bgmEnabled || settings.muted || settings.musicVolume <= 0) {
     return;
   }
 
@@ -315,7 +341,7 @@ export function playMusic(key: MusicKey) {
 export function playLoopSrc(src: string) {
   unlock();
 
-  if (settings.muted || settings.musicVolume <= 0) {
+  if (!settings.bgmEnabled || settings.muted || settings.musicVolume <= 0) {
     return;
   }
 
@@ -327,6 +353,8 @@ export function playLoopSrc(src: string) {
 }
 
 export function stopMusic() {
+  // 清理待触发的手势监听，防止用户点击关闭后被手势监听重新拉起
+  clearPendingGesture();
   if (musicElement) {
     musicElement.pause();
     musicElement.src = "";

@@ -1,26 +1,20 @@
 import { Music, Pause, Play } from "lucide-react";
-import { useEffect, useState } from "react";
-import { playMusic, stopMusic, unlock } from "../../../../audio/audioSystem";
+import { useAudioSettings } from "../../../../audio/useAudioSettings";
+import { setBgmEnabled } from "../../../../audio/audioSystem";
 
 export function BottomBar() {
-  const [playing, setPlaying] = useState(true);
+  const audio = useAudioSettings();
 
-  useEffect(() => {
-    unlock();
-    playMusic("training");
-    return () => stopMusic();
-  }, []);
+  // 仅当军营自选 BGM 未被关闭且整体开启时，视为"正在播放"
+  const playing =
+    audio.bgmEnabled &&
+    !audio.muted &&
+    audio.musicVolume > 0 &&
+    audio.trainingBgm !== "off";
 
   const toggleMusic = () => {
-    if (playing) {
-      stopMusic();
-      setPlaying(false);
-      return;
-    }
-
-    unlock();
-    playMusic("training");
-    setPlaying(true);
+    // 单一开关控制军营背景音乐，避免与设置界面状态脱节
+    setBgmEnabled(!audio.bgmEnabled);
   };
 
   return (
