@@ -6484,3 +6484,52 @@ img { max-width: 100%; display: block; }
   border-color: rgba(192, 132, 252, 0.75);
   box-shadow: 0 0 18px rgba(192, 132, 252, 0.28);
 }
+
+/* ═══════════ 整个招募界面背景：星空 + 神光 + 云雾 ═══════════ */
+.tg-collection {
+  background-color: #08090e;
+  background-image:
+    /* 星空光点 */
+    radial-gradient(1.5px 1.5px at 12% 18%, rgba(255, 255, 255, 0.55), transparent),
+    radial-gradient(1px 1px at 24% 42%, rgba(251, 191, 36, 0.75), transparent),
+    radial-gradient(1.5px 1.5px at 38% 24%, rgba(192, 132, 252, 0.75), transparent),
+    radial-gradient(1px 1px at 52% 64%, rgba(255, 255, 255, 0.45), transparent),
+    radial-gradient(1.5px 1.5px at 66% 30%, rgba(251, 191, 36, 0.65), transparent),
+    radial-gradient(1px 1px at 78% 52%, rgba(192, 132, 252, 0.65), transparent),
+    radial-gradient(1.5px 1.5px at 88% 76%, rgba(255, 255, 255, 0.5), transparent),
+    radial-gradient(1px 1px at 30% 78%, rgba(251, 191, 36, 0.55), transparent),
+    radial-gradient(1px 1px at 58% 86%, rgba(192, 132, 252, 0.5), transparent),
+    radial-gradient(1px 1px at 70% 12%, rgba(255, 255, 255, 0.4), transparent),
+    /* 顶部神光 + 底部紫气 */
+    radial-gradient(48% 42% at 50% 0%, rgba(251, 191, 36, 0.16), transparent 62%),
+    radial-gradient(70% 54% at 50% 108%, rgba(168, 85, 247, 0.14), transparent 62%),
+    linear-gradient(180deg, #0a0d16 0%, #08090e 55%, #0e0a16 100%);
+}
+/* 微闪星空 */
+.tg-collection::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  opacity: 0.5;
+  background-image:
+    radial-gradient(1px 1px at 8% 30%, rgba(255, 255, 255, 0.6), transparent),
+    radial-gradient(1px 1px at 22% 12%, rgba(251, 191, 36, 0.7), transparent),
+    radial-gradient(1px 1px at 44% 48%, rgba(192, 132, 252, 0.6), transparent),
+    radial-gradient(1px 1px at 62% 8%, rgba(255, 255, 255, 0.5), transparent),
+    radial-gradient(1px 1px at 80% 36%, rgba(251, 191, 36, 0.6), transparent),
+    radial-gradient(1px 1px at 94% 66%, rgba(192, 132, 252, 0.6), transparent);
+  animation: adouBgTwinkle 5.5s ease-in-out infinite;
+}
+@keyframes adouBgTwinkle {
+  0%, 100% { opacity: 0.3; }
+  50% { opacity: 0.65; }
+}
+/* 招募测试弹层背景与主场景一致 */
+.tower-gacha-test-overlay {
+  background:
+    radial-gradient(90% 70% at 50% 0%, rgba(251, 191, 36, 0.14), transparent 55%),
+    radial-gradient(110% 80% at 50% 110%, rgba(168, 85, 247, 0.12), transparent 60%),
+    #0a0c10;
+}
