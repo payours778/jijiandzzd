@@ -331,7 +331,7 @@ export function ArmoryScreen() {
           </div>
         </div>
 
-      <div className="tg-armory__body">
+      <div className={`tg-armory__body${selected ? " has-detail" : ""}`}>
         <section className="tg-armory__catalog">
           {view === "shop" && (
             <div className="tg-armory__recruit-shop">
@@ -407,8 +407,8 @@ export function ArmoryScreen() {
           )}
         </section>
 
-        <aside className="tg-armory__detail">
-          {selected ? (
+        {selected && (
+          <aside className="tg-armory__detail">
             <>
               <div
                 className="tg-armory__preview"
@@ -469,10 +469,8 @@ export function ArmoryScreen() {
                 )}
               </div>
             </>
-          ) : (
-            <div className="tg-armory__empty-detail">选择一件武器查看详情</div>
-          )}
-        </aside>
+          </aside>
+        )}
       </div>
 
       {ownedWeapons.length > 0 && view === "armory" && (

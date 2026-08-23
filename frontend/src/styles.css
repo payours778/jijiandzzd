@@ -6682,3 +6682,34 @@ body {
   max-height: 100% !important;
   display: block;
 }
+
+/* =========================================================
+   军械库/商店右侧详情：仅在选中时出现，布局自适应
+   ========================================================= */
+.tg-armory__body {
+  grid-template-columns: 1fr;
+}
+.tg-armory__body.has-detail {
+  grid-template-columns: minmax(0, 1fr) minmax(300px, 360px);
+}
+.tg-armory__detail {
+  animation: tg-detail-in 0.22s ease-out;
+}
+@keyframes tg-detail-in {
+  from { opacity: 0; transform: translateX(8px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+@media (max-width: 1100px) {
+  .tg-armory__body.has-detail {
+    grid-template-columns: minmax(0, 1fr) minmax(260px, 300px);
+  }
+}
+@media (max-width: 860px) {
+  .tg-armory__body.has-detail {
+    grid-template-columns: 1fr;
+  }
+  /* 小屏下详情宽度自适应，不撑爆 */
+  .tg-armory__detail {
+    width: 100%;
+  }
+}
