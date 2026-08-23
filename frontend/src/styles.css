@@ -5186,3 +5186,198 @@ img { max-width: 100%; display: block; }
   .tg-gacha__ring { width: 180px; height: 180px; margin: -90px 0 0 -90px; }
   .tg-gacha__actions { flex-wrap: wrap; }
 }
+
+/* ---------- 军营武将：三池招募与重复碎片 ---------- */
+.tg-gacha__pools {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+.tg-gacha__pools button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-width: 0;
+  height: 38px;
+  padding: 0 10px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.04);
+  color: #9ca3af;
+  font-size: 12px;
+  font-weight: 900;
+  cursor: pointer;
+}
+.tg-gacha__pools button span {
+  white-space: nowrap;
+}
+.tg-gacha__pools button em {
+  padding: 2px 5px;
+  border-radius: 99px;
+  background: rgba(255, 255, 255, 0.08);
+  color: #6b7280;
+  font-size: 9px;
+  font-style: normal;
+  font-weight: 800;
+}
+.tg-gacha__pools button:hover {
+  color: #e5e7eb;
+  border-color: rgba(251, 191, 36, 0.3);
+}
+.tg-gacha__pools button.is-active {
+  color: #fde68a;
+  border-color: rgba(251, 191, 36, 0.48);
+  background: rgba(251, 191, 36, 0.1);
+  box-shadow: 0 0 18px rgba(251, 191, 36, 0.1);
+}
+.tg-gacha__pools button.is-active em {
+  color: #fbbf24;
+  background: rgba(251, 191, 36, 0.14);
+}
+.tg-gacha__pools button:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.tg-collection__frag-pocket {
+  flex: 0 0 auto;
+  padding: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  background: rgba(15, 17, 22, 0.78);
+}
+.tg-collection__frag-pocket > header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+.tg-collection__frag-pocket > header div {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+.tg-collection__frag-pocket > header span {
+  font-size: 12px;
+  font-weight: 900;
+  color: #e5e7eb;
+}
+.tg-collection__frag-pocket > header strong {
+  color: #fbbf24;
+  font-size: 14px;
+}
+.tg-collection__frag-pocket > header small {
+  font-size: 10px;
+  color: #6b7280;
+}
+.tg-collection__frag-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(72px, 1fr));
+  gap: 6px;
+}
+.tg-collection__frag-grid > span {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 4px;
+  min-width: 0;
+  height: 28px;
+  padding: 0 6px;
+  border: 1px solid color-mix(in srgb, currentColor 38%, transparent);
+  border-radius: 6px;
+  background: color-mix(in srgb, currentColor 8%, transparent);
+  font-size: 12px;
+  font-weight: 900;
+}
+.tg-collection__frag-grid > span b {
+  display: grid;
+  place-items: center;
+  width: 18px;
+  height: 18px;
+  border-radius: 5px;
+  background: rgba(0, 0, 0, 0.26);
+  font-size: 11px;
+}
+.tg-collection__frag-grid > span i {
+  font-style: normal;
+  font-size: 10px;
+  color: currentColor;
+  opacity: 0.85;
+}
+.tg-collection__frag-grid em {
+  grid-column: 1 / -1;
+  font-size: 11px;
+  font-style: normal;
+  color: #6b7280;
+  text-align: center;
+}
+.tg-collection__detail-fragment {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 9px;
+  border-radius: 99px;
+  border: 1px solid rgba(251, 191, 36, 0.35);
+  background: rgba(251, 191, 36, 0.08);
+  color: #9ca3af;
+  font-size: 11px;
+  font-weight: 800;
+}
+.tg-collection__detail-fragment b {
+  color: #fbbf24;
+  font-size: 13px;
+}
+
+.tg-gacha__orb.is-legendary {
+  border-color: #fbbf24;
+  box-shadow:
+    0 0 0 6px rgba(251, 191, 36, 0.12),
+    0 0 90px rgba(251, 191, 36, 0.45);
+}
+.tg-gacha__orb.is-legendary::before,
+.tg-gacha__orb.is-legendary::after {
+  content: "";
+  position: absolute;
+  inset: -22px;
+  border-radius: 50%;
+  pointer-events: none;
+  border: 1px solid rgba(251, 191, 36, 0.5);
+  animation: gachaShockwave 1.6s ease-out infinite;
+}
+.tg-gacha__orb.is-legendary::after {
+  inset: -38px;
+  border-color: rgba(248, 113, 113, 0.35);
+  animation-delay: 0.35s;
+}
+@keyframes gachaShockwave {
+  0% { opacity: 0.9; transform: scale(0.88); }
+  80% { opacity: 0.15; transform: scale(1.18); }
+  100% { opacity: 0; transform: scale(1.22); }
+}
+.tg-gacha__orb.is-legendary .tg-gacha__ring {
+  border-width: 2px;
+  opacity: 0.95;
+  border-top-color: #fbbf24;
+  border-right-color: #f87171;
+  border-bottom-color: #c084fc;
+  border-left-color: #60a5fa;
+}
+.tg-gacha__result-card.is-legendary {
+  border-color: #fbbf24;
+  background:
+    radial-gradient(110% 90% at 50% 0%, rgba(251, 191, 36, 0.34), transparent 72%),
+    linear-gradient(180deg, rgba(38, 30, 12, 0.98), rgba(12, 10, 6, 0.98));
+  animation: gachaLegendIn 0.55s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+@keyframes gachaLegendIn {
+  0% { opacity: 0; transform: scale(0.7) rotateY(90deg); filter: brightness(2); }
+  55% { opacity: 1; transform: scale(1.1) rotateY(0deg); filter: brightness(1.4); }
+  100% { opacity: 1; transform: scale(1) rotateY(0deg); filter: brightness(1); }
+}
+
+@media (max-width: 860px) {
+  .tg-gacha__pools { grid-template-columns: 1fr; }
+  .tg-gacha__pools button { height: 34px; }
+}

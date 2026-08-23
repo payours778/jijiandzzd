@@ -128,6 +128,7 @@ export const RECRUIT_HEROES: RecruitHero[] = [
 
 export const DEFAULT_RECRUITED_IDS = ["liubei", "guanyu", "zhangfei"];
 export const RECRUIT_STORAGE_KEY = "mini-playbox-recruited-heroes";
+export const HERO_FRAGMENT_STORAGE_KEY = "mini-playbox-hero-fragments";
 
 export function readRecruitedHeroIds(): string[] {
   try {
@@ -149,3 +150,35 @@ export function writeRecruitedHeroIds(ids: string[]) {
   }
 }
 
+export const DUPLICATE_FRAGMENT_REWARD: Record<HeroRarity, number> = {
+  rare: 5,
+  epic: 20,
+  legendary: 50,
+};
+
+export function readHeroFragments(): Record<string, number> {
+  try {
+    const raw = localStorage.getItem(HERO_FRAGMENT_STORAGE_KEY);
+    if (!raw) return {};
+    const parsed = JSON.parse(raw) as Record<string, unknown>;
+    if (!parsed || typeof parsed !== "object") return {};
+    const result: Record<string, number> = {};
+    for (const hero of RECRUIT_HEROES) {
+      const value = parsed[hero.id];
+      if (typeof value === "number" && Number.isFinite(value) && value > 0) {
+        result[hero.id] = Math.floor(value);
+      }
+    }
+    return result;
+  } catch {
+    return {};
+  }
+}
+
+export function writeHeroFragments(fragments: Record<string, number>) {
+  try {
+    localStorage.setItem(HERO_FRAGMENT_STORAGE_KEY, JSON.stringify(fragments));
+  } catch {
+    // Storage may be unavailable.
+  }
+}

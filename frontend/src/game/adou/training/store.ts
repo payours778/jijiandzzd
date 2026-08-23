@@ -7,19 +7,23 @@ import { create } from "zustand";
 import type { MenuKey } from "./types";
 import {
   DEFAULT_RECRUITED_IDS,
+  readHeroFragments,
   readRecruitedHeroIds,
+  writeHeroFragments,
   writeRecruitedHeroIds,
 } from "./heroes";
 
 interface TrainingGroundState {
   activeMenu: MenuKey;
   recruitedHeroIds: string[];
+  heroFragments: Record<string, number>;
   recruitTickets: number;
   comingSoon: boolean;
   parallax: { x: number; y: number };
 
   setActiveMenu: (key: MenuKey) => void;
   recruitHero: (id: string) => void;
+  addHeroFragments: (id: string, count: number) => void;
   spendRecruitTicket: () => void;
   addRecruitTickets: (count: number) => void;
   resetRecruitDemo: () => void;
@@ -31,6 +35,7 @@ interface TrainingGroundState {
 export const useTrainingGroundStore = create<TrainingGroundState>((set) => ({
   activeMenu: "start",
   recruitedHeroIds: readRecruitedHeroIds(),
+  heroFragments: readHeroFragments(),
   recruitTickets: 30,
   comingSoon: false,
   parallax: { x: 0, y: 0 },
@@ -43,13 +48,21 @@ export const useTrainingGroundStore = create<TrainingGroundState>((set) => ({
       writeRecruitedHeroIds(next);
       return { recruitedHeroIds: next };
     }),
+  addHeroFragments: (id, count) =>
+    set((state) => {
+      const next = { ...state.heroFragments };
+      next[id] = (next[id] ?? 0) + count;
+      writeHeroFragments(next);
+      return { heroFragments: next };
+    }),
   spendRecruitTicket: () =>
     set((state) => ({ recruitTickets: Math.max(0, state.recruitTickets - 1) })),
   addRecruitTickets: (count) =>
     set((state) => ({ recruitTickets: state.recruitTickets + count })),
   resetRecruitDemo: () => {
     writeRecruitedHeroIds(DEFAULT_RECRUITED_IDS);
-    set({ recruitedHeroIds: DEFAULT_RECRUITED_IDS.slice(), recruitTickets: 30 });
+    writeHeroFragments({});
+    set({ recruitedHeroIds: DEFAULT_RECRUITED_IDS.slice(), heroFragments: {}, recruitTickets: 30 });
   },
   showComingSoon: () => set({ comingSoon: true }),
   hideComingSoon: () => set({ comingSoon: false }),

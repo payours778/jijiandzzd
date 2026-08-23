@@ -5,7 +5,10 @@ export {
   HERO_RARITY_META,
   HERO_RARITY_ORDER,
   RECRUIT_HEROES,
+  DUPLICATE_FRAGMENT_REWARD,
+  readHeroFragments,
   readRecruitedHeroIds,
+  writeHeroFragments,
   writeRecruitedHeroIds,
 } from "./heroes";
 export type {
