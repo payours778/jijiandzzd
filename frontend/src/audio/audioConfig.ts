@@ -6,7 +6,15 @@
  *   /assets/audio/sfx/hit.mp3
  */
 
-export type MusicKey = "menu" | "training" | "battle" | "boss" | "fxTest";
+export type MusicKey =
+  | "menu"
+  | "training"
+  | "battle"
+  | "boss"
+  | "fxTest"
+  | "boss_lubu"
+  | "boss_diaochan"
+  | "boss_caocao";
 
 export type SfxKey =
   | "click"
@@ -61,11 +69,31 @@ export type SfxKey =
 
 export const MUSIC_FILES: Record<MusicKey, string> = {
   menu: "",
-  training: "",
+  training: "/assets/audio/music/军营主界面背景音乐.mp3",
   battle: "",
   boss: "",
   fxTest: "",
+  boss_lubu: "/assets/audio/music/吕布在场bgm.mp3",
+  boss_diaochan: "/assets/audio/music/貂蝉在场时游戏背景音乐.mp3",
+  boss_caocao: "/assets/audio/music/曹操在场时bgm.m4a",
 };
+
+/** 军营主界面可选背景音乐（玩家在设置里自选） */
+export interface TrainingBgmOption {
+  id: string;
+  label: string;
+  file: string;
+}
+
+export const TRAINING_BGM_OPTIONS: TrainingBgmOption[] = [
+  { id: "camp_main", label: "军营界面 · 主旋律", file: "/assets/audio/music/军营主界面背景音乐.mp3" },
+  { id: "camp_bgm2", label: "军营界面 · BGM2", file: "/assets/audio/music/军营界面bgm2.mp3" },
+  { id: "off", label: "关闭军营音乐", file: "" },
+];
+
+export function trainingBgmFile(id: string): string {
+  return TRAINING_BGM_OPTIONS.find((o) => o.id === id)?.file ?? "";
+}
 
 export const SFX_FILES: Record<SfxKey, string> = {
   click: "/assets/audio/sfx/button.wav",

@@ -1,0 +1,121 @@
+import { Check, Music, Speaker, Volume2, VolumeX } from "lucide-react";
+import { useAudioSettings } from "../../../../audio/useAudioSettings";
+import {
+  playLoopSrc,
+  playSfx,
+  setMusicVolume,
+  setSfxVolume,
+  setTrainingBgm,
+  toggleMuted,
+} from "../../../../audio/audioSystem";
+import { TRAINING_BGM_OPTIONS } from "../../../../audio/audioConfig";
+
+function SliderRow({
+  label,
+  icon,
+  value,
+  onChange,
+  accent,
+}: {
+  label: string;
+  icon: React.ReactNode;
+  value: number;
+  onChange: (v: number) => void;
+  accent?: string;
+}) {
+  return (
+    <div className="tg-settings__row">
+      <div className="tg-settings__row-head">
+        <span className="tg-settings__row-icon">{icon}</span>
+        <span className="tg-settings__row-label">{label}</span>
+        <strong className="tg-settings__row-value">{Math.round(value * 100)}%</strong>
+      </div>
+      <input
+        className="tg-settings__range"
+        type="range"
+        min={0}
+        max={100}
+        value={Math.round(value * 100)}
+        onChange={(e) => onChange(Number(e.target.value) / 100)}
+        style={{ "--accent": accent ?? "#fbbf24" } as React.CSSProperties}
+      />
+    </div>
+  );
+}
+
+export function SettingsScreen() {
+  const audio = useAudioSettings();
+
+  const handleBgm = (id: string, file: string) => {
+    playSfx("click");
+    setTrainingBgm(id);
+    playLoopSrc(file);
+  };
+
+  return (
+    <div className="tg-settings">
+      <header className="tg-settings__header">
+        <div className="tg-settings__heading">
+          <div className="tg-settings__eyebrow">设置</div>
+          <h2>声音与背景音乐</h2>
+        </div>
+      </header>
+
+      <section className="tg-settings__card">
+        <div className="tg-settings__card-title">
+          <Speaker size={16} />
+          <span>音量</span>
+        </div>
+
+        <SliderRow
+          label="背景音乐"
+          icon={<Music size={15} />}
+          value={audio.musicVolume}
+          onChange={setMusicVolume}
+          accent="#fbbf24"
+        />
+        <SliderRow
+          label="音效"
+          icon={<Volume2 size={15} />}
+          value={audio.sfxVolume}
+          onChange={setSfxVolume}
+          accent="#60a5fa"
+        />
+
+        <button
+          type="button"
+          className={`tg-settings__mute${audio.muted ? " is-muted" : ""}`}
+          onClick={() => {
+            playSfx("click");
+            toggleMuted();
+          }}
+        >
+          {audio.muted ? <VolumeX size={16} /> : <Volume2 size={16} />}
+          <span>{audio.muted ? "已静音" : "静音"}</span>
+        </button>
+      </section>
+
+      <section className="tg-settings__card">
+        <div className="tg-settings__card-title">
+          <Music size={16} />
+          <span>军营背景音乐 · 玩家自选</span>
+        </div>
+        <p className="tg-settings__desc">切换后立即生效并循环播放。</p>
+        <div className="tg-settings__bgm-list">
+          {TRAINING_BGM_OPTIONS.map((opt) => (
+            <button
+              type="button"
+              key={opt.id}
+              className={`tg-settings__bgm${audio.trainingBgm === opt.id ? " is-active" : ""}`}
+              onClick={() => handleBgm(opt.id, opt.file)}
+            >
+              <span className="tg-settings__bgm-name">{opt.label}</span>
+              <em>{opt.file ? "点击播放" : "关闭"}</em>
+              {audio.trainingBgm === opt.id && <Check size={15} />}
+            </button>
+          ))}
+        </div>
+      </section>
+    </div>
+  );
+}

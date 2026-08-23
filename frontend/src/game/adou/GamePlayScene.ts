@@ -25,6 +25,7 @@ import { WeiUnit } from "./units/WeiUnit";
 import { playSlashDownSwing } from "./effects/playSlashDownSwing";
 import { createBoardMap, preloadBoardMap } from "./boardMap";
 import { playMusic, playSfx } from "../../audio/audioSystem";
+import type { MusicKey } from "../../audio/audioConfig";
 import {
   BOSS_DROP_GUARANTEE,
   bossDropChanceForWave,
@@ -87,6 +88,7 @@ export class GamePlayScene extends Phaser.Scene {
   private bossSpawnedInWave = false;
   private bossQueue: Array<"吕布" | "貂蝉" | "曹操"> = [];
   private bossWaveCache: Record<number, "吕布" | "貂蝉" | "曹操"> = {};
+  private currentBossMusicKey: MusicKey | null = null;
   private refreshCost = Config.refreshStartCost;
   private drawCount = 0;
   private fragmentPool: Record<string, number> = {};
@@ -522,9 +524,32 @@ export class GamePlayScene extends Phaser.Scene {
       this.pendingZombies = [];
     }
 
+    this.updateBossMusic();
+
     this.cleanupBoard();
     this.checkWaveCleared();
     this.checkGameOver();
+  }
+
+  /** 根据场上是否存活 boss 切换背景音乐：在场播对应 boss BGM，离场切回 */
+  private updateBossMusic() {
+    const aliveBoss = this.zombies.find(
+      (z) => !z.dead && (z instanceof LuBu || z instanceof DiaoChan || z instanceof CaoCao),
+    );
+    let key: MusicKey | null = null;
+    if (aliveBoss instanceof LuBu) key = "boss_lubu";
+    else if (aliveBoss instanceof DiaoChan) key = "boss_diaochan";
+    else if (aliveBoss instanceof CaoCao) key = "boss_caocao";
+
+    if (key) {
+      if (this.currentBossMusicKey !== key) {
+        this.currentBossMusicKey = key;
+        playMusic(key);
+      }
+    } else if (this.currentBossMusicKey) {
+      this.currentBossMusicKey = null;
+      playMusic(this.testMode ? "fxTest" : "battle");
+    }
   }
 
   private createBoard() {

@@ -4,6 +4,7 @@ export interface AudioSettings {
   muted: boolean;
   musicVolume: number;
   sfxVolume: number;
+  trainingBgm: string;
 }
 
 const SETTINGS_KEY = "mini-playbox-audio-settings";
@@ -12,12 +13,13 @@ const DEFAULT_SETTINGS: AudioSettings = {
   muted: false,
   musicVolume: 0.65,
   sfxVolume: 0.8,
+  trainingBgm: "camp_main",
 };
 
 let settings = loadSettings();
 let audioContext: AudioContext | null = null;
 let musicElement: HTMLAudioElement | null = null;
-let currentMusicKey: MusicKey | null = null;
+let currentMusicKey: string | null = null;
 const MAX_SFX_INSTANCES_PER_SRC = 3;
 const SFX_MIN_GAP_MS: Partial<Record<SfxKey, number>> = {
   hit: 45,
@@ -86,6 +88,8 @@ function loadSettings(): AudioSettings {
       muted: typeof parsed.muted === "boolean" ? parsed.muted : DEFAULT_SETTINGS.muted,
       musicVolume: clampVolume(parsed.musicVolume, DEFAULT_SETTINGS.musicVolume),
       sfxVolume: clampVolume(parsed.sfxVolume, DEFAULT_SETTINGS.sfxVolume),
+      trainingBgm:
+        typeof parsed.trainingBgm === "string" ? parsed.trainingBgm : DEFAULT_SETTINGS.trainingBgm,
     };
   } catch {
     return { ...DEFAULT_SETTINGS };
@@ -200,6 +204,16 @@ export function getSettings(): AudioSettings {
   return { ...settings };
 }
 
+export function getTrainingBgm(): string {
+  return settings.trainingBgm;
+}
+
+export function setTrainingBgm(id: string) {
+  settings.trainingBgm = id;
+  saveSettings();
+  notify();
+}
+
 export function subscribe(listener: () => void) {
   listeners.add(listener);
   return () => {
@@ -243,24 +257,17 @@ export function setSfxVolume(volume: number) {
   notify();
 }
 
-export function playMusic(key: MusicKey) {
-  unlock();
-
-  if (settings.muted || settings.musicVolume <= 0) {
-    return;
-  }
-
-  if (currentMusicKey === key && musicElement && !musicElement.paused) {
-    return;
-  }
-
-  stopMusic();
-  currentMusicKey = key;
-
-  const src = MUSIC_FILES[key];
+function startLoop(src: string, key: string) {
   if (!src || typeof Audio === "undefined") {
     return;
   }
+
+  if (musicElement) {
+    musicElement.pause();
+    musicElement.src = "";
+    musicElement = null;
+  }
+  currentMusicKey = key;
 
   musicElement = new Audio(src);
   musicElement.loop = true;
@@ -287,6 +294,35 @@ export function playMusic(key: MusicKey) {
     window.addEventListener("pointerdown", onGesture);
     window.addEventListener("keydown", onGesture);
   }
+}
+
+export function playMusic(key: MusicKey) {
+  unlock();
+
+  if (settings.muted || settings.musicVolume <= 0) {
+    return;
+  }
+
+  if (currentMusicKey === key && musicElement && !musicElement.paused) {
+    return;
+  }
+
+  startLoop(MUSIC_FILES[key], key);
+}
+
+/** 循环播放一段自定义音乐（军营背景音乐自选用） */
+export function playLoopSrc(src: string) {
+  unlock();
+
+  if (settings.muted || settings.musicVolume <= 0) {
+    return;
+  }
+
+  if (currentMusicKey === src && musicElement && !musicElement.paused) {
+    return;
+  }
+
+  startLoop(src, src);
 }
 
 export function stopMusic() {
