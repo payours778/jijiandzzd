@@ -101,6 +101,12 @@ const RECRUIT_POOLS: RecruitPool[] = [
   },
 ];
 
+function flipDurationMs(rarity: RecruitHero["rarity"]) {
+  if (rarity === "legendary") return 1400;
+  if (rarity === "epic") return 1050;
+  return 700;
+}
+
 function rarityStyle(rarity: RecruitHero["rarity"]) {
   const meta = HERO_RARITY_META[rarity];
   return {
@@ -226,8 +232,11 @@ export function HeroCollectionScreen({
   const [activePoolId, setActivePoolId] = useState<RecruitPoolId>("basic");
   const [targetedHeroId, setTargetedHeroId] = useState<string>(RECRUIT_HEROES[3].id);
   const [drawing, setDrawing] = useState(false);
+  const [pendingResult, setPendingResult] = useState<DrawResult | null>(null);
+  const [revealing, setRevealing] = useState(false);
   const [drawResult, setDrawResult] = useState<DrawResult | null>(null);
   const drawTimer = useRef<number | null>(null);
+  const revealTimer = useRef<number | null>(null);
 
   const recruitedIds = useTrainingGroundStore((s) => s.recruitedHeroIds);
   const recruitTickets = useTrainingGroundStore((s) => s.recruitTickets);
@@ -268,13 +277,18 @@ export function HeroCollectionScreen({
       if (drawTimer.current !== null) {
         window.clearTimeout(drawTimer.current);
       }
+      if (revealTimer.current !== null) {
+        window.clearTimeout(revealTimer.current);
+      }
     };
   }, []);
 
   const performDraw = () => {
-    if (drawing || (!unlimitedTickets && recruitTickets < activePool.cost)) return;
+    if (drawing || pendingResult || revealing || (!unlimitedTickets && recruitTickets < activePool.cost)) return;
     setDrawing(true);
     setDrawResult(null);
+    setPendingResult(null);
+    setRevealing(false);
     playSfx("click");
     const hero =
       activePool.id === "targeted"
@@ -296,16 +310,28 @@ export function HeroCollectionScreen({
         addHeroFragments(hero.id, fragmentReward);
       }
       recordDraw(activePool.id, hero.id, hero.rarity, isNew, fragmentReward);
-      setDrawResult({ hero, isNew, fragmentReward });
+      setPendingResult({ hero, isNew, fragmentReward });
       setSelectedId(hero.id);
       setDrawing(false);
-      if (hero.rarity === "legendary" || hero.rarity === "epic") {
-        playSfx("synthesize");
-        window.setTimeout(() => playHeroRecruitVoice(hero), 420);
-      } else {
-        playSfx("synthesize");
+    }, 520);
+  };
+
+  const startReveal = () => {
+    if (!pendingResult || revealing) return;
+    playSfx("click");
+    setRevealing(true);
+    const rarity = pendingResult.hero.rarity;
+    const duration = flipDurationMs(rarity);
+    revealTimer.current = window.setTimeout(() => {
+      const result = pendingResult;
+      setDrawResult(result);
+      setPendingResult(null);
+      setRevealing(false);
+      playSfx("synthesize");
+      if (result.hero.rarity === "legendary" || result.hero.rarity === "epic") {
+        window.setTimeout(() => playHeroRecruitVoice(result.hero), 420);
       }
-    }, 950);
+    }, duration);
   };
 
   const renderHeroGroups = (ownedOnly: boolean) =>
@@ -426,7 +452,7 @@ export function HeroCollectionScreen({
                         type="button"
                         key={pool.id}
                         className={activePoolId === pool.id ? "is-active" : ""}
-                        disabled={drawing}
+                        disabled={drawing || !!pendingResult || revealing}
                         onClick={() => {
                           playSfx("click");
                           setActivePoolId(pool.id);
@@ -449,7 +475,7 @@ export function HeroCollectionScreen({
                         key={hero.id}
                         className={targetedHeroId === hero.id ? "is-active" : ""}
                         style={rarityStyle(hero.rarity)}
-                        disabled={drawing}
+                        disabled={drawing || !!pendingResult || revealing}
                         onClick={() => {
                           playSfx("click");
                           setTargetedHeroId(hero.id);
@@ -507,26 +533,57 @@ export function HeroCollectionScreen({
 
                 <div className={`tg-gacha__stage ${drawing ? "is-rolling" : ""}`}>
                   <div
-                    className={`tg-gacha__orb ${drawing ? "is-rolling" : ""} ${drawResult && !drawing ? "has-result" : ""} ${drawResult?.hero.rarity === "legendary" && !drawing ? "is-legendary" : ""} ${drawResult?.hero.rarity === "epic" && !drawing ? "is-epic" : ""}`}
-                    style={drawResult ? rarityStyle(drawResult.hero.rarity) : undefined}
+                    className={`tg-gacha__orb ${drawing ? "is-rolling" : ""} ${(pendingResult || drawResult) && !drawing ? "has-result" : ""} ${(pendingResult?.hero.rarity === "legendary" || drawResult?.hero.rarity === "legendary") && !drawing ? "is-legendary" : ""} ${(pendingResult?.hero.rarity === "epic" || drawResult?.hero.rarity === "epic") && !drawing ? "is-epic" : ""}`}
+                    style={(pendingResult ?? drawResult) ? rarityStyle((pendingResult ?? drawResult)!.hero.rarity) : undefined}
                   >
                     <span className="tg-gacha__ring tg-gacha__ring--a" />
                     <span className="tg-gacha__ring tg-gacha__ring--b" />
                     <span className="tg-gacha__ring tg-gacha__ring--c" />
-                    {drawResult && !drawing ? (
-                      <div className={`tg-gacha__result-card ${drawResult.hero.rarity === "legendary" ? "is-legendary" : ""} ${drawResult.hero.rarity === "epic" ? "is-epic" : ""}`}>
-                        <span className="tg-gacha__result-rank">{HERO_RARITY_META[drawResult.hero.rarity].label}</span>
-                        <span className="tg-gacha__result-glyph">{drawResult.hero.name[0]}</span>
-                        <strong>{drawResult.hero.name}</strong>
-                        <em>{drawResult.hero.title}</em>
-                        <small>
-                          {drawResult.isNew
-                            ? "新武将入营"
-                            : `重复武将 · 碎片 +${drawResult.fragmentReward}`}
-                        </small>
+                    {drawing ? (
+                      <div className="tg-gacha__cardback is-rolling">
+                        <Sparkles size={34} />
+                        <strong>武将招募</strong>
+                        <small>10 / 10</small>
+                      </div>
+                    ) : pendingResult || drawResult ? (
+                      <div
+                        className={`tg-gacha__flip ${revealing ? "is-flipping" : pendingResult ? "is-ready" : "is-flipped"} is-${(pendingResult?.hero ?? drawResult?.hero)?.rarity ?? "rare"}`}
+                        style={{
+                          ...rarityStyle((pendingResult?.hero ?? drawResult?.hero)!.rarity),
+                          "--flip-duration": `${flipDurationMs((pendingResult?.hero ?? drawResult?.hero)!.rarity)}ms`,
+                        } as React.CSSProperties}
+                        role={pendingResult ? "button" : undefined}
+                        tabIndex={pendingResult ? 0 : undefined}
+                        aria-label={pendingResult ? "点击翻开卡牌" : undefined}
+                        onClick={pendingResult ? startReveal : undefined}
+                        onKeyDown={(e) => {
+                          if (pendingResult && (e.key === "Enter" || e.key === " ")) {
+                            e.preventDefault();
+                            startReveal();
+                          }
+                        }}
+                      >
+                        <div className="tg-gacha__flip-inner">
+                          <div className="tg-gacha__flip-face tg-gacha__cardback tg-gacha__flip-front">
+                            <Sparkles size={34} />
+                            <strong>{pendingResult && !revealing ? "点击翻牌" : pendingResult ? "翻开中" : "武将招募"}</strong>
+                            <small>{pendingResult ? "点击卡牌翻开结果" : "10 / 10"}</small>
+                          </div>
+                          <div className={`tg-gacha__flip-face tg-gacha__result-card ${(pendingResult?.hero ?? drawResult?.hero)?.rarity === "legendary" ? "is-legendary" : ""} ${(pendingResult?.hero ?? drawResult?.hero)?.rarity === "epic" ? "is-epic" : ""}`}>
+                            <span className="tg-gacha__result-rank">{HERO_RARITY_META[(pendingResult?.hero ?? drawResult?.hero)!.rarity].label}</span>
+                            <span className="tg-gacha__result-glyph">{(pendingResult?.hero ?? drawResult?.hero)!.name[0]}</span>
+                            <strong>{(pendingResult?.hero ?? drawResult?.hero)!.name}</strong>
+                            <em>{(pendingResult?.hero ?? drawResult?.hero)!.title}</em>
+                            <small>
+                              {(pendingResult ?? drawResult)!.isNew
+                                ? "新武将入营"
+                                : `重复武将 · 碎片 +${(pendingResult ?? drawResult)!.fragmentReward}`}
+                            </small>
+                          </div>
+                        </div>
                       </div>
                     ) : (
-                      <div className={`tg-gacha__cardback ${drawing ? "is-rolling" : ""}`}>
+                      <div className="tg-gacha__cardback">
                         <Sparkles size={34} />
                         <strong>武将招募</strong>
                         <small>10 / 10</small>
@@ -539,7 +596,7 @@ export function HeroCollectionScreen({
                   <button
                     type="button"
                     className="tg-gacha__draw"
-                    disabled={drawing || (!unlimitedTickets && recruitTickets < activePool.cost)}
+                    disabled={drawing || !!pendingResult || revealing || (!unlimitedTickets && recruitTickets < activePool.cost)}
                     onClick={performDraw}
                   >
                     <Dices size={16} />
