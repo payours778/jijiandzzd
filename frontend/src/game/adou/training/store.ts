@@ -14,11 +14,14 @@ import {
 interface TrainingGroundState {
   activeMenu: MenuKey;
   recruitedHeroIds: string[];
+  recruitTickets: number;
   comingSoon: boolean;
   parallax: { x: number; y: number };
 
   setActiveMenu: (key: MenuKey) => void;
   recruitHero: (id: string) => void;
+  spendRecruitTicket: () => void;
+  addRecruitTickets: (count: number) => void;
   resetRecruitDemo: () => void;
   showComingSoon: () => void;
   hideComingSoon: () => void;
@@ -28,6 +31,7 @@ interface TrainingGroundState {
 export const useTrainingGroundStore = create<TrainingGroundState>((set) => ({
   activeMenu: "start",
   recruitedHeroIds: readRecruitedHeroIds(),
+  recruitTickets: 30,
   comingSoon: false,
   parallax: { x: 0, y: 0 },
 
@@ -39,9 +43,13 @@ export const useTrainingGroundStore = create<TrainingGroundState>((set) => ({
       writeRecruitedHeroIds(next);
       return { recruitedHeroIds: next };
     }),
+  spendRecruitTicket: () =>
+    set((state) => ({ recruitTickets: Math.max(0, state.recruitTickets - 1) })),
+  addRecruitTickets: (count) =>
+    set((state) => ({ recruitTickets: state.recruitTickets + count })),
   resetRecruitDemo: () => {
     writeRecruitedHeroIds(DEFAULT_RECRUITED_IDS);
-    set({ recruitedHeroIds: DEFAULT_RECRUITED_IDS.slice() });
+    set({ recruitedHeroIds: DEFAULT_RECRUITED_IDS.slice(), recruitTickets: 30 });
   },
   showComingSoon: () => set({ comingSoon: true }),
   hideComingSoon: () => set({ comingSoon: false }),

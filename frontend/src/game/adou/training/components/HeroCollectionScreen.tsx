@@ -1,10 +1,13 @@
-import { useState } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import {
   Check,
+  Dices,
   Lock,
+  RefreshCw,
   Shield,
+  Sparkles,
   Star,
-  UserPlus,
+  Ticket,
   Users,
 } from "lucide-react";
 import { playSfx } from "../../../../audio/audioSystem";
@@ -18,6 +21,11 @@ import {
 
 type CollectionTab = "recruit" | "owned";
 
+interface DrawResult {
+  hero: RecruitHero;
+  isNew: boolean;
+}
+
 function rarityStyle(rarity: RecruitHero["rarity"]) {
   const meta = HERO_RARITY_META[rarity];
   return {
@@ -26,23 +34,176 @@ function rarityStyle(rarity: RecruitHero["rarity"]) {
   } as React.CSSProperties;
 }
 
+interface HeroCardProps {
+  hero: RecruitHero;
+  recruited: boolean;
+  selected: boolean;
+  featured?: boolean;
+  action?: ReactNode;
+  onClick: () => void;
+}
+
+function HeroCard({
+  hero,
+  recruited,
+  selected,
+  featured = false,
+  action,
+  onClick,
+}: HeroCardProps) {
+  return (
+    <div
+      role="button"
+      tabIndex={0}
+      className={`tg-collection__card ${recruited ? "is-recruited" : "is-locked"} ${selected ? "is-selected" : ""} ${featured ? "is-featured" : ""}`}
+      style={rarityStyle(hero.rarity)}
+      onClick={onClick}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          onClick();
+        }
+      }}
+    >
+      <span className="tg-collection__card-top">
+        <span>{hero.role}</span>
+        {featured ? (
+          <span className="tg-collection__featured"><Star size={12} />展示</span>
+        ) : recruited ? (
+          <span className="tg-collection__owned"><Check size={12} />已入营</span>
+        ) : (
+          <span className="tg-collection__locked"><Lock size={12} />未入营</span>
+        )}
+      </span>
+      <span className="tg-collection__card-glyph">{hero.name[0]}</span>
+      <strong className="tg-collection__card-name">{hero.name}</strong>
+      <span className="tg-collection__card-title">{hero.title}</span>
+      <span className="tg-collection__card-frags">
+        <em>{hero.fragments[0]}</em>
+        <i>+</i>
+        <em>{hero.fragments[1]}</em>
+      </span>
+      {action}
+    </div>
+  );
+}
+
+function rollHero(): RecruitHero {
+  const roll = Math.random() * 100;
+  let rarity: RecruitHero["rarity"];
+  if (roll < 2) {
+    rarity = "legendary";
+  } else if (roll < 10) {
+    rarity = "epic";
+  } else {
+    rarity = "rare";
+  }
+  const pool = RECRUIT_HEROES.filter((hero) => hero.rarity === rarity);
+  return pool[Math.floor(Math.random() * pool.length)];
+}
+
 export function HeroCollectionScreen() {
   const [tab, setTab] = useState<CollectionTab>("recruit");
   const [selectedId, setSelectedId] = useState<string>(RECRUIT_HEROES[0].id);
   const [featuredId, setFeaturedId] = useState<string>("liubei");
+  const [drawing, setDrawing] = useState(false);
+  const [drawResult, setDrawResult] = useState<DrawResult | null>(null);
+  const [recent, setRecent] = useState<RecruitHero[]>([]);
+  const drawTimer = useRef<number | null>(null);
+
   const recruitedIds = useTrainingGroundStore((s) => s.recruitedHeroIds);
+  const recruitTickets = useTrainingGroundStore((s) => s.recruitTickets);
   const recruitHero = useTrainingGroundStore((s) => s.recruitHero);
+  const spendRecruitTicket = useTrainingGroundStore((s) => s.spendRecruitTicket);
+  const addRecruitTickets = useTrainingGroundStore((s) => s.addRecruitTickets);
   const resetRecruitDemo = useTrainingGroundStore((s) => s.resetRecruitDemo);
 
   const selectedHero = RECRUIT_HEROES.find((hero) => hero.id === selectedId) ?? RECRUIT_HEROES[0];
   const selectedRecruited = recruitedIds.includes(selectedHero.id);
   const recruitedHeroes = RECRUIT_HEROES.filter((hero) => recruitedIds.includes(hero.id));
-
-  const recruit = (id: string) => {
-    if (recruitedIds.includes(id)) return;
-    playSfx("synthesize");
-    recruitHero(id);
+  const selectHero = (id: string) => {
+    playSfx("click");
+    setSelectedId(id);
   };
+
+  useEffect(() => {
+    return () => {
+      if (drawTimer.current !== null) {
+        window.clearTimeout(drawTimer.current);
+      }
+    };
+  }, []);
+
+  const performDraw = () => {
+    if (drawing || recruitTickets <= 0) return;
+    setDrawing(true);
+    setDrawResult(null);
+    playSfx("click");
+    const hero = rollHero();
+    const isNew = !recruitedIds.includes(hero.id);
+    drawTimer.current = window.setTimeout(() => {
+      spendRecruitTicket();
+      if (isNew) {
+        recruitHero(hero.id);
+      }
+      setDrawResult({ hero, isNew });
+      setRecent((prev) => [hero, ...prev].slice(0, 5));
+      setSelectedId(hero.id);
+      setDrawing(false);
+      playSfx("synthesize");
+    }, 950);
+  };
+
+  const renderHeroGroups = (ownedOnly: boolean) =>
+    HERO_RARITY_ORDER.map((rarity) => {
+      const meta = HERO_RARITY_META[rarity];
+      const heroes = RECRUIT_HEROES.filter((hero) =>
+        ownedOnly ? recruitedIds.includes(hero.id) : true,
+      ).filter((hero) => hero.rarity === rarity);
+
+      return (
+        <div className="tg-collection__group" key={rarity}>
+          <div className="tg-collection__group-head">
+            <strong style={{ color: meta.color }}>{meta.label}</strong>
+            <span>
+              {heroes.filter((hero) => recruitedIds.includes(hero.id)).length}/{heroes.length} 已入营
+            </span>
+          </div>
+          <div className="tg-collection__grid">
+            {heroes.map((hero) => {
+              const recruited = recruitedIds.includes(hero.id);
+              const isFeatured = featuredId === hero.id;
+              return (
+                <HeroCard
+                  key={hero.id}
+                  hero={hero}
+                  recruited={recruited}
+                  selected={selectedId === hero.id}
+                  featured={isFeatured}
+                  onClick={() => selectHero(hero.id)}
+                  action={
+                    ownedOnly && !isFeatured ? (
+                      <button
+                        type="button"
+                        className="tg-collection__card-cta is-feature"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          playSfx("click");
+                          setFeaturedId(hero.id);
+                        }}
+                      >
+                        <Star size={13} />
+                        设为展示
+                      </button>
+                    ) : null
+                  }
+                />
+              );
+            })}
+          </div>
+        </div>
+      );
+    });
 
   return (
     <div className="tg-collection">
@@ -70,7 +231,7 @@ export function HeroCollectionScreen() {
               setTab("recruit");
             }}
           >
-            <UserPlus size={15} />
+            <Dices size={15} />
             招募
           </button>
           <button
@@ -90,139 +251,97 @@ export function HeroCollectionScreen() {
       <div className="tg-collection__body">
         <section className="tg-collection__catalog">
           {tab === "recruit" ? (
-            HERO_RARITY_ORDER.map((rarity) => {
-              const meta = HERO_RARITY_META[rarity];
-              const heroes = RECRUIT_HEROES.filter((hero) => hero.rarity === rarity);
-              return (
-                <div className="tg-collection__group" key={rarity}>
-                  <div className="tg-collection__group-head">
-                    <strong style={{ color: meta.color }}>{meta.label}</strong>
-                    <span>{heroes.length} 名</span>
+            <>
+              <section className="tg-gacha">
+                <div className="tg-gacha__top">
+                  <div className="tg-gacha__rates">
+                    {HERO_RARITY_ORDER.map((rarity) => (
+                      <span key={rarity} style={{ color: HERO_RARITY_META[rarity].color }}>
+                        {HERO_RARITY_META[rarity].label}
+                        <b>{rarity === "rare" ? "90%" : rarity === "epic" ? "8%" : "2%"}</b>
+                      </span>
+                    ))}
                   </div>
-                  <div className="tg-collection__grid">
-                    {heroes.map((hero) => {
-                      const recruited = recruitedIds.includes(hero.id);
-                      return (
-                        <div
-                          role="button"
-                          tabIndex={0}
-                          key={hero.id}
-                          className={`tg-collection__card ${recruited ? "is-recruited" : "is-locked"} ${selectedId === hero.id ? "is-selected" : ""}`}
-                          style={rarityStyle(hero.rarity)}
-                          onClick={() => {
-                            playSfx("click");
-                            setSelectedId(hero.id);
-                          }}
-                          onKeyDown={(e) => {
-                            if (e.key === "Enter" || e.key === " ") {
-                              e.preventDefault();
-                              playSfx("click");
-                              setSelectedId(hero.id);
-                            }
-                          }}
-                        >
-                          <span className="tg-collection__card-top">
-                            <span>{hero.role}</span>
-                            {recruited ? (
-                              <span className="tg-collection__owned"><Check size={12} />已入营</span>
-                            ) : (
-                              <span className="tg-collection__locked"><Lock size={12} />未招募</span>
-                            )}
-                          </span>
-                          <span className="tg-collection__card-glyph">{hero.name[0]}</span>
-                          <strong className="tg-collection__card-name">{hero.name}</strong>
-                          <span className="tg-collection__card-title">{hero.title}</span>
-                          <span className="tg-collection__card-frags">
-                            <em>{hero.fragments[0]}</em>
-                            <i>+</i>
-                            <em>{hero.fragments[1]}</em>
-                          </span>
-                          {!recruited && (
-                            <button type="button" className="tg-collection__card-cta" onClick={(e) => {
-                              e.stopPropagation();
-                              recruit(hero.id);
-                              setSelectedId(hero.id);
-                            }}>
-                              <UserPlus size={13} />
-                              招募
-                            </button>
-                          )}
-                        </div>
-                      );
-                    })}
+                  <div className="tg-gacha__ticket">
+                    <Ticket size={15} />
+                    <span>招募券</span>
+                    <strong>{recruitTickets}</strong>
                   </div>
                 </div>
-              );
-            })
-          ) : (
-            <div className="tg-collection__group">
-              <div className="tg-collection__group-head">
-                <strong>已入营</strong>
-                <span>{recruitedHeroes.length} 名</span>
-              </div>
-              <div className="tg-collection__grid">
-                {recruitedHeroes.map((hero) => {
-                  const isFeatured = featuredId === hero.id;
-                  return (
-                    <div
-                      role="button"
-                      tabIndex={0}
-                      key={hero.id}
-                      className={`tg-collection__card is-recruited ${selectedId === hero.id ? "is-selected" : ""} ${isFeatured ? "is-featured" : ""}`}
-                      style={rarityStyle(hero.rarity)}
-                      onClick={() => {
-                        playSfx("click");
-                        setSelectedId(hero.id);
-                      }}
-                      onKeyDown={(e) => {
-                        if (e.key === "Enter" || e.key === " ") {
-                          e.preventDefault();
-                          playSfx("click");
-                          setSelectedId(hero.id);
-                        }
-                      }}
-                    >
-                      <span className="tg-collection__card-top">
-                        <span>{hero.role}</span>
-                        {isFeatured ? (
-                          <span className="tg-collection__featured"><Star size={12} />展示</span>
-                        ) : (
-                          <span className="tg-collection__owned"><Check size={12} />已入营</span>
-                        )}
-                      </span>
-                      <span className="tg-collection__card-glyph">{hero.name[0]}</span>
-                      <strong className="tg-collection__card-name">{hero.name}</strong>
-                      <span className="tg-collection__card-title">{hero.title}</span>
-                      <span className="tg-collection__card-frags">
-                        <em>{hero.fragments[0]}</em>
-                        <i>+</i>
-                        <em>{hero.fragments[1]}</em>
-                      </span>
-                      {!isFeatured && (
-                        <button
-                          type="button"
-                          className="tg-collection__card-cta is-feature"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            playSfx("click");
-                            setFeaturedId(hero.id);
-                          }}
-                        >
-                          <Star size={13} />
-                          设为展示
-                        </button>
-                      )}
-                    </div>
-                  );
-                })}
-                {recruitedHeroes.length === 0 && (
-                  <div className="tg-collection__empty">
-                    <Users size={22} />
-                    <span>尚未招募武将</span>
+
+                <div className={`tg-gacha__stage ${drawing ? "is-rolling" : ""}`}>
+                  <div
+                    className={`tg-gacha__orb ${drawing ? "is-rolling" : ""} ${drawResult && !drawing ? "has-result" : ""}`}
+                    style={drawResult ? rarityStyle(drawResult.hero.rarity) : undefined}
+                  >
+                    <span className="tg-gacha__ring tg-gacha__ring--a" />
+                    <span className="tg-gacha__ring tg-gacha__ring--b" />
+                    <span className="tg-gacha__ring tg-gacha__ring--c" />
+                    {drawResult && !drawing ? (
+                      <div className="tg-gacha__result-card">
+                        <span className="tg-gacha__result-rank">{HERO_RARITY_META[drawResult.hero.rarity].label}</span>
+                        <span className="tg-gacha__result-glyph">{drawResult.hero.name[0]}</span>
+                        <strong>{drawResult.hero.name}</strong>
+                        <em>{drawResult.hero.title}</em>
+                        <small>{drawResult.isNew ? "新武将入营" : "重复武将"}</small>
+                      </div>
+                    ) : (
+                      <div className={`tg-gacha__cardback ${drawing ? "is-rolling" : ""}`}>
+                        <Sparkles size={34} />
+                        <strong>武将招募</strong>
+                        <small>10 / 10</small>
+                      </div>
+                    )}
                   </div>
-                )}
-              </div>
-            </div>
+                </div>
+
+                <div className="tg-gacha__actions">
+                  <button
+                    type="button"
+                    className="tg-gacha__draw"
+                    disabled={drawing || recruitTickets <= 0}
+                    onClick={performDraw}
+                  >
+                    <Dices size={16} />
+                    {drawing ? "招募中" : "招募一次"}
+                  </button>
+                  <button type="button" className="tg-gacha__replenish" onClick={() => addRecruitTickets(30)}>
+                    <RefreshCw size={14} />
+                    补券
+                  </button>
+                </div>
+
+                <div className="tg-gacha__recent">
+                  <span>最近招募</span>
+                  <div>
+                    {recent.length === 0 ? (
+                      <em>暂无</em>
+                    ) : (
+                      recent.map((hero, index) => (
+                        <i
+                          key={`${hero.id}-${index}`}
+                          style={{ color: HERO_RARITY_META[hero.rarity].color }}
+                        >
+                          {hero.name[0]}
+                        </i>
+                      ))
+                    )}
+                  </div>
+                </div>
+              </section>
+
+              {renderHeroGroups(false)}
+            </>
+          ) : (
+            <>
+              {renderHeroGroups(true)}
+              {recruitedHeroes.length === 0 && (
+                <div className="tg-collection__empty">
+                  <Users size={22} />
+                  <span>尚未招募武将</span>
+                </div>
+              )}
+            </>
           )}
         </section>
 
@@ -271,9 +390,9 @@ export function HeroCollectionScreen() {
             </div>
             <div className="tg-collection__detail-actions">
               {!selectedRecruited ? (
-                <button type="button" onClick={() => recruit(selectedHero.id)}>
-                  <UserPlus size={14} />
-                  招募
+                <button type="button" className="is-muted" onClick={() => setTab("recruit")}>
+                  <Dices size={14} />
+                  抽卡招募
                 </button>
               ) : (
                 <button
