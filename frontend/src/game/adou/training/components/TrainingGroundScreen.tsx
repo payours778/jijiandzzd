@@ -36,7 +36,7 @@ export function TrainingGroundScreen({ onBack }: TrainingGroundScreenProps) {
         <LeftMenu onStart={handleStart} />
         <main className="tg-main">
           {activeMenu === "heroes" ? (
-            <HeroCollectionScreen />
+            <HeroCollectionScreen enableFiveDraw />
           ) : activeMenu === "armory" ? (
             <ArmoryScreen />
           ) : (

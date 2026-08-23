@@ -7,7 +7,6 @@ import {
   Gem,
   History,
   Lock,
-  RefreshCw,
   Shield,
   Sparkles,
   Star,
@@ -20,7 +19,6 @@ import { useTrainingGroundStore } from "../store";
 import { useAppStore } from "../../../../store/useAppStore";
 import {
   BOSS_DROP_GUARANTEE,
-  DEMO_TASK_LIMIT,
   DUPLICATE_FRAGMENT_REWARD,
   HERO_RARITY_META,
   HERO_RARITY_ORDER,
@@ -301,12 +299,14 @@ function BatchDrawPanel({
   round,
   onDrawAgain,
   onBack,
+  canDrawAgain,
 }: {
   poolLabel: string;
   cards: DrawResult[];
   round: number;
   onDrawAgain: () => void;
   onBack: () => void;
+  canDrawAgain?: boolean;
 }) {
   return (
     <div className="tg-gacha__fives">
@@ -321,7 +321,7 @@ function BatchDrawPanel({
         ))}
       </div>
       <div className="tg-gacha__fives-actions">
-        <button type="button" onClick={onDrawAgain}>再来五连</button>
+        <button type="button" onClick={onDrawAgain} disabled={canDrawAgain === false}>再来五连</button>
       </div>
     </div>
   );
@@ -358,13 +358,13 @@ export function HeroCollectionScreen({
   const bossDropPity = useTrainingGroundStore((s) => s.bossDropPity);
   const poolStats = useTrainingGroundStore((s) => s.poolStats);
   const drawHistory = useTrainingGroundStore((s) => s.drawHistory);
-  const demoTaskCount = useTrainingGroundStore((s) => s.demoTaskCount);
+
   const recruitHero = useTrainingGroundStore((s) => s.recruitHero);
   const heroFragments = useTrainingGroundStore((s) => s.heroFragments);
   const addHeroFragments = useTrainingGroundStore((s) => s.addHeroFragments);
   const spendRecruitTicket = useTrainingGroundStore((s) => s.spendRecruitTicket);
   const recordDraw = useTrainingGroundStore((s) => s.recordDraw);
-  const collectDemoTickets = useTrainingGroundStore((s) => s.collectDemoTickets);
+
   const resetRecruitDemo = useTrainingGroundStore((s) => s.resetRecruitDemo);
   const coins = useAppStore((s) => s.coins);
 
@@ -387,6 +387,8 @@ export function HeroCollectionScreen({
           ? legendRecruitScrolls
           : recruitTickets;
   const canAffordActive = unlimitedTickets || activeResourceCount >= activeRules.cost;
+  const fiveCost = activeRules.cost * 5;
+  const canAffordFive = unlimitedTickets || activeResourceCount >= fiveCost;
   const activeResourceLabel =
     activeRules.resource === "gold"
       ? "金币"
@@ -482,8 +484,20 @@ export function HeroCollectionScreen({
 
   const performFiveDraw = () => {
     if (drawing || pendingResult || revealing) return;
+    if (!unlimitedTickets && !canAffordFive) return;
     setDrawing(true);
     playSfx("click");
+    if (!unlimitedTickets) {
+      if (activeRules.resource === "gold") {
+        useAppStore.getState().addCoins(-fiveCost);
+      } else if (activeRules.resource === "eliteItem") {
+        useTrainingGroundStore.getState().spendEliteRecruitItems(fiveCost);
+      } else if (activeRules.resource === "legendScroll") {
+        useTrainingGroundStore.getState().spendLegendRecruitScrolls(fiveCost);
+      } else {
+        spendRecruitTicket(fiveCost);
+      }
+    }
     const knownRecruited = new Set(recruitedIds);
     let localStats = { ...activeStats };
     const results: DrawResult[] = [];
@@ -520,13 +534,6 @@ export function HeroCollectionScreen({
     setFiveCards([]);
   };
 
-  const collectRecruitSupplies = () => {
-    if (demoTaskCount >= DEMO_TASK_LIMIT) return;
-    collectDemoTickets();
-    useAppStore.getState().addCoins(5000);
-    useTrainingGroundStore.getState().addEliteRecruitItems(2);
-    useTrainingGroundStore.getState().addLegendRecruitScrolls(1);
-  };
 
   const renderHeroGroups = (ownedOnly: boolean) =>
     HERO_RARITY_ORDER.map((rarity) => {
@@ -643,6 +650,7 @@ export function HeroCollectionScreen({
                 round={fiveRound}
                 onDrawAgain={performFiveDraw}
                 onBack={closeFiveDraw}
+        canDrawAgain={unlimitedTickets ? undefined : canAffordFive}
               />
             ) : (
               <>
@@ -827,29 +835,19 @@ export function HeroCollectionScreen({
                     <button
                       type="button"
                       className="tg-gacha__five"
-                      onClick={performFiveDraw}
+                      disabled={!unlimitedTickets && !canAffordFive} onClick={performFiveDraw}
                     >
                       五连抽
                     </button>
                   )}
-                  {unlimitedTickets ? (
-                    <span className="tg-gacha__unlimited">测试无限券</span>
-                  ) : (
-                    <button
-                      type="button"
-                      className="tg-gacha__replenish"
-                      disabled={demoTaskCount >= DEMO_TASK_LIMIT}
-                      onClick={collectRecruitSupplies}
-                    >
-                      <RefreshCw size={14} />
-                      试玩补给 +5000金 +2道具 +1卷
-                    </button>
-                  )}
+                {unlimitedTickets && (
+                  <span className="tg-gacha__unlimited">测试无限券</span>
+                )}
                 </div>
 
                 <div className="tg-gacha__recent">
                   <span>最近招募</span>
-                  <em>{unlimitedTickets ? "不限次" : `${demoTaskCount}/${DEMO_TASK_LIMIT}`}</em>
+
                   <div>
                     {drawHistory.length === 0 ? (
                       <em className="tg-gacha__recent-empty">暂无</em>
