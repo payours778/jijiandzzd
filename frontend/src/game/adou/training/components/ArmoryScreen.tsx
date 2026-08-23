@@ -76,14 +76,15 @@ function priceOf(weapon: WeaponDefinition) {
 /** 商店可购买规则：按系列+品质控制 */
 function isShopBuyable(weapon: WeaponDefinition, all: WeaponDefinition[]) {
   if (weapon.status === "development") return false;
-  const series = all.filter((w) => w.series === weapon.series);
-  const sameQuality = series.filter((w) => qualityOf(w) === qualityOf(weapon));
-  const index = sameQuality.indexOf(weapon);
   const q = qualityOf(weapon);
   if (q === "white") return true;
-  if (q === "green" || q === "purple") return sameQuality.length <= 1 ? true : index < sameQuality.length - 1;
-  if (q === "gold") return index < 1;
-  if (q === "red") return index < 1;
+  const series = all.filter((w) => w.series === weapon.series);
+  const buyableSameQ = series.filter((w) => qualityOf(w) === q && w.status !== "development");
+  if (q === "green" || q === "purple") {
+    return buyableSameQ.length <= 1 ? true : buyableSameQ.indexOf(weapon) < buyableSameQ.length - 1;
+  }
+  if (q === "gold") return buyableSameQ.indexOf(weapon) === 0;
+  if (q === "red") return buyableSameQ.indexOf(weapon) === 0;
   return true;
 }
 
@@ -428,7 +429,7 @@ export function ArmoryScreen() {
               <div className="tg-armory__detail-head">
                 <span className="tg-armory__detail-series">{seriesName(selected.series)}</span>
                 <h3>{selected.name}</h3>
-                <p>{qualityName} · {selected.status === "locked" ? "禁器" : selected.status === "development" ? "专属" : "可购买"}</p>
+                <p>{qualityName} · {selected.status === "development" ? "专属" : selected && isShopBuyable(selected, weapons) ? "可购买" : "禁售"}</p>
               </div>
 
               <div className="tg-armory__detail-desc">{selected.description}</div>
