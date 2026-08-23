@@ -258,16 +258,17 @@ export function setSfxVolume(volume: number) {
 }
 
 function startLoop(src: string, key: string) {
-  if (!src || typeof Audio === "undefined") {
-    return;
-  }
-
+  // 无论新音乐是否为空，都先停止当前音乐，确保同时只播放一首 BGM
   if (musicElement) {
     musicElement.pause();
     musicElement.src = "";
     musicElement = null;
   }
   currentMusicKey = key;
+
+  if (!src || typeof Audio === "undefined") {
+    return;
+  }
 
   musicElement = new Audio(src);
   musicElement.loop = true;
@@ -303,7 +304,7 @@ export function playMusic(key: MusicKey) {
     return;
   }
 
-  if (currentMusicKey === key && musicElement && !musicElement.paused) {
+  if (currentMusicKey === key && (!MUSIC_FILES[key] || (musicElement && !musicElement.paused))) {
     return;
   }
 
@@ -318,7 +319,7 @@ export function playLoopSrc(src: string) {
     return;
   }
 
-  if (currentMusicKey === src && musicElement && !musicElement.paused) {
+  if (currentMusicKey === src && (!src || (musicElement && !musicElement.paused))) {
     return;
   }
 
