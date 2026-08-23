@@ -257,6 +257,9 @@ export function HeroCollectionScreen({
   const activeRules = RECRUIT_POOL_RULES[activePool.id];
   const selectedRecruited = recruitedIds.includes(selectedHero.id);
   const recruitedHeroes = RECRUIT_HEROES.filter((hero) => recruitedIds.includes(hero.id));
+  const shownOffer = (revealing || drawResult) && !drawing ? (pendingResult ?? drawResult) : null;
+  const shownRarity = shownOffer?.hero.rarity ?? "rare";
+  const shownRarityStyle = shownOffer ? rarityStyle(shownOffer.hero.rarity) : undefined;
 
   const rarityTotals: Record<HeroRarity, number> = { rare: 0, epic: 0, legendary: 0 };
   for (const pool of RECRUIT_POOLS) {
@@ -533,8 +536,8 @@ export function HeroCollectionScreen({
 
                 <div className={`tg-gacha__stage ${drawing ? "is-rolling" : ""}`}>
                   <div
-                    className={`tg-gacha__orb ${drawing ? "is-rolling" : ""} ${(pendingResult || drawResult) && !drawing ? "has-result" : ""} ${(pendingResult?.hero.rarity === "legendary" || drawResult?.hero.rarity === "legendary") && !drawing ? "is-legendary" : ""} ${(pendingResult?.hero.rarity === "epic" || drawResult?.hero.rarity === "epic") && !drawing ? "is-epic" : ""}`}
-                    style={(pendingResult ?? drawResult) ? rarityStyle((pendingResult ?? drawResult)!.hero.rarity) : undefined}
+                    className={`tg-gacha__orb ${drawing ? "is-rolling" : ""} ${(pendingResult || drawResult) && !drawing ? "has-result" : ""} ${shownRarity === "legendary" && !drawing ? "is-legendary" : ""} ${shownRarity === "epic" && !drawing ? "is-epic" : ""}`}
+                    style={shownRarityStyle}
                   >
                     <span className="tg-gacha__ring tg-gacha__ring--a" />
                     <span className="tg-gacha__ring tg-gacha__ring--b" />
@@ -547,9 +550,9 @@ export function HeroCollectionScreen({
                       </div>
                     ) : pendingResult || drawResult ? (
                       <div
-                        className={`tg-gacha__flip ${revealing ? "is-flipping" : pendingResult ? "is-ready" : "is-flipped"} is-${(pendingResult?.hero ?? drawResult?.hero)?.rarity ?? "rare"}`}
+                        className={`tg-gacha__flip ${revealing ? "is-flipping" : pendingResult ? "is-ready" : "is-flipped"} is-${shownRarity}`}
                         style={{
-                          ...rarityStyle((pendingResult?.hero ?? drawResult?.hero)!.rarity),
+                          ...(shownRarityStyle ?? {}),
                           "--flip-duration": `${flipDurationMs((pendingResult?.hero ?? drawResult?.hero)!.rarity)}ms`,
                         } as React.CSSProperties}
                         role={pendingResult ? "button" : undefined}
@@ -569,7 +572,7 @@ export function HeroCollectionScreen({
                             <strong>{pendingResult && !revealing ? "点击翻牌" : pendingResult ? "翻开中" : "武将招募"}</strong>
                             <small>{pendingResult ? "点击卡牌翻开结果" : "10 / 10"}</small>
                           </div>
-                          <div className={`tg-gacha__flip-face tg-gacha__result-card ${(pendingResult?.hero ?? drawResult?.hero)?.rarity === "legendary" ? "is-legendary" : ""} ${(pendingResult?.hero ?? drawResult?.hero)?.rarity === "epic" ? "is-epic" : ""}`}>
+                          <div className={`tg-gacha__flip-face tg-gacha__result-card ${shownRarity === "legendary" ? "is-legendary" : ""} ${shownRarity === "epic" ? "is-epic" : ""}`}>
                             <span className="tg-gacha__result-rank">{HERO_RARITY_META[(pendingResult?.hero ?? drawResult?.hero)!.rarity].label}</span>
                             <span className="tg-gacha__result-glyph">{(pendingResult?.hero ?? drawResult?.hero)!.name[0]}</span>
                             <strong>{(pendingResult?.hero ?? drawResult?.hero)!.name}</strong>
