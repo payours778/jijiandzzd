@@ -4,6 +4,7 @@ import {
   Crown,
   Dices,
   Gem,
+  History,
   Lock,
   RefreshCw,
   Shield,
@@ -15,14 +16,20 @@ import {
 import { playSfx } from "../../../../audio/audioSystem";
 import { useTrainingGroundStore } from "../store";
 import {
+  DEMO_TASK_LIMIT,
+  DEMO_TICKET_GRANT,
   DUPLICATE_FRAGMENT_REWARD,
   HERO_RARITY_META,
   HERO_RARITY_ORDER,
+  RECRUIT_POOL_RULES,
   RECRUIT_HEROES,
+  isEpicPityReady,
+  isLegendPityReady,
+  type HeroRarity,
   type RecruitHero,
 } from "../heroes";
 
-type CollectionTab = "recruit" | "owned";
+type CollectionTab = "recruit" | "owned" | "archive";
 
 interface DrawResult {
   hero: RecruitHero;
@@ -36,15 +43,27 @@ interface RecruitPool {
   id: RecruitPoolId;
   label: string;
   short: string;
+  cost: number;
+  epicPity: number;
+  legendPity: number;
   rates: Record<RecruitHero["rarity"], number>;
   icon: typeof Gem;
 }
+
+const POOL_LABELS: Record<RecruitPoolId, string> = {
+  basic: "基础招募",
+  elite: "精英招募",
+  legend: "巅峰招募",
+};
 
 const RECRUIT_POOLS: RecruitPool[] = [
   {
     id: "basic",
     label: "基础招募",
     short: "90 / 8 / 2",
+    cost: RECRUIT_POOL_RULES.basic.cost,
+    epicPity: RECRUIT_POOL_RULES.basic.epicPity,
+    legendPity: RECRUIT_POOL_RULES.basic.legendPity,
     rates: { rare: 0.9, epic: 0.08, legendary: 0.02 },
     icon: Gem,
   },
@@ -52,6 +71,9 @@ const RECRUIT_POOLS: RecruitPool[] = [
     id: "elite",
     label: "精英招募",
     short: "85 / 12 / 3",
+    cost: RECRUIT_POOL_RULES.elite.cost,
+    epicPity: RECRUIT_POOL_RULES.elite.epicPity,
+    legendPity: RECRUIT_POOL_RULES.elite.legendPity,
     rates: { rare: 0.85, epic: 0.12, legendary: 0.03 },
     icon: Sparkles,
   },
@@ -59,6 +81,9 @@ const RECRUIT_POOLS: RecruitPool[] = [
     id: "legend",
     label: "巅峰招募",
     short: "80 / 15 / 5",
+    cost: RECRUIT_POOL_RULES.legend.cost,
+    epicPity: RECRUIT_POOL_RULES.legend.epicPity,
+    legendPity: RECRUIT_POOL_RULES.legend.legendPity,
     rates: { rare: 0.8, epic: 0.15, legendary: 0.05 },
     icon: Crown,
   },
@@ -70,6 +95,15 @@ function rarityStyle(rarity: RecruitHero["rarity"]) {
     "--rarity": meta.color,
     "--rarity-glow": meta.glow,
   } as React.CSSProperties;
+}
+
+function formatDrawTime(timestamp: number) {
+  const date = new Date(timestamp);
+  const month = date.getMonth() + 1;
+  const day = date.getDate();
+  const hours = String(date.getHours()).padStart(2, "0");
+  const minutes = String(date.getMinutes()).padStart(2, "0");
+  return `${month}月${day}日 ${hours}:${minutes}`;
 }
 
 interface HeroCardProps {
@@ -126,15 +160,25 @@ function HeroCard({
   );
 }
 
-function rollHero(pool: RecruitPool): RecruitHero {
-  const roll = Math.random();
+function rollHero(
+  pool: RecruitPool,
+  epicPityReady: boolean,
+  legendPityReady: boolean,
+): RecruitHero {
   let rarity: RecruitHero["rarity"];
-  if (roll < pool.rates.legendary) {
+  if (legendPityReady) {
     rarity = "legendary";
-  } else if (roll < pool.rates.legendary + pool.rates.epic) {
+  } else if (epicPityReady) {
     rarity = "epic";
   } else {
-    rarity = "rare";
+    const roll = Math.random();
+    if (roll < pool.rates.legendary) {
+      rarity = "legendary";
+    } else if (roll < pool.rates.legendary + pool.rates.epic) {
+      rarity = "epic";
+    } else {
+      rarity = "rare";
+    }
   }
   const candidates = RECRUIT_HEROES.filter((hero) => hero.rarity === rarity);
   return candidates[Math.floor(Math.random() * candidates.length)];
@@ -157,22 +201,37 @@ export function HeroCollectionScreen() {
   const [activePoolId, setActivePoolId] = useState<RecruitPoolId>("basic");
   const [drawing, setDrawing] = useState(false);
   const [drawResult, setDrawResult] = useState<DrawResult | null>(null);
-  const [recent, setRecent] = useState<RecruitHero[]>([]);
   const drawTimer = useRef<number | null>(null);
 
   const recruitedIds = useTrainingGroundStore((s) => s.recruitedHeroIds);
   const recruitTickets = useTrainingGroundStore((s) => s.recruitTickets);
+  const poolStats = useTrainingGroundStore((s) => s.poolStats);
+  const drawHistory = useTrainingGroundStore((s) => s.drawHistory);
+  const demoTaskCount = useTrainingGroundStore((s) => s.demoTaskCount);
   const recruitHero = useTrainingGroundStore((s) => s.recruitHero);
   const heroFragments = useTrainingGroundStore((s) => s.heroFragments);
   const addHeroFragments = useTrainingGroundStore((s) => s.addHeroFragments);
   const spendRecruitTicket = useTrainingGroundStore((s) => s.spendRecruitTicket);
-  const addRecruitTickets = useTrainingGroundStore((s) => s.addRecruitTickets);
+  const recordDraw = useTrainingGroundStore((s) => s.recordDraw);
+  const collectDemoTickets = useTrainingGroundStore((s) => s.collectDemoTickets);
   const resetRecruitDemo = useTrainingGroundStore((s) => s.resetRecruitDemo);
 
   const selectedHero = RECRUIT_HEROES.find((hero) => hero.id === selectedId) ?? RECRUIT_HEROES[0];
   const activePool = RECRUIT_POOLS.find((pool) => pool.id === activePoolId) ?? RECRUIT_POOLS[0];
+  const activeStats = poolStats[activePool.id];
+  const activeRules = RECRUIT_POOL_RULES[activePool.id];
   const selectedRecruited = recruitedIds.includes(selectedHero.id);
   const recruitedHeroes = RECRUIT_HEROES.filter((hero) => recruitedIds.includes(hero.id));
+
+  const rarityTotals: Record<HeroRarity, number> = { rare: 0, epic: 0, legendary: 0 };
+  for (const pool of RECRUIT_POOLS) {
+    const stats = poolStats[pool.id] ?? { total: 0, epicCounter: 0, legendCounter: 0, rareCount: 0, epicCount: 0, legendCount: 0 };
+    rarityTotals.rare += stats.rareCount ?? 0;
+    rarityTotals.epic += stats.epicCount ?? 0;
+    rarityTotals.legendary += stats.legendCount ?? 0;
+  }
+  const totalDraws = rarityTotals.rare + rarityTotals.epic + rarityTotals.legendary;
+
   const selectHero = (id: string) => {
     playSfx("click");
     setSelectedId(id);
@@ -187,22 +246,26 @@ export function HeroCollectionScreen() {
   }, []);
 
   const performDraw = () => {
-    if (drawing || recruitTickets <= 0) return;
+    if (drawing || recruitTickets < activePool.cost) return;
     setDrawing(true);
     setDrawResult(null);
     playSfx("click");
-    const hero = rollHero(activePool);
+    const hero = rollHero(
+      activePool,
+      isEpicPityReady(activePool.id, activeStats),
+      isLegendPityReady(activePool.id, activeStats),
+    );
     const isNew = !recruitedIds.includes(hero.id);
     const fragmentReward = isNew ? 0 : DUPLICATE_FRAGMENT_REWARD[hero.rarity];
     drawTimer.current = window.setTimeout(() => {
-      spendRecruitTicket();
+      spendRecruitTicket(activePool.cost);
       if (isNew) {
         recruitHero(hero.id);
       } else {
         addHeroFragments(hero.id, fragmentReward);
       }
+      recordDraw(activePool.id, hero.id, hero.rarity, isNew, fragmentReward);
       setDrawResult({ hero, isNew, fragmentReward });
-      setRecent((prev) => [hero, ...prev].slice(0, 5));
       setSelectedId(hero.id);
       setDrawing(false);
       if (hero.rarity === "legendary") {
@@ -305,6 +368,17 @@ export function HeroCollectionScreen() {
             <Shield size={15} />
             已招募
           </button>
+          <button
+            type="button"
+            className={tab === "archive" ? "is-active" : ""}
+            onClick={() => {
+              playSfx("click");
+              setTab("archive");
+            }}
+          >
+            <History size={15} />
+            档案
+          </button>
         </nav>
       </header>
 
@@ -331,6 +405,7 @@ export function HeroCollectionScreen() {
                         <Icon size={16} />
                         <span>{pool.label}</span>
                         <em>{pool.short}</em>
+                        <b className="tg-gacha__cost">×{pool.cost}</b>
                       </button>
                     );
                   })}
@@ -351,16 +426,27 @@ export function HeroCollectionScreen() {
                   </div>
                 </div>
 
+                <div className="tg-gacha__pity">
+                  <span className={isEpicPityReady(activePool.id, activeStats) ? "is-ready" : ""} style={{ color: "#c084fc" }}>
+                    史诗保底 {activeStats.epicCounter}/{activeRules.epicPity}
+                    {isEpicPityReady(activePool.id, activeStats) ? " 必出" : ""}
+                  </span>
+                  <span className={isLegendPityReady(activePool.id, activeStats) ? "is-ready" : ""} style={{ color: "#fbbf24" }}>
+                    传说保底 {activeStats.legendCounter}/{activeRules.legendPity}
+                    {isLegendPityReady(activePool.id, activeStats) ? " 必出" : ""}
+                  </span>
+                </div>
+
                 <div className={`tg-gacha__stage ${drawing ? "is-rolling" : ""}`}>
                   <div
-                    className={`tg-gacha__orb ${drawing ? "is-rolling" : ""} ${drawResult && !drawing ? "has-result" : ""} ${drawResult?.hero.rarity === "legendary" && !drawing ? "is-legendary" : ""}`}
+                    className={`tg-gacha__orb ${drawing ? "is-rolling" : ""} ${drawResult && !drawing ? "has-result" : ""} ${drawResult?.hero.rarity === "legendary" && !drawing ? "is-legendary" : ""} ${drawResult?.hero.rarity === "epic" && !drawing ? "is-epic" : ""}`}
                     style={drawResult ? rarityStyle(drawResult.hero.rarity) : undefined}
                   >
                     <span className="tg-gacha__ring tg-gacha__ring--a" />
                     <span className="tg-gacha__ring tg-gacha__ring--b" />
                     <span className="tg-gacha__ring tg-gacha__ring--c" />
                     {drawResult && !drawing ? (
-                      <div className={`tg-gacha__result-card ${drawResult.hero.rarity === "legendary" ? "is-legendary" : ""}`}>
+                      <div className={`tg-gacha__result-card ${drawResult.hero.rarity === "legendary" ? "is-legendary" : ""} ${drawResult.hero.rarity === "epic" ? "is-epic" : ""}`}>
                         <span className="tg-gacha__result-rank">{HERO_RARITY_META[drawResult.hero.rarity].label}</span>
                         <span className="tg-gacha__result-glyph">{drawResult.hero.name[0]}</span>
                         <strong>{drawResult.hero.name}</strong>
@@ -385,32 +471,41 @@ export function HeroCollectionScreen() {
                   <button
                     type="button"
                     className="tg-gacha__draw"
-                    disabled={drawing || recruitTickets <= 0}
+                    disabled={drawing || recruitTickets < activePool.cost}
                     onClick={performDraw}
                   >
                     <Dices size={16} />
-                    {drawing ? "招募中" : "招募一次"}
+                    {drawing ? "招募中" : `招募一次 · ${activePool.cost} 券`}
                   </button>
-                  <button type="button" className="tg-gacha__replenish" onClick={() => addRecruitTickets(30)}>
+                  <button
+                    type="button"
+                    className="tg-gacha__replenish"
+                    disabled={demoTaskCount >= DEMO_TASK_LIMIT}
+                    onClick={collectDemoTickets}
+                  >
                     <RefreshCw size={14} />
-                    补券
+                    演示任务 +{DEMO_TICKET_GRANT}
                   </button>
                 </div>
 
                 <div className="tg-gacha__recent">
                   <span>最近招募</span>
+                  <em>{demoTaskCount}/{DEMO_TASK_LIMIT}</em>
                   <div>
-                    {recent.length === 0 ? (
-                      <em>暂无</em>
+                    {drawHistory.length === 0 ? (
+                      <em className="tg-gacha__recent-empty">暂无</em>
                     ) : (
-                      recent.map((hero, index) => (
-                        <i
-                          key={`${hero.id}-${index}`}
-                          style={{ color: HERO_RARITY_META[hero.rarity].color }}
-                        >
-                          {hero.name[0]}
-                        </i>
-                      ))
+                      drawHistory.slice(0, 5).map((entry) => {
+                        const hero = RECRUIT_HEROES.find((item) => item.id === entry.heroId);
+                        return (
+                          <i
+                            key={entry.id}
+                            style={{ color: HERO_RARITY_META[entry.rarity].color }}
+                          >
+                            {hero?.name[0] ?? "?"}
+                          </i>
+                        );
+                      })
                     )}
                   </div>
                 </div>
@@ -418,6 +513,87 @@ export function HeroCollectionScreen() {
 
               {renderHeroGroups(false)}
             </>
+          ) : tab === "archive" ? (
+            <section className="tg-collection__archive">
+              <div className="tg-collection__archive-summary">
+                <div>
+                  <span>累计抽数</span>
+                  <strong>{totalDraws}</strong>
+                </div>
+                {HERO_RARITY_ORDER.map((rarity) => (
+                  <div key={rarity} style={{ color: HERO_RARITY_META[rarity].color }}>
+                    <span>{HERO_RARITY_META[rarity].label}</span>
+                    <strong>{rarityTotals[rarity]}</strong>
+                  </div>
+                ))}
+              </div>
+
+              <div className="tg-collection__archive-pools">
+                {RECRUIT_POOLS.map((pool) => {
+                  const Icon = pool.icon;
+                  const stats = poolStats[pool.id] ?? { total: 0, epicCounter: 0, legendCounter: 0, rareCount: 0, epicCount: 0, legendCount: 0 };
+                  const rules = RECRUIT_POOL_RULES[pool.id];
+                  const epicReady = isEpicPityReady(pool.id, stats);
+                  const legendReady = isLegendPityReady(pool.id, stats);
+                  return (
+                    <div key={pool.id} className="tg-collection__archive-pool">
+                      <header>
+                        <Icon size={16} />
+                        <strong>{pool.label}</strong>
+                        <span>×{pool.cost} 券/次</span>
+                      </header>
+                      <div className="tg-collection__archive-stats">
+                        <span>总抽 <b>{stats.total}</b></span>
+                        <span>稀有 <b>{stats.rareCount ?? 0}</b></span>
+                        <span>史诗 <b>{stats.epicCount ?? 0}</b></span>
+                        <span>传说 <b>{stats.legendCount ?? 0}</b></span>
+                      </div>
+                      <div className="tg-collection__pity-row">
+                        <span className={epicReady ? "is-ready" : ""} style={{ color: "#c084fc" }}>
+                          史诗 {stats.epicCounter}/{rules.epicPity}
+                        </span>
+                        <span className={legendReady ? "is-ready" : ""} style={{ color: "#fbbf24" }}>
+                          传说 {stats.legendCounter}/{rules.legendPity}
+                        </span>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+
+              <section className="tg-collection__archive-history">
+                <header>
+                  <History size={15} />
+                  <strong>招募档案</strong>
+                  <span>最近 {drawHistory.length} 条</span>
+                </header>
+                {drawHistory.length === 0 ? (
+                  <em className="tg-collection__archive-empty">暂无抽卡记录</em>
+                ) : (
+                  <div className="tg-collection__history-list">
+                    {drawHistory.slice(0, 12).map((entry) => {
+                      const hero = RECRUIT_HEROES.find((item) => item.id === entry.heroId);
+                      if (!hero) return null;
+                      return (
+                        <div
+                          key={entry.id}
+                          className="tg-collection__history-row"
+                          style={{ "--rarity": HERO_RARITY_META[entry.rarity].color } as React.CSSProperties}
+                        >
+                          <span className="tg-collection__history-glyph">{hero.name[0]}</span>
+                          <div>
+                            <strong>{hero.name}</strong>
+                            <small>{HERO_RARITY_META[entry.rarity].label} · {POOL_LABELS[entry.poolId]}</small>
+                          </div>
+                          <em>{entry.isNew ? "新武将" : `碎片 +${entry.fragmentReward}`}</em>
+                          <time>{formatDrawTime(entry.timestamp)}</time>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </section>
+            </section>
           ) : (
             <>
               {renderHeroGroups(true)}

@@ -1,4 +1,5 @@
 export type HeroRarity = "rare" | "epic" | "legendary";
+export type RecruitPoolId = "basic" | "elite" | "legend";
 
 export interface RecruitHero {
   id: string;
@@ -181,4 +182,177 @@ export function writeHeroFragments(fragments: Record<string, number>) {
   } catch {
     // Storage may be unavailable.
   }
+}
+
+export interface RecruitPoolRule {
+  cost: number;
+  epicPity: number;
+  legendPity: number;
+}
+
+export const RECRUIT_POOL_RULES: Record<RecruitPoolId, RecruitPoolRule> = {
+  basic: { cost: 1, epicPity: 10, legendPity: 80 },
+  elite: { cost: 2, epicPity: 10, legendPity: 50 },
+  legend: { cost: 3, epicPity: 10, legendPity: 30 },
+};
+
+export interface PoolDrawStats {
+  total: number;
+  epicCounter: number;
+  legendCounter: number;
+  rareCount: number;
+  epicCount: number;
+  legendCount: number;
+}
+
+export type PoolStats = Record<RecruitPoolId, PoolDrawStats>;
+
+export function createDefaultPoolStats(): PoolStats {
+  return {
+    basic: { total: 0, epicCounter: 0, legendCounter: 0, rareCount: 0, epicCount: 0, legendCount: 0 },
+    elite: { total: 0, epicCounter: 0, legendCounter: 0, rareCount: 0, epicCount: 0, legendCount: 0 },
+    legend: { total: 0, epicCounter: 0, legendCounter: 0, rareCount: 0, epicCount: 0, legendCount: 0 },
+  };
+}
+
+export function isEpicPityReady(poolId: RecruitPoolId, stats: PoolDrawStats) {
+  return stats.epicCounter >= RECRUIT_POOL_RULES[poolId].epicPity - 1;
+}
+
+export function isLegendPityReady(poolId: RecruitPoolId, stats: PoolDrawStats) {
+  return stats.legendCounter >= RECRUIT_POOL_RULES[poolId].legendPity - 1;
+}
+
+export function advancePoolStats(
+  poolId: RecruitPoolId,
+  stats: PoolDrawStats,
+  rarity: HeroRarity,
+): PoolDrawStats {
+  const next: PoolDrawStats = {
+    total: stats.total + 1,
+    epicCounter: stats.epicCounter + 1,
+    legendCounter: stats.legendCounter + 1,
+    rareCount: stats.rareCount,
+    epicCount: stats.epicCount,
+    legendCount: stats.legendCount,
+  };
+  if (rarity === "rare") next.rareCount += 1;
+  if (rarity === "epic") next.epicCount += 1;
+  if (rarity === "legendary") next.legendCount += 1;
+  if (rarity === "legendary") {
+    next.epicCounter = 0;
+    next.legendCounter = 0;
+  } else if (rarity === "epic") {
+    next.epicCounter = 0;
+  }
+  return next;
+}
+
+export interface DrawHistoryEntry {
+  id: string;
+  poolId: RecruitPoolId;
+  heroId: string;
+  rarity: HeroRarity;
+  isNew: boolean;
+  fragmentReward: number;
+  timestamp: number;
+}
+
+export const STARTING_DEMO_TICKETS = 50;
+export const DEMO_TICKET_GRANT = 8;
+export const DEMO_TASK_LIMIT = 5;
+
+const RECRUIT_TICKET_STORAGE_KEY = "mini-playbox-recruit-tickets";
+const RECRUIT_POOL_STATS_KEY = "mini-playbox-recruit-pool-stats";
+const RECRUIT_DRAW_HISTORY_KEY = "mini-playbox-recruit-history";
+const RECRUIT_DEMO_TASK_KEY = "mini-playbox-recruit-demo-tasks";
+
+export function readRecruitTickets(): number {
+  try {
+    const value = Number(localStorage.getItem(RECRUIT_TICKET_STORAGE_KEY));
+    if (Number.isFinite(value) && value >= 0) return Math.floor(value);
+  } catch {
+    // ignore
+  }
+  return STARTING_DEMO_TICKETS;
+}
+
+export function writeRecruitTickets(count: number) {
+  try {
+    localStorage.setItem(RECRUIT_TICKET_STORAGE_KEY, String(Math.max(0, Math.floor(count))));
+  } catch {
+    // Storage may be unavailable.
+  }
+}
+
+export function readPoolStats(): PoolStats {
+  const fallback = createDefaultPoolStats();
+  try {
+    const raw = localStorage.getItem(RECRUIT_POOL_STATS_KEY);
+    if (!raw) return fallback;
+    const parsed = JSON.parse(raw) as Partial<PoolStats>;
+    return {
+      basic: { ...fallback.basic, ...parsed.basic },
+      elite: { ...fallback.elite, ...parsed.elite },
+      legend: { ...fallback.legend, ...parsed.legend },
+    };
+  } catch {
+    return fallback;
+  }
+}
+
+export function writePoolStats(stats: PoolStats) {
+  try {
+    localStorage.setItem(RECRUIT_POOL_STATS_KEY, JSON.stringify(stats));
+  } catch {
+    // Storage may be unavailable.
+  }
+}
+
+export function readDrawHistory(): DrawHistoryEntry[] {
+  try {
+    const raw = localStorage.getItem(RECRUIT_DRAW_HISTORY_KEY);
+    if (!raw) return [];
+    const parsed = JSON.parse(raw) as DrawHistoryEntry[];
+    if (!Array.isArray(parsed)) return [];
+    return parsed
+      .filter((entry) => entry && typeof entry.id === "string" && RECRUIT_HEROES.some((h) => h.id === entry.heroId))
+      .slice(0, 200);
+  } catch {
+    return [];
+  }
+}
+
+export function writeDrawHistory(history: DrawHistoryEntry[]) {
+  try {
+    localStorage.setItem(RECRUIT_DRAW_HISTORY_KEY, JSON.stringify(history.slice(0, 200)));
+  } catch {
+    // Storage may be unavailable.
+  }
+}
+
+export function readDemoTaskCount(): number {
+  try {
+    const value = Number(localStorage.getItem(RECRUIT_DEMO_TASK_KEY));
+    if (Number.isFinite(value) && value >= 0) return Math.min(Math.floor(value), DEMO_TASK_LIMIT);
+  } catch {
+    // ignore
+  }
+  return 0;
+}
+
+export function writeDemoTaskCount(count: number) {
+  try {
+    localStorage.setItem(RECRUIT_DEMO_TASK_KEY, String(Math.min(Math.max(0, Math.floor(count)), DEMO_TASK_LIMIT)));
+  } catch {
+    // Storage may be unavailable.
+  }
+}
+
+export function createDrawHistoryEntry(entry: Omit<DrawHistoryEntry, "id" | "timestamp">): DrawHistoryEntry {
+  const id =
+    typeof crypto !== "undefined" && "randomUUID" in crypto
+      ? crypto.randomUUID()
+      : `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+  return { ...entry, id, timestamp: Date.now() };
 }

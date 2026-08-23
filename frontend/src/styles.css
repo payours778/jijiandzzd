@@ -5381,3 +5381,308 @@ img { max-width: 100%; display: block; }
   .tg-gacha__pools { grid-template-columns: 1fr; }
   .tg-gacha__pools button { height: 34px; }
 }
+
+
+/* ---------- 军营武将：保底、史诗演出、招募档案 ---------- */
+.tg-gacha__pools button {
+  min-height: 44px;
+  flex-wrap: wrap;
+  align-content: center;
+  row-gap: 3px;
+}
+.tg-gacha__pools button b.tg-gacha__cost {
+  padding: 2px 6px;
+  border: 1px solid rgba(251, 191, 36, 0.3);
+  border-radius: 99px;
+  background: rgba(251, 191, 36, 0.09);
+  color: #fbbf24;
+  font-size: 10px;
+  font-weight: 900;
+}
+.tg-gacha__pity {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  flex-wrap: wrap;
+  padding: 8px 10px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.2);
+  font-size: 11px;
+  font-weight: 900;
+}
+.tg-gacha__pity span {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 22px;
+  padding: 0 8px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.04);
+}
+.tg-gacha__pity span.is-ready {
+  box-shadow: 0 0 16px currentColor;
+  transform: translateY(-1px);
+}
+
+.tg-gacha__orb.is-epic {
+  border-color: #c084fc;
+  box-shadow:
+    0 0 0 6px rgba(192, 132, 252, 0.12),
+    0 0 84px rgba(192, 132, 252, 0.4);
+}
+.tg-gacha__orb.is-epic::before,
+.tg-gacha__orb.is-epic::after {
+  content: "";
+  position: absolute;
+  inset: -16px;
+  border: 1px solid rgba(192, 132, 252, 0.45);
+  border-radius: 50%;
+  pointer-events: none;
+  animation: gachaEpicShockwave 1.8s ease-out infinite;
+}
+.tg-gacha__orb.is-epic::after {
+  inset: -30px;
+  border-color: rgba(96, 165, 250, 0.3);
+  animation-delay: 0.45s;
+}
+@keyframes gachaEpicShockwave {
+  0% { opacity: 0.8; transform: scale(0.9); }
+  70% { opacity: 0.12; transform: scale(1.12); }
+  100% { opacity: 0; transform: scale(1.18); }
+}
+.tg-gacha__orb.is-epic .tg-gacha__ring {
+  border-width: 2px;
+  opacity: 0.9;
+  border-top-color: #c084fc;
+  border-right-color: #60a5fa;
+  border-bottom-color: #fbbf24;
+  border-left-color: #c084fc;
+}
+.tg-gacha__result-card.is-epic {
+  border-color: #c084fc;
+  background:
+    radial-gradient(105% 90% at 50% 0%, rgba(192, 132, 252, 0.3), transparent 70%),
+    linear-gradient(180deg, rgba(28, 24, 38, 0.98), rgba(10, 10, 16, 0.98));
+  animation: gachaEpicIn 0.5s cubic-bezier(0.34, 1.4, 0.64, 1);
+}
+@keyframes gachaEpicIn {
+  0% { opacity: 0; transform: scale(0.76) rotate(-4deg); filter: brightness(1.8); }
+  60% { opacity: 1; transform: scale(1.06) rotate(1deg); filter: brightness(1.25); }
+  100% { opacity: 1; transform: scale(1) rotate(0deg); filter: brightness(1); }
+}
+
+.tg-collection__archive {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  min-width: 0;
+}
+.tg-collection__archive-summary {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+}
+.tg-collection__archive-summary > div {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+  padding: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  background: rgba(15, 17, 22, 0.78);
+}
+.tg-collection__archive-summary span {
+  font-size: 11px;
+  font-weight: 800;
+  color: #8b90a0;
+}
+.tg-collection__archive-summary strong {
+  font-size: 22px;
+  font-weight: 900;
+  line-height: 1;
+}
+.tg-collection__archive-pools {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 8px;
+}
+.tg-collection__archive-pool {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  background: rgba(15, 17, 22, 0.78);
+}
+.tg-collection__archive-pool header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #fde68a;
+  font-size: 14px;
+  font-weight: 900;
+}
+.tg-collection__archive-pool header span {
+  margin-left: auto;
+  color: #8b90a0;
+  font-size: 10px;
+}
+.tg-collection__archive-stats {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 6px;
+}
+.tg-collection__archive-stats span {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 4px;
+  min-width: 0;
+  padding: 6px 8px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.04);
+  color: #9ca3af;
+  font-size: 10px;
+  font-weight: 800;
+}
+.tg-collection__archive-stats b {
+  color: #e5e7eb;
+  font-size: 13px;
+}
+.tg-collection__pity-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.tg-collection__pity-row span {
+  padding: 4px 8px;
+  border: 1px solid color-mix(in srgb, currentColor 35%, transparent);
+  border-radius: 99px;
+  background: color-mix(in srgb, currentColor 8%, transparent);
+  font-size: 10px;
+  font-weight: 900;
+}
+.tg-collection__pity-row span.is-ready {
+  box-shadow: 0 0 14px currentColor;
+}
+.tg-collection__archive-history {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-width: 0;
+  padding: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  background: rgba(8, 10, 14, 0.78);
+}
+.tg-collection__archive-history > header {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  color: #e5e7eb;
+  font-size: 13px;
+  font-weight: 900;
+}
+.tg-collection__archive-history > header span {
+  margin-left: auto;
+  color: #6b7280;
+  font-size: 10px;
+}
+.tg-collection__archive-empty {
+  padding: 12px;
+  text-align: center;
+  font-size: 11px;
+  font-style: normal;
+  color: #6b7280;
+}
+.tg-collection__history-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  max-height: 420px;
+  overflow: auto;
+}
+.tg-collection__history-row {
+  display: grid;
+  grid-template-columns: 34px minmax(0, 1fr) auto auto;
+  align-items: center;
+  gap: 10px;
+  min-height: 44px;
+  padding: 7px 9px;
+  border: 1px solid color-mix(in srgb, var(--rarity) 26%, transparent);
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--rarity) 7%, transparent);
+}
+.tg-collection__history-glyph {
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 6px;
+  background: color-mix(in srgb, var(--rarity) 18%, transparent);
+  color: var(--rarity);
+  font-size: 14px;
+  font-weight: 900;
+}
+.tg-collection__history-row > div {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+}
+.tg-collection__history-row > div strong {
+  color: #f3f4f6;
+  font-size: 13px;
+}
+.tg-collection__history-row > div small {
+  color: #8b90a0;
+  font-size: 10px;
+}
+.tg-collection__history-row > em {
+  font-size: 10px;
+  font-style: normal;
+  font-weight: 800;
+  color: #fbbf24;
+  white-space: nowrap;
+}
+.tg-collection__history-row > time {
+  color: #6b7280;
+  font-size: 10px;
+  white-space: nowrap;
+}
+
+@media (max-width: 860px) {
+  .tg-collection__archive-summary {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .tg-collection__archive-stats {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .tg-collection__history-row {
+    grid-template-columns: 34px minmax(0, 1fr) auto;
+  }
+  .tg-collection__history-row > time {
+    display: none;
+  }
+}
+@media (max-width: 560px) {
+  .tg-gacha__pity {
+    justify-content: stretch;
+  }
+  .tg-gacha__pity span {
+    flex: 1;
+    justify-content: center;
+  }
+  .tg-collection__archive-summary {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .tg-collection__history-row {
+    grid-template-columns: 30px minmax(0, 1fr) auto;
+  }
+}

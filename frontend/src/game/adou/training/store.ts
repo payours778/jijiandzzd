@@ -1,16 +1,35 @@
 /**
- * 练兵场主菜单 - 内存 store
+ * 练兵场主菜单 - 招募进度 store
  *
- * 只在本会话内有效，不持久化（资源、台词、菜单焦点都跟随用户本次访问）。
+ * 招募券、池子保底计数、抽卡历史都会写入 localStorage，
+ * 后续接账号系统时可直接把这些 JSON 迁移到服务端。
  */
 import { create } from "zustand";
 import type { MenuKey } from "./types";
 import {
   DEFAULT_RECRUITED_IDS,
+  DEMO_TASK_LIMIT,
+  DEMO_TICKET_GRANT,
+  STARTING_DEMO_TICKETS,
+  advancePoolStats,
+  createDefaultPoolStats,
+  createDrawHistoryEntry,
+  readDemoTaskCount,
+  readDrawHistory,
   readHeroFragments,
+  readPoolStats,
   readRecruitedHeroIds,
+  readRecruitTickets,
+  writeDemoTaskCount,
+  writeDrawHistory,
   writeHeroFragments,
+  writePoolStats,
   writeRecruitedHeroIds,
+  writeRecruitTickets,
+  type DrawHistoryEntry,
+  type HeroRarity,
+  type PoolStats,
+  type RecruitPoolId,
 } from "./heroes";
 
 interface TrainingGroundState {
@@ -18,14 +37,25 @@ interface TrainingGroundState {
   recruitedHeroIds: string[];
   heroFragments: Record<string, number>;
   recruitTickets: number;
+  poolStats: PoolStats;
+  drawHistory: DrawHistoryEntry[];
+  demoTaskCount: number;
   comingSoon: boolean;
   parallax: { x: number; y: number };
 
   setActiveMenu: (key: MenuKey) => void;
   recruitHero: (id: string) => void;
   addHeroFragments: (id: string, count: number) => void;
-  spendRecruitTicket: () => void;
+  spendRecruitTicket: (cost: number) => void;
   addRecruitTickets: (count: number) => void;
+  recordDraw: (
+    poolId: RecruitPoolId,
+    heroId: string,
+    rarity: HeroRarity,
+    isNew: boolean,
+    fragmentReward: number,
+  ) => void;
+  collectDemoTickets: () => void;
   resetRecruitDemo: () => void;
   showComingSoon: () => void;
   hideComingSoon: () => void;
@@ -36,7 +66,10 @@ export const useTrainingGroundStore = create<TrainingGroundState>((set) => ({
   activeMenu: "start",
   recruitedHeroIds: readRecruitedHeroIds(),
   heroFragments: readHeroFragments(),
-  recruitTickets: 30,
+  recruitTickets: readRecruitTickets(),
+  poolStats: readPoolStats(),
+  drawHistory: readDrawHistory(),
+  demoTaskCount: readDemoTaskCount(),
   comingSoon: false,
   parallax: { x: 0, y: 0 },
 
@@ -55,14 +88,57 @@ export const useTrainingGroundStore = create<TrainingGroundState>((set) => ({
       writeHeroFragments(next);
       return { heroFragments: next };
     }),
-  spendRecruitTicket: () =>
-    set((state) => ({ recruitTickets: Math.max(0, state.recruitTickets - 1) })),
+  spendRecruitTicket: (cost) =>
+    set((state) => {
+      const next = Math.max(0, state.recruitTickets - cost);
+      writeRecruitTickets(next);
+      return { recruitTickets: next };
+    }),
   addRecruitTickets: (count) =>
-    set((state) => ({ recruitTickets: state.recruitTickets + count })),
+    set((state) => {
+      const next = state.recruitTickets + count;
+      writeRecruitTickets(next);
+      return { recruitTickets: next };
+    }),
+  recordDraw: (poolId, heroId, rarity, isNew, fragmentReward) =>
+    set((state) => {
+      const nextStats: PoolStats = {
+        ...state.poolStats,
+        [poolId]: advancePoolStats(poolId, state.poolStats[poolId], rarity),
+      };
+      const nextHistory = [
+        createDrawHistoryEntry({ poolId, heroId, rarity, isNew, fragmentReward }),
+        ...state.drawHistory,
+      ].slice(0, 200);
+      writePoolStats(nextStats);
+      writeDrawHistory(nextHistory);
+      return { poolStats: nextStats, drawHistory: nextHistory };
+    }),
+  collectDemoTickets: () =>
+    set((state) => {
+      if (state.demoTaskCount >= DEMO_TASK_LIMIT) return state;
+      const nextTickets = state.recruitTickets + DEMO_TICKET_GRANT;
+      const nextTaskCount = Math.min(DEMO_TASK_LIMIT, state.demoTaskCount + 1);
+      writeRecruitTickets(nextTickets);
+      writeDemoTaskCount(nextTaskCount);
+      return { recruitTickets: nextTickets, demoTaskCount: nextTaskCount };
+    }),
   resetRecruitDemo: () => {
+    const poolStats = createDefaultPoolStats();
     writeRecruitedHeroIds(DEFAULT_RECRUITED_IDS);
     writeHeroFragments({});
-    set({ recruitedHeroIds: DEFAULT_RECRUITED_IDS.slice(), heroFragments: {}, recruitTickets: 30 });
+    writeRecruitTickets(STARTING_DEMO_TICKETS);
+    writePoolStats(poolStats);
+    writeDrawHistory([]);
+    writeDemoTaskCount(0);
+    set({
+      recruitedHeroIds: DEFAULT_RECRUITED_IDS.slice(),
+      heroFragments: {},
+      recruitTickets: STARTING_DEMO_TICKETS,
+      poolStats,
+      drawHistory: [],
+      demoTaskCount: 0,
+    });
   },
   showComingSoon: () => set({ comingSoon: true }),
   hideComingSoon: () => set({ comingSoon: false }),
