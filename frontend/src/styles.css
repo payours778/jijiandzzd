@@ -4908,7 +4908,7 @@ img { max-width: 100%; display: block; }
 
 @media (max-width: 1100px) {
   .tg-collection { padding: 12px; }
-  .tg-collection__body { grid-template-columns: minmax(0, 1fr) 290px; }
+  .tg-collection__body { grid-template-columns: minmax(0, 1fr); }
   .tg-collection__grid { grid-template-columns: repeat(auto-fill, minmax(126px, 1fr)); }
 }
 @media (max-width: 860px) {
