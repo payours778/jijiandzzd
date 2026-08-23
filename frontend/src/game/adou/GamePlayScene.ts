@@ -593,6 +593,19 @@ export class GamePlayScene extends Phaser.Scene {
         color: "#6b7280",
       });
 
+    this.add
+      .text(this.px(97.5), this.py(6.5), "投降", {
+        fontFamily: Config.fontFamily,
+        fontSize: "18px",
+        color: "#fca5a5",
+        backgroundColor: "#7f1d1d",
+        padding: { x: 12, y: 6 },
+      })
+      .setOrigin(1, 0)
+      .setDepth(60)
+      .setInteractive({ useHandCursor: true })
+      .on("pointerdown", () => this.surrender());
+
     this.updateMantouText();
     this.updateCoinText();
     this.updateDrawButton();
@@ -1540,7 +1553,14 @@ export class GamePlayScene extends Phaser.Scene {
     }
   }
 
-  private showGameOverPanel() {
+  private surrender() {
+    if (this.gameOver) return;
+    this.gameOver = true;
+    this.gameOverShown = true;
+    this.showGameOverPanel(true);
+  }
+
+  private showGameOverPanel(surrender = false) {
     playSfx("game_over");
 
     // 结算事件：每局只触发一次（showGameOverPanel 受 gameOverShown 防重入保护），
@@ -1563,7 +1583,7 @@ export class GamePlayScene extends Phaser.Scene {
     this.gameOverPanel.setDepth(140);
 
     this.add
-      .text(cx, cy - 80, "游戏失败", {
+      .text(cx, cy - 80, surrender ? "已投降" : "游戏失败", {
         fontFamily: Config.fontFamily,
         fontSize: "36px",
         color: "#f87171",
