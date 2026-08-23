@@ -5,6 +5,7 @@ import { getWeapon } from "../../weapons";
 import { PixelHero } from "./PixelHero";
 
 const RARITY_TEXT: Record<string, string> = {
+  mythic: "神话",
   legendary: "传说",
   epic: "史诗",
   rare: "稀有",

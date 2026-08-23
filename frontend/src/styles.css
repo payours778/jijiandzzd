@@ -2714,6 +2714,7 @@ img { max-width: 100%; display: block; }
   border: 1px solid #2a2f37;
   border-radius: 10px;
 }
+.tg-drawer__weapon-card.tg-rarity--mythic { border-color: rgba(248, 113, 113, 0.5); background: rgba(248, 113, 113, 0.06); }
 .tg-drawer__weapon-card.tg-rarity--legendary { border-color: rgba(251, 191, 36, 0.4); background: rgba(251, 191, 36, 0.04); }
 .tg-drawer__weapon-card.tg-rarity--epic { border-color: rgba(168, 85, 247, 0.4); background: rgba(168, 85, 247, 0.04); }
 .tg-drawer__weapon-card.tg-rarity--rare { border-color: rgba(96, 165, 250, 0.4); background: rgba(96, 165, 250, 0.04); }
@@ -2726,6 +2727,7 @@ img { max-width: 100%; display: block; }
   border-radius: 8px;
   color: #fbbf24;
 }
+.tg-drawer__weapon-card.tg-rarity--mythic .tg-drawer__weapon-glyph { color: #f87171; }
 .tg-drawer__weapon-card.tg-rarity--epic .tg-drawer__weapon-glyph { color: #a855f7; }
 .tg-drawer__weapon-card.tg-rarity--rare .tg-drawer__weapon-glyph { color: #60a5fa; }
 .tg-drawer__weapon-card.tg-rarity--common .tg-drawer__weapon-glyph { color: #9ca3af; }

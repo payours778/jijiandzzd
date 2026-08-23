@@ -16,7 +16,7 @@ export type WeaponAttackType =
   | "thrown"; // 投掷
 
 /** 武器稀有度（影响外观、掉率、属性） */
-export type WeaponRarity = "common" | "rare" | "epic" | "legendary";
+export type WeaponRarity = "common" | "rare" | "epic" | "legendary" | "mythic";
 
 /** 武器解锁状态 */
 export type WeaponStatus = "available" | "locked" | "development";

@@ -9,12 +9,12 @@ import {
   type WeaponSeriesId,
 } from "../../weapons";
 
-type SeriesFilter = "all" | Extract<WeaponSeriesId, "sword" | "spear" | "blade">;
+type SeriesFilter = "all" | Extract<WeaponSeriesId, "sword" | "spear" | "blade" | "bow">;
 type AttackFilter = "all" | WeaponDefinition["attackType"];
 type QualityKey = "white" | "green" | "purple" | "gold" | "red";
 type ArmoryView = "armory" | "shop";
 
-const ARMORY_SERIES: SeriesFilter[] = ["all", "sword", "spear", "blade"];
+const ARMORY_SERIES: SeriesFilter[] = ["all", "sword", "spear", "blade", "bow"];
 
 const ATTACK_FILTERS: AttackFilter[] = ["all", "melee", "ranged", "magic", "thrown"];
 
@@ -38,15 +38,18 @@ const DEFAULT_OWNED_WEAPONS = [
   "tie-qiang",
   "da-dao",
   "hutou-qiang",
+  "jian-of-heyi",
+  "podao",
+  "qixing-spear",
+  "tongbei-bow",
 ];
 
 const OWNED_KEY = "mini-playbox-owned-weapons";
 const EQUIPPED_KEY = "mini-playbox-equipped-weapon";
 
 function qualityOf(weapon: WeaponDefinition): QualityKey {
-  if (weapon.rarity === "legendary") {
-    return weapon.status === "locked" ? "red" : "gold";
-  }
+  if (weapon.rarity === "mythic") return "red";
+  if (weapon.rarity === "legendary") return "gold";
   if (weapon.rarity === "epic") return "purple";
   if (weapon.rarity === "rare") return "green";
   return "white";
@@ -125,7 +128,7 @@ export function ArmoryScreen() {
   }, [weapons, series, attack, quality, view]);
 
   const grouped = useMemo(() => {
-    const order: WeaponSeriesId[] = ["sword", "spear", "blade"];
+    const order: WeaponSeriesId[] = ["sword", "blade", "spear", "bow"];
     return order
       .map((id) => ({
         series: id,
