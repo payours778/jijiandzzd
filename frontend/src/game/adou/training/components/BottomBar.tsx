@@ -34,7 +34,7 @@ export function BottomBar() {
         <Music size={14} />
         <span>长坂坡·夜</span>
       </button>
-      <div className="tg-bottombar__hint">点击武将查看详情 · 点击左侧菜单切换场景</div>
+      <div className="tg-bottombar__hint">点击左侧菜单切换场景</div>
       <div className="tg-bottombar__time">{new Date().toLocaleTimeString("zh-CN", { hour: "2-digit", minute: "2-digit" })}</div>
     </footer>
   );

@@ -3,7 +3,6 @@ import { LeftMenu } from "./LeftMenu";
 import { Stage } from "./Stage";
 import { ArmoryScreen } from "./ArmoryScreen";
 import { BottomBar } from "./BottomBar";
-import { HeroDetailDrawer } from "./HeroDetailDrawer";
 import { ComingSoonOverlay } from "./ComingSoonOverlay";
 import { useTrainingGroundStore } from "../store";
 import { useAppStore } from "../../../../store/useAppStore";
@@ -39,7 +38,6 @@ export function TrainingGroundScreen({ onBack }: TrainingGroundScreenProps) {
         </main>
       </div>
       <BottomBar />
-      <HeroDetailDrawer />
       <ComingSoonOverlay />
       <button
         className="tg-sr-only"
