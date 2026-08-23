@@ -10,6 +10,7 @@ const rootDir = path.resolve(__dirname, "..", "frontend", "dist");
 const dataDir = path.join(__dirname, "data");
 const dbFile = path.join(dataDir, "app.db");
 const port = Number(process.env.PORT || 3001);
+const host = process.env.HOST || "127.0.0.1";
 
 fs.mkdirSync(dataDir, { recursive: true });
 
@@ -496,6 +497,6 @@ const server = http.createServer(async (req, res) => {
   }
 });
 
-server.listen(port, "127.0.0.1", () => {
-  console.log(`Mini Playbox backend running at http://127.0.0.1:${port}`);
+server.listen(port, host, () => {
+  console.log(`Mini Playbox backend running at http://${host}:${port}`);
 });
