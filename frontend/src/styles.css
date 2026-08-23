@@ -6020,13 +6020,6 @@ img { max-width: 100%; display: block; }
   45%, 60% { opacity: 0.95; transform: translateX(-50%) scaleX(1.14) scaleY(1.04); }
 }
 /* 结果页动画只在真正翻牌时播放，避免卡背阶段先出现“自动翻开再退回” */
-.tg-gacha__flip .tg-gacha__result-card.is-epic,
-.tg-gacha__flip .tg-gacha__result-card.is-legendary {
+.tg-gacha__flip .tg-gacha__result-card {
   animation: none;
-}
-.tg-gacha__flip.is-flipping .tg-gacha__result-card.is-epic {
-  animation: gachaEpicIn 0.5s cubic-bezier(0.34, 1.4, 0.64, 1) 1;
-}
-.tg-gacha__flip.is-flipping .tg-gacha__result-card.is-legendary {
-  animation: gachaLegendIn 0.55s cubic-bezier(0.34, 1.56, 0.64, 1) 1;
 }
