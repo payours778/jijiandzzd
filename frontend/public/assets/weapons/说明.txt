@@ -1,0 +1,150 @@
+武器动画素材库
+==============
+
+本目录为「保卫阿斗」武器素材库，按系列分类，每个武器一个文件夹。
+所有素材来自用户提供的弓箭/剑帧动画，并按武器清单一一对应分配，
+未提供专属素材的系列（刀/枪/戟/锤/匕首）复用剑素材，
+（扇/暗器/法）复用弓素材。
+
+素材来源与许可：
+- 弓：OpenGameArt《Light Weapons (Pixel Art)》作者 ScratchIO，CC0
+  https://opengameart.org/content/light-weapons-pixel-art
+- 剑：4 Pixel Swords 作者 forrace，CC-BY 3.0
+  https://opengameart.org/content/4-pixel-swords
+
+每个武器文件夹包含：
+- <武器id>-动画.png（弓） / <武器id>-挥砍动画.png（剑）：9 帧横向动画条，可当 Phaser 精灵表
+- <武器id>-模型.png：待机模型帧
+- <武器id>-帧1.png ~ 帧9.png：拆开的单帧素材
+- <武器id>-预览.gif：浏览器直接预览
+
+动画节奏建议：
+- 弓：帧1 持弓待机；帧2-4 拉弓蓄力；帧5-6 放箭；帧7-9 回弹收弓（快射可只取 帧2-5）
+- 剑：帧1 起手；帧2 上挑蓄力；帧3-6 挥砍带残影；帧7 收招；帧8-9 回位待机
+- 默认每帧 70ms，整套约 0.63 秒；近战斩击、远程射击可直接按帧播放
+
+──────────────────────────────
+刀系（blade）· 14 把 · 素材类型：剑素材
+──────────────────────────────
+- 刀（白色）→ podao → 素材变体：青蓝剑-Sword-2
+- 长刀（绿色）→ da-dao → 素材变体：金芒剑-Sword-3
+- 斩马刀（绿色）→ zhanmadao → 素材变体：暗夜剑-Sword-4
+- 双月弯刀（绿色）→ shuangyue-blade → 素材变体：翠绿剑-Sword-5
+- 断水刀（紫色）→ yanyue-da-dao → 素材变体：青蓝剑-Sword-2
+- 白虹刀（紫色）→ baihua-blade → 素材变体：金芒剑-Sword-3
+- 陌刀（紫色）→ modao-blade → 素材变体：暗夜剑-Sword-4
+- 青龙偃月刀（红色）→ qinglong-blade → 素材变体：翠绿剑-Sword-5
+- 冷艳锯（金色）→ yanyang-blade → 素材变体：青蓝剑-Sword-2
+- 金背大环刀（金色）→ dajiangjun-blade → 素材变体：金芒剑-Sword-3
+- 轩辕断刀（红色）→ xuanyuan-blade → 素材变体：暗夜剑-Sword-4
+- 屠龙刀（红色）→ tulong-blade → 素材变体：翠绿剑-Sword-5
+- 鸣鸿刀（红色）→ minghong-blade → 素材变体：青蓝剑-Sword-2
+- 虎魄刀（金色）→ hupo-blade → 素材变体：金芒剑-Sword-3
+
+──────────────────────────────
+弓系（bow）· 14 把 · 素材类型：弓素材
+──────────────────────────────
+- 铜臂弓（白色）→ tongbei-bow → 素材变体：弓箭-原版
+- 毒弓（红色）→ du-gong → 素材变体：弓箭-赤红
+- 黑翼弓（绿色）→ heyi-bow → 素材变体：弓箭-翠绿
+- 鹿角弓（绿色）→ lujiao-bow → 素材变体：弓箭-海蓝
+- 烈弓（红色）→ lie-gong → 素材变体：弓箭-紫晶
+- 卷心弓（紫色）→ juanxin-bow → 素材变体：弓箭-黑铁
+- 青华弓（紫色）→ qinghua-bow → 素材变体：弓箭-樱粉
+- 落日弓（金色）→ luori-bow → 素材变体：弓箭-原版
+- 万石穿云弓（金色）→ wanshi-bow → 素材变体：弓箭-赤红
+- 风木弓（金色）→ fengmu-bow → 素材变体：弓箭-翠绿
+- 盘古开天弓（红色）→ pangu-bow → 素材变体：弓箭-海蓝
+- 后羿射日弓（紫色）→ houyi-bow → 素材变体：弓箭-紫晶
+- 星辰落日弓（绿色）→ xingchen-bow → 素材变体：弓箭-黑铁
+- 太初鸿蒙弓（红色）→ taichu-bow → 素材变体：弓箭-樱粉
+
+──────────────────────────────
+匕首系（dagger）· 5 把 · 素材类型：剑素材
+──────────────────────────────
+- 青芷匕首（白色）→ qingzhi-dagger → 素材变体：青蓝剑-Sword-2
+- 月离匕（绿色）→ yueli-dagger → 素材变体：金芒剑-Sword-3
+- 无声匕（紫色）→ wushi-dagger → 素材变体：暗夜剑-Sword-4
+- 天命匕（金色）→ tianming-dagger → 素材变体：翠绿剑-Sword-5
+- 双刃匕（绿色）→ shuangren-dagger → 素材变体：青蓝剑-Sword-2
+
+──────────────────────────────
+扇系（fan）· 4 把 · 素材类型：弓素材
+──────────────────────────────
+- 不客扇（紫色）→ buke-fan → 素材变体：弓箭-原版
+- 流云扇（绿色）→ liuyun-fan → 素材变体：弓箭-赤红
+- 铁扇（白色）→ tieshan-fan → 素材变体：弓箭-翠绿
+- 诸葛羽扇（金色）→ zhuge-fan → 素材变体：弓箭-海蓝
+
+──────────────────────────────
+戟系（halberd）· 4 把 · 素材类型：剑素材
+──────────────────────────────
+- 方天画戟（金色）→ fangtian-ji → 素材变体：青蓝剑-Sword-2
+- 鸾羽戟（紫色）→ luan-ji → 素材变体：金芒剑-Sword-3
+- 戟天枢（绿色）→ ji-tianshu → 素材变体：暗夜剑-Sword-4
+- 双刃短戟（白色）→ shuangji → 素材变体：翠绿剑-Sword-5
+
+──────────────────────────────
+锤系（hammer）· 5 把 · 素材类型：剑素材
+──────────────────────────────
+- 玄关铁锤（绿色）→ xuanguan-hammer → 素材变体：青蓝剑-Sword-2
+- 炼狱锤（紫色）→ lianhua-hammer → 素材变体：金芒剑-Sword-3
+- 铁锤（白色）→ tiechui → 素材变体：暗夜剑-Sword-4
+- 断寒锤（紫色）→ duanhan-hammer → 素材变体：翠绿剑-Sword-5
+- 无双锤（金色）→ wushuang-hammer → 素材变体：青蓝剑-Sword-2
+
+──────────────────────────────
+枪系（spear）· 14 把 · 素材类型：剑素材
+──────────────────────────────
+- 枪（白色）→ qixing-spear → 素材变体：青蓝剑-Sword-2
+- 铁枪（紫色）→ tie-qiang → 素材变体：金芒剑-Sword-3
+- 流星枪（绿色）→ liuxing-spear → 素材变体：暗夜剑-Sword-4
+- 牙旗枪（绿色）→ yaba-spear → 素材变体：翠绿剑-Sword-5
+- 龙胆亮银枪（红色）→ longdan-spear → 素材变体：青蓝剑-Sword-2
+- 虎头枪（金色）→ hutou-qiang → 素材变体：金芒剑-Sword-3
+- 银蛇枪（紫色）→ yinshe-spear → 素材变体：暗夜剑-Sword-4
+- 丈八蛇矛（红色）→ she-mao → 素材变体：翠绿剑-Sword-5
+- 钩镰枪（金色）→ pojun-spear → 素材变体：青蓝剑-Sword-2
+- 虎头湛金枪（红色）→ huzhang-spear → 素材变体：金芒剑-Sword-3
+- 霸王枪（金色）→ bawang-spear → 素材变体：暗夜剑-Sword-4
+- 沥泉神枪（红色）→ shenlong-spear → 素材变体：翠绿剑-Sword-5
+- 五虎断魂枪（绿色）→ xuechan-spear → 素材变体：青蓝剑-Sword-2
+- 弑神枪（紫色）→ lietian-spear → 素材变体：金芒剑-Sword-3
+
+──────────────────────────────
+剑系（sword）· 14 把 · 素材类型：剑素材
+──────────────────────────────
+- 剑（白色）→ jian-of-heyi → 素材变体：青蓝剑-Sword-2
+- 狭锋剑（绿色）→ yuchang-sword → 素材变体：金芒剑-Sword-3
+- 青锋剑（绿色）→ qinggang-sword → 素材变体：暗夜剑-Sword-4
+- 精钢剑（绿色）→ longquan-sword → 素材变体：翠绿剑-Sword-5
+- 含光剑（紫色）→ chunjun-sword → 素材变体：青蓝剑-Sword-2
+- 宵练剑（紫色）→ tai-e-sword → 素材变体：金芒剑-Sword-3
+- 掩日剑（紫色）→ zhanlu-sword → 素材变体：暗夜剑-Sword-4
+- 雌雄双股剑（红色）→ rende-sword → 素材变体：翠绿剑-Sword-5
+- 七星剑（金色）→ qixing-sword → 素材变体：青蓝剑-Sword-2
+- 倚天剑（金色）→ yitian-sword → 素材变体：金芒剑-Sword-3
+- 轩辕剑（红色）→ xuanyuan-sword → 素材变体：暗夜剑-Sword-4
+- 干将莫邪（红色）→ ganjiang-moye → 素材变体：翠绿剑-Sword-5
+- 赤霄剑（红色）→ chixiao-sword → 素材变体：青蓝剑-Sword-2
+- 龙渊剑（金色）→ longyuan-sword → 素材变体：金芒剑-Sword-3
+
+──────────────────────────────
+暗器系（throwing）· 5 把 · 素材类型：弓素材
+──────────────────────────────
+- 铁蒺藜（白色）→ tieluo → 素材变体：弓箭-原版
+- 玄狐镖（绿色）→ xuanhu-biao → 素材变体：弓箭-赤红
+- 五毒飞镖（紫色）→ wudu-biao → 素材变体：弓箭-翠绿
+- 神璃针（金色）→ shenli-biao → 素材变体：弓箭-海蓝
+- 金环镖（绿色）→ jinhuan-biao → 素材变体：弓箭-紫晶
+
+──────────────────────────────
+法系（tome）· 5 把 · 素材类型：弓素材
+──────────────────────────────
+- 抱朴子法典（紫色）→ baoyu-tome → 素材变体：弓箭-原版
+- 太一经（绿色）→ taiyi-tome → 素材变体：弓箭-赤红
+- 九天雷印（金色）→ jiutian-tome → 素材变体：弓箭-翠绿
+- 碧海潮生卷（绿色）→ bihai-tome → 素材变体：弓箭-海蓝
+- 落雁符书（白色）→ luoyan-tome → 素材变体：弓箭-紫晶
+
+合计：10 个系列，84 把武器。
