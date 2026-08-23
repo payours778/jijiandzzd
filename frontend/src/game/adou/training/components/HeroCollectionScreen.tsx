@@ -107,6 +107,13 @@ const RECRUIT_POOLS: RecruitPool[] = [
   },
 ];
 
+const FIVE_DRAW_MULTIPLIER: Record<RecruitPoolId, number> = {
+  basic: 4.5,
+  elite: 4,
+  legend: 4,
+  targeted: 4,
+};
+
 function flipDurationMs(rarity: RecruitHero["rarity"]) {
   if (rarity === "legendary") return 1400;
   if (rarity === "epic") return 1050;
@@ -387,7 +394,7 @@ export function HeroCollectionScreen({
           ? legendRecruitScrolls
           : recruitTickets;
   const canAffordActive = unlimitedTickets || activeResourceCount >= activeRules.cost;
-  const fiveCost = activeRules.cost * 5;
+  const fiveCost = Math.round(activeRules.cost * FIVE_DRAW_MULTIPLIER[activePool.id]);
   const canAffordFive = unlimitedTickets || activeResourceCount >= fiveCost;
   const activeResourceLabel =
     activeRules.resource === "gold"
@@ -837,7 +844,7 @@ export function HeroCollectionScreen({
                       className="tg-gacha__five"
                       disabled={!unlimitedTickets && !canAffordFive} onClick={performFiveDraw}
                     >
-                      五连抽
+                      {unlimitedTickets ? "五连抽" : `五连抽 · ${fiveCost} ${activeResourceLabel}`}
                     </button>
                   )}
                 {unlimitedTickets && (
