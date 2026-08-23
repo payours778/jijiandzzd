@@ -6550,3 +6550,43 @@ img { max-width: 100%; display: block; }
     url('/assets/gacha-bg.jpg') center / cover no-repeat;
   background-color: #0a0c10;
 }
+
+/* ==== 武器素材图片（军械库/商店/已收集条） ==== */
+.tg-armory__glyph-img {
+  width: 40px;
+  height: 40px;
+  object-fit: contain;
+  image-rendering: pixelated;
+  filter: drop-shadow(0 0 8px var(--q-glow));
+}
+.tg-armory__preview-img {
+  width: 132px;
+  height: 132px;
+  object-fit: contain;
+  image-rendering: pixelated;
+  filter: drop-shadow(0 0 18px var(--q-glow));
+  animation: tg-armory-preview-float 3.2s ease-in-out infinite;
+}
+@keyframes tg-armory-preview-float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-6px); }
+}
+.tg-armory__owned-strip button img {
+  width: 30px;
+  height: 30px;
+  object-fit: contain;
+  image-rendering: pixelated;
+}
+
+.weapon-item__img {
+  width: 56px;
+  height: 56px;
+  object-fit: contain;
+  image-rendering: pixelated;
+  margin: 0 auto;
+  filter: drop-shadow(0 0 10px rgba(0, 0, 0, 0.5));
+}
+.weapon-item {
+  align-items: center;
+  text-align: center;
+}

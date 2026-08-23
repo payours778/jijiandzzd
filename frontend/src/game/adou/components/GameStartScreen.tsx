@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useAppStore } from "../../../store/useAppStore";
 import { AudioToggleButton } from "../../../audio/AudioToggleButton";
 import { playMusic, playSfx, stopMusic, unlock } from "../../../audio/audioSystem";
-import { listWeapons } from "../weapons";
+import { listWeapons, weaponIconPath } from "../weapons";
 
 const avatars = [
   "/avatars/avatar-01.png",
@@ -207,6 +207,7 @@ export function GameStartScreen({
                 data-rarity={weapon.rarity}
                 data-status={weapon.status}
               >
+                <img className="weapon-item__img" src={weaponIconPath(weapon)} alt={weapon.name} loading="lazy" />
                 <span>{weapon.defaultHolder}</span>
                 <strong title={weapon.description}>{weapon.name}</strong>
               </div>

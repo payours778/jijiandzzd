@@ -23,3 +23,4 @@ export {
   getEquippedWeapon,
 } from "./mount";
 export type { HasWeaponSlot, AttachResult } from "./mount";
+export * from "./assets";

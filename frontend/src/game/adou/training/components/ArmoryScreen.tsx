@@ -6,6 +6,7 @@ import { useTrainingGroundStore } from "../store";
 import {
   getSeries,
   listWeapons,
+  weaponIconPath,
   type WeaponDefinition,
   type WeaponSeriesId,
 } from "../../weapons";
@@ -377,7 +378,7 @@ export function ArmoryScreen() {
                         <span className="tg-armory__series">{seriesName(weapon.series)}</span>
                         {owned && <span className="tg-armory__owned"><Check size={12} />已拥有</span>}
                       </span>
-                      <span className="tg-armory__glyph">{weapon.glyph}</span>
+                      <img className="tg-armory__glyph-img" src={weaponIconPath(weapon)} alt={weapon.name} loading="lazy" />
                       <strong>{weapon.name}</strong>
                       <span className="tg-armory__quality-name">{qualityLabel(q)}</span>
                       <span className="tg-armory__stats">
@@ -410,7 +411,7 @@ export function ArmoryScreen() {
                 className="tg-armory__preview"
                 style={{ "--q": QUALITY_META[qualityOf(selected)].color, "--q-glow": QUALITY_META[qualityOf(selected)].glow } as React.CSSProperties}
               >
-                <span className="tg-armory__preview-glyph">{selected.glyph}</span>
+                <img className="tg-armory__preview-img" src={weaponIconPath(selected)} alt={selected.name} />
               </div>
               <div className="tg-armory__detail-head">
                 <span className="tg-armory__detail-series">{seriesName(selected.series)}</span>
@@ -486,7 +487,7 @@ export function ArmoryScreen() {
                   setSelectedId(w.id);
                 }}
               >
-                {w.glyph}
+                <img src={weaponIconPath(w)} alt={w.name} />
               </button>
             ))}
           </div>

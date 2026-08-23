@@ -31,6 +31,13 @@ import {
   readBossDropPity,
 } from "./training/heroes";
 import { useTrainingGroundStore } from "./training/store";
+import {
+  listWeapons,
+  getWeapon,
+  getWeaponByHolder,
+  weaponAnimFrameSize,
+  weaponAnimPath,
+} from "./weapons";
 
 interface HandCard {
   card: CardType;
@@ -111,6 +118,7 @@ export class GamePlayScene extends Phaser.Scene {
   private cardTooltip?: Phaser.GameObjects.Text;
   private slashPool: Phaser.GameObjects.Graphics[] = [];
   private arrowPool: Phaser.GameObjects.Graphics[] = [];
+  private weaponAnimThrottle: Record<string, number> = {};
   private devCommandHandler = (event: Event) => {
     const command = (event as CustomEvent).detail?.command;
     if (command === "restart") {
@@ -142,6 +150,27 @@ export class GamePlayScene extends Phaser.Scene {
       endFrame: 7,
     });
     this.load.image("guanping-saber", "effects/guanping-saber.png");
+
+    // 预加载战斗中会用到的武器动画条（武将专属武器 + 常见小兵兵种）
+    const battleWeaponIds = new Set<string>();
+    for (const w of listWeapons()) {
+      if (w.defaultHolder) battleWeaponIds.add(w.id);
+    }
+    battleWeaponIds.add("podao");
+    battleWeaponIds.add("qixing-spear");
+    battleWeaponIds.add("tongbei-bow");
+    for (const id of battleWeaponIds) {
+      const w = getWeapon(id);
+      if (!w) continue;
+      const animKey = `weapon-anim-${id}`;
+      if (this.textures.exists(animKey)) continue;
+      const frame = weaponAnimFrameSize(w.series);
+      this.load.spritesheet(animKey, weaponAnimPath(w), {
+        frameWidth: frame,
+        frameHeight: frame,
+        endFrame: 8,
+      });
+    }
   }
 
   create() {
@@ -1883,6 +1912,7 @@ export class GamePlayScene extends Phaser.Scene {
   }
 
   shootArrow(fromX: number, fromY: number, target: Zombie, damage: number, source?: Unit) {
+    if (source) this.playWeaponStrike(source);
     const arrow = this.arrowPool.shift() ?? this.add.graphics();
     arrow.clear();
     arrow.setPosition(fromX, fromY);
@@ -2256,8 +2286,51 @@ export class GamePlayScene extends Phaser.Scene {
     });
   }
 
+  /** 解析该单位在战斗中使用的武器（武将按专属兵器，小兵按兵种） */
+  resolveBattleWeaponId(unit: Unit): string | null {
+    const u = unit as unknown as { generalName?: string; soldierType?: string };
+    if (u.generalName) {
+      return getWeaponByHolder(u.generalName)?.id ?? null;
+    }
+    const map: Record<string, string> = { 刀: "podao", 枪: "qixing-spear", 弓: "tongbei-bow" };
+    return u.soldierType ? (map[u.soldierType] ?? null) : null;
+  }
+
+  /** 在单位格子播放其武器挥砍/射击动画（低频率节流，避免高频攻击叠加） */
+  playWeaponStrike(unit: Unit) {
+    const id = this.resolveBattleWeaponId(unit);
+    if (!id) return;
+    const animKey = `weapon-anim-${id}`;
+    if (!this.textures.exists(animKey)) return;
+    const now = this.time.now;
+    const last = this.weaponAnimThrottle[id] ?? 0;
+    if (now - last < 340) return;
+    this.weaponAnimThrottle[id] = now;
+
+    if (!this.anims.exists(animKey)) {
+      this.anims.create({
+        key: animKey,
+        frames: this.anims.generateFrameNumbers(animKey, { start: 0, end: 8 }),
+        frameRate: 14,
+        repeat: 0,
+      });
+    }
+    const center = this.getCellCenter(unit.row, unit.col);
+    const sprite = this.add
+      .sprite(center.x, center.y, animKey, 0)
+      .setOrigin(0.5)
+      .setDepth(82)
+      .setDisplaySize(Config.cellWidth * 0.95, Config.cellHeight * 0.95);
+    sprite.setFlipX(true);
+    sprite.play(animKey);
+    sprite.once(Phaser.Animations.Events.ANIMATION_COMPLETE, () => {
+      if (sprite.active) sprite.destroy();
+    });
+  }
+
   animateDaoSlash(unit: Unit, target: Zombie) {
     playSlashDownSwing(unit.x, unit.y, this, this.slashPool);
+    this.playWeaponStrike(unit);
   }
 
   animateCavalrySlash(unit: Unit) {
@@ -2311,6 +2384,7 @@ export class GamePlayScene extends Phaser.Scene {
   }
 
   animateThrust(unit: Unit, targetCol: number) {
+    this.playWeaponStrike(unit);
     const startX = unit.x;
     const safeTargetCol = Math.max(0, targetCol);
     const endX = Config.boardX + safeTargetCol * Config.cellWidth + Config.cellWidth / 2;
@@ -2378,6 +2452,7 @@ export class GamePlayScene extends Phaser.Scene {
   }
 
   animateZhangfeiThrust(unit: Unit, targetCol: number) {
+    this.playWeaponStrike(unit);
     const startX = unit.x;
     const startY = unit.y;
     const safeTargetCol = Math.max(0, targetCol);
