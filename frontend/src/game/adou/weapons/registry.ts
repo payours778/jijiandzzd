@@ -62,8 +62,8 @@ const weapons: WeaponDefinition[] = [
   {
     id: "rende-sword", series: "sword", name: "雌雄双股剑", glyph: "剑",
     description: "刘备双股剑，一雌一雄，双剑合璧时剑势堂皇。",
-    attackType: "melee", rarity: "legendary", status: "development", defaultHolder: "刘备",
-    stats: { damage: 16, attackSpeed: 800, range: 52, critRate: 0.14 },
+    attackType: "melee", rarity: "mythic", status: "development", defaultHolder: "刘备",
+    stats: { damage: 25, attackSpeed: 880, range: 60, critRate: 0.23, critDamage: 2 },
     tags: ["仁德"],
   },
   {
@@ -102,8 +102,8 @@ const weapons: WeaponDefinition[] = [
   {
     id: "longyuan-sword", series: "sword", name: "龙渊剑", glyph: "剑",
     description: "欧冶子龙渊神兵，潜龙藏渊，杀气深不可测。",
-    attackType: "melee", rarity: "mythic", status: "available",
-    stats: { damage: 25, attackSpeed: 880, range: 60, critRate: 0.23, critDamage: 2 },
+    attackType: "melee", rarity: "legendary", status: "available",
+    stats: { damage: 16, attackSpeed: 800, range: 52, critRate: 0.14 },
     tags: ["龙威"],
   },
   // ───────────── 刀系 ─────────────
@@ -116,8 +116,8 @@ const weapons: WeaponDefinition[] = [
   {
     id: "da-dao", series: "blade", name: "长刀", glyph: "刀",
     description: "关平专用长刀，刀势沉稳。",
-    attackType: "melee", rarity: "rare", status: "development", defaultHolder: "关平",
-    stats: { damage: 12, attackSpeed: 950, range: 72 },
+    attackType: "melee", rarity: "mythic", status: "development", defaultHolder: "关平",
+    stats: { damage: 36, attackSpeed: 1250, range: 82, critRate: 0.16, critDamage: 2.4 },
     tags: ["横扫"],
   },
   {
@@ -156,8 +156,8 @@ const weapons: WeaponDefinition[] = [
   {
     id: "qinglong-blade", series: "blade", name: "青龙偃月刀", glyph: "刀",
     description: "关羽青龙偃月刀，刀势重如山岳。",
-    attackType: "melee", rarity: "legendary", status: "development", defaultHolder: "关羽",
-    stats: { damage: 24, attackSpeed: 1100, range: 80, critRate: 0.1, critDamage: 2 },
+    attackType: "melee", rarity: "mythic", status: "development", defaultHolder: "关羽",
+    stats: { damage: 31, attackSpeed: 1100, range: 80, critRate: 0.24 },
     tags: ["横扫"],
   },
   {
@@ -183,8 +183,8 @@ const weapons: WeaponDefinition[] = [
   {
     id: "tulong-blade", series: "blade", name: "屠龙刀", glyph: "刀",
     description: "宝刀屠龙，天下莫不敢当。",
-    attackType: "melee", rarity: "mythic", status: "locked",
-    stats: { damage: 36, attackSpeed: 1250, range: 82, critRate: 0.16, critDamage: 2.4 },
+    attackType: "melee", rarity: "rare", status: "locked",
+    stats: { damage: 12, attackSpeed: 950, range: 72 },
     tags: ["龙威"],
   },
   {
@@ -197,8 +197,8 @@ const weapons: WeaponDefinition[] = [
   {
     id: "hupo-blade", series: "blade", name: "虎魄刀", glyph: "刀",
     description: "猛虎之魄凝于刀身，每刀皆有虎啸。",
-    attackType: "melee", rarity: "mythic", status: "available",
-    stats: { damage: 31, attackSpeed: 1100, range: 80, critRate: 0.24 },
+    attackType: "melee", rarity: "legendary", status: "available",
+    stats: { damage: 24, attackSpeed: 1100, range: 80, critRate: 0.1, critDamage: 2 },
     tags: ["暴击", "虎威"],
   },
   // ───────────── 枪系 ─────────────
@@ -211,8 +211,8 @@ const weapons: WeaponDefinition[] = [
   {
     id: "tie-qiang", series: "spear", name: "铁枪", glyph: "枪",
     description: "枪杆铁箍加固，朴实而稳定。",
-    attackType: "melee", rarity: "rare", status: "development", defaultHolder: "张苞",
-    stats: { damage: 9, attackSpeed: 750, range: 56 },
+    attackType: "melee", rarity: "mythic", status: "development", defaultHolder: "张苞",
+    stats: { damage: 30, attackSpeed: 1000, range: 72, critRate: 0.16, critDamage: 2.6 },
   },
   {
     id: "liuxing-spear", series: "spear", name: "流星枪", glyph: "枪",
@@ -230,15 +230,15 @@ const weapons: WeaponDefinition[] = [
   {
     id: "longdan-spear", series: "spear", name: "龙胆枪", glyph: "枪",
     description: "赵云所用龙胆枪，枪出如龙，连击沉稳。",
-    attackType: "melee", rarity: "epic", status: "development", defaultHolder: "赵云",
-    stats: { damage: 14, attackSpeed: 600, range: 64, critRate: 0.14 },
+    attackType: "melee", rarity: "mythic", status: "development", defaultHolder: "赵云",
+    stats: { damage: 29, attackSpeed: 950, range: 78, critRate: 0.24 },
     tags: ["连击"],
   },
   {
     id: "hutou-qiang", series: "spear", name: "虎头枪", glyph: "枪",
     description: "马超所用虎头枪，暴击概率极高。",
-    attackType: "melee", rarity: "epic", status: "development", defaultHolder: "马超",
-    stats: { damage: 15, attackSpeed: 700, range: 64, critRate: 0.18, critDamage: 1.8 },
+    attackType: "melee", rarity: "mythic", status: "development", defaultHolder: "马超",
+    stats: { damage: 27, attackSpeed: 880, range: 74, critRate: 0.22 },
   },
   {
     id: "yinshe-spear", series: "spear", name: "银蛇枪", glyph: "枪",
@@ -250,8 +250,8 @@ const weapons: WeaponDefinition[] = [
   {
     id: "she-mao", series: "spear", name: "丈八蛇矛", glyph: "矛",
     description: "张飞丈八蛇矛，横扫千军，威慑极强。",
-    attackType: "melee", rarity: "legendary", status: "development", defaultHolder: "张飞",
-    stats: { damage: 20, attackSpeed: 900, range: 68, critRate: 0.12, critDamage: 2 },
+    attackType: "melee", rarity: "mythic", status: "development", defaultHolder: "张飞",
+    stats: { damage: 28, attackSpeed: 900, range: 76, critRate: 0.2, critDamage: 2.4 },
     tags: ["威慑"],
   },
   {
@@ -270,29 +270,29 @@ const weapons: WeaponDefinition[] = [
   {
     id: "bawang-spear", series: "spear", name: "霸王枪", glyph: "枪",
     description: "霸王之枪，一往无前，无人可挡。",
-    attackType: "melee", rarity: "mythic", status: "locked",
-    stats: { damage: 28, attackSpeed: 900, range: 76, critRate: 0.2, critDamage: 2.4 },
+    attackType: "melee", rarity: "legendary", status: "locked",
+    stats: { damage: 20, attackSpeed: 900, range: 68, critRate: 0.12, critDamage: 2 },
     tags: ["霸体"],
   },
   {
     id: "shenlong-spear", series: "spear", name: "沥泉神枪", glyph: "枪",
     description: "传说神枪取沥泉而成，枪出如龙饮泉。",
-    attackType: "melee", rarity: "mythic", status: "locked",
-    stats: { damage: 27, attackSpeed: 880, range: 74, critRate: 0.22 },
+    attackType: "melee", rarity: "epic", status: "locked",
+    stats: { damage: 15, attackSpeed: 700, range: 64, critRate: 0.18, critDamage: 1.8 },
     tags: ["龙威"],
   },
   {
     id: "xuechan-spear", series: "spear", name: "五虎断魂枪", glyph: "枪",
     description: "名动江湖的断魂枪，枪起摄魂夺魄。",
-    attackType: "melee", rarity: "mythic", status: "locked",
-    stats: { damage: 30, attackSpeed: 1000, range: 72, critRate: 0.16, critDamage: 2.6 },
+    attackType: "melee", rarity: "rare", status: "locked",
+    stats: { damage: 9, attackSpeed: 750, range: 56 },
     tags: ["吸血"],
   },
   {
     id: "lietian-spear", series: "spear", name: "弑神枪", glyph: "枪",
     description: "神话中可弑神裂天的凶枪，霸道无匹。",
-    attackType: "melee", rarity: "mythic", status: "available",
-    stats: { damage: 29, attackSpeed: 950, range: 78, critRate: 0.24 },
+    attackType: "melee", rarity: "epic", status: "available",
+    stats: { damage: 14, attackSpeed: 600, range: 64, critRate: 0.14 },
     tags: ["穿透", "裂甲"],
   },
   // ───────────── 戟系 ─────────────
@@ -368,8 +368,8 @@ const weapons: WeaponDefinition[] = [
   {
     id: "du-gong", series: "bow", name: "毒弓", glyph: "弓",
     description: "弓弦浸过毒液，命中后附带持续中毒。",
-    attackType: "ranged", rarity: "rare", status: "development", defaultHolder: "黄祖",
-    stats: { damage: 8, attackSpeed: 1300, range: 200 },
+    attackType: "ranged", rarity: "mythic", status: "development", defaultHolder: "黄祖",
+    stats: { damage: 23, attackSpeed: 1300, range: 380, critRate: 0.26 },
     tags: ["中毒"],
   },
   {
@@ -388,8 +388,8 @@ const weapons: WeaponDefinition[] = [
   {
     id: "lie-gong", series: "bow", name: "烈弓", glyph: "弓",
     description: "黄忠所用烈弓，射程极远，箭劲如火。",
-    attackType: "ranged", rarity: "epic", status: "development", defaultHolder: "黄忠",
-    stats: { damage: 12, attackSpeed: 1200, range: 240, critRate: 0.16, critDamage: 2 },
+    attackType: "ranged", rarity: "mythic", status: "development", defaultHolder: "黄忠",
+    stats: { damage: 26, attackSpeed: 1500, range: 420, critRate: 0.22, critDamage: 2.4 },
     tags: ["烈弓"],
   },
   {
@@ -434,15 +434,15 @@ const weapons: WeaponDefinition[] = [
   {
     id: "houyi-bow", series: "bow", name: "后羿射日弓", glyph: "弓",
     description: "后羿射落九日的神弓，射程通贯天地。",
-    attackType: "ranged", rarity: "mythic", status: "locked",
-    stats: { damage: 26, attackSpeed: 1500, range: 420, critRate: 0.22, critDamage: 2.4 },
+    attackType: "ranged", rarity: "epic", status: "locked",
+    stats: { damage: 12, attackSpeed: 1200, range: 240, critRate: 0.16, critDamage: 2 },
     tags: ["射日", "穿透"],
   },
   {
     id: "xingchen-bow", series: "bow", name: "星辰落日弓", glyph: "弓",
     description: "弓臂缀满星辰砂，箭如流星坠地。",
-    attackType: "ranged", rarity: "mythic", status: "locked",
-    stats: { damage: 23, attackSpeed: 1300, range: 380, critRate: 0.26 },
+    attackType: "ranged", rarity: "rare", status: "locked",
+    stats: { damage: 8, attackSpeed: 1300, range: 200 },
     tags: ["流星"],
   },
   {
