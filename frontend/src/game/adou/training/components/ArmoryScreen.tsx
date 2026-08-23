@@ -11,6 +11,7 @@ import {
 
 type SeriesFilter = "all" | Extract<WeaponSeriesId, "sword" | "spear" | "blade" | "bow">;
 type AttackFilter = "all" | WeaponDefinition["attackType"];
+type OwnershipFilter = "all" | "owned" | "unowned";
 type QualityKey = "white" | "green" | "purple" | "gold" | "red";
 type ArmoryView = "armory" | "shop";
 
@@ -105,6 +106,7 @@ export function ArmoryScreen() {
   const [series, setSeries] = useState<SeriesFilter>("all");
   const [attack, setAttack] = useState<AttackFilter>("all");
   const [quality, setQuality] = useState<"all" | QualityKey>("all");
+  const [ownership, setOwnership] = useState<OwnershipFilter>("all");
   const [selectedId, setSelectedId] = useState<string | null>("longdan-spear");
   const [ownedIds, setOwnedIds] = useState<string[]>(() =>
     readStringList(OWNED_KEY, DEFAULT_OWNED_WEAPONS),
@@ -122,10 +124,12 @@ export function ArmoryScreen() {
       if (series !== "all" && w.series !== series) return false;
       if (attack !== "all" && w.attackType !== attack) return false;
       if (quality !== "all" && qualityOf(w) !== quality) return false;
+      if (ownership === "owned" && !ownedIds.includes(w.id)) return false;
+      if (ownership === "unowned" && ownedIds.includes(w.id)) return false;
       if (view === "shop" && w.status === "development") return false;
       return true;
     });
-  }, [weapons, series, attack, quality, view]);
+  }, [weapons, series, attack, quality, ownership, ownedIds, view]);
 
   const grouped = useMemo(() => {
     const order: WeaponSeriesId[] = ["sword", "blade", "spear", "bow"];
@@ -133,13 +137,19 @@ export function ArmoryScreen() {
       .map((id) => ({
         series: id,
         name: getSeries(id).name,
-        items: filtered.filter((w) => w.series === id),
+        items: filtered
+          .filter((w) => w.series === id)
+          .slice()
+          .sort((a, b) => QUALITY_ORDER.indexOf(qualityOf(a)) - QUALITY_ORDER.indexOf(qualityOf(b))),
       }))
       .filter((g) => g.items.length > 0);
   }, [filtered]);
 
   const ownedWeapons = useMemo(
-    () => weapons.filter((w) => ownedIds.includes(w.id)),
+    () => weapons
+      .filter((w) => ownedIds.includes(w.id))
+      .slice()
+      .sort((a, b) => QUALITY_ORDER.indexOf(qualityOf(a)) - QUALITY_ORDER.indexOf(qualityOf(b))),
     [weapons, ownedIds],
   );
 
@@ -283,6 +293,26 @@ export function ArmoryScreen() {
           </div>
         </div>
       </div>
+
+
+        <div className="tg-armory__filter">
+          <span className="tg-armory__filter-label">持有</span>
+          <div className="tg-armory__segments">
+            {(["all", "owned", "unowned"] as const).map((key) => (
+              <button
+                type="button"
+                key={key}
+                className={ownership === key ? "is-active" : ""}
+                onClick={() => {
+                  playSfx("click");
+                  setOwnership(key);
+                }}
+              >
+                {key === "all" ? "全部" : key === "owned" ? "已拥有" : "未拥有"}
+              </button>
+            ))}
+          </div>
+        </div>
 
       <div className="tg-armory__body">
         <section className="tg-armory__catalog">

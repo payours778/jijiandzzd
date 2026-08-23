@@ -116,8 +116,8 @@ const weapons: WeaponDefinition[] = [
   {
     id: "da-dao", series: "blade", name: "长刀", glyph: "刀",
     description: "关平专用长刀，刀势沉稳。",
-    attackType: "melee", rarity: "mythic", status: "development", defaultHolder: "关平",
-    stats: { damage: 36, attackSpeed: 1250, range: 82, critRate: 0.16, critDamage: 2.4 },
+    attackType: "melee", rarity: "rare", status: "development", defaultHolder: "关平",
+    stats: { damage: 12, attackSpeed: 950, range: 72 },
     tags: ["横扫"],
   },
   {
@@ -183,8 +183,8 @@ const weapons: WeaponDefinition[] = [
   {
     id: "tulong-blade", series: "blade", name: "屠龙刀", glyph: "刀",
     description: "宝刀屠龙，天下莫不敢当。",
-    attackType: "melee", rarity: "rare", status: "locked",
-    stats: { damage: 12, attackSpeed: 950, range: 72 },
+    attackType: "melee", rarity: "mythic", status: "locked",
+    stats: { damage: 36, attackSpeed: 1250, range: 82, critRate: 0.16, critDamage: 2.4 },
     tags: ["龙威"],
   },
   {
@@ -211,8 +211,8 @@ const weapons: WeaponDefinition[] = [
   {
     id: "tie-qiang", series: "spear", name: "铁枪", glyph: "枪",
     description: "枪杆铁箍加固，朴实而稳定。",
-    attackType: "melee", rarity: "mythic", status: "development", defaultHolder: "张苞",
-    stats: { damage: 30, attackSpeed: 1000, range: 72, critRate: 0.16, critDamage: 2.6 },
+    attackType: "melee", rarity: "epic", status: "development", defaultHolder: "张苞",
+    stats: { damage: 15, attackSpeed: 700, range: 64, critRate: 0.18, critDamage: 1.8 },
   },
   {
     id: "liuxing-spear", series: "spear", name: "流星枪", glyph: "枪",
@@ -228,8 +228,8 @@ const weapons: WeaponDefinition[] = [
     stats: { damage: 11, attackSpeed: 780, range: 62, critRate: 0.06 },
   },
   {
-    id: "longdan-spear", series: "spear", name: "龙胆枪", glyph: "枪",
-    description: "赵云所用龙胆枪，枪出如龙，连击沉稳。",
+    id: "longdan-spear", series: "spear", name: "龙胆亮银枪", glyph: "枪",
+    description: "赵云龙胆亮银枪，枪出如龙，连击沉稳。",
     attackType: "melee", rarity: "mythic", status: "development", defaultHolder: "赵云",
     stats: { damage: 29, attackSpeed: 950, range: 78, critRate: 0.24 },
     tags: ["连击"],
@@ -237,8 +237,8 @@ const weapons: WeaponDefinition[] = [
   {
     id: "hutou-qiang", series: "spear", name: "虎头枪", glyph: "枪",
     description: "马超所用虎头枪，暴击概率极高。",
-    attackType: "melee", rarity: "mythic", status: "development", defaultHolder: "马超",
-    stats: { damage: 27, attackSpeed: 880, range: 74, critRate: 0.22 },
+    attackType: "melee", rarity: "legendary", status: "development", defaultHolder: "马超",
+    stats: { damage: 21, attackSpeed: 920, range: 68, critRate: 0.1, critDamage: 2 },
   },
   {
     id: "yinshe-spear", series: "spear", name: "银蛇枪", glyph: "枪",
@@ -262,10 +262,10 @@ const weapons: WeaponDefinition[] = [
     tags: ["破甲"],
   },
   {
-    id: "huzhang-spear", series: "spear", name: "虎头金枪", glyph: "枪",
-    description: "金脊虎头枪，将门重器，气势夺人。",
-    attackType: "melee", rarity: "legendary", status: "available",
-    stats: { damage: 21, attackSpeed: 920, range: 68, critRate: 0.1, critDamage: 2 },
+    id: "huzhang-spear", series: "spear", name: "虎头湛金枪", glyph: "枪",
+    description: "金脊虎头湛金枪，将门重器，气势夺人。",
+    attackType: "melee", rarity: "mythic", status: "available",
+    stats: { damage: 27, attackSpeed: 880, range: 74, critRate: 0.22 },
   },
   {
     id: "bawang-spear", series: "spear", name: "霸王枪", glyph: "枪",
@@ -277,8 +277,8 @@ const weapons: WeaponDefinition[] = [
   {
     id: "shenlong-spear", series: "spear", name: "沥泉神枪", glyph: "枪",
     description: "传说神枪取沥泉而成，枪出如龙饮泉。",
-    attackType: "melee", rarity: "epic", status: "locked",
-    stats: { damage: 15, attackSpeed: 700, range: 64, critRate: 0.18, critDamage: 1.8 },
+    attackType: "melee", rarity: "mythic", status: "locked",
+    stats: { damage: 30, attackSpeed: 1000, range: 72, critRate: 0.16, critDamage: 2.6 },
     tags: ["龙威"],
   },
   {
@@ -360,8 +360,8 @@ const weapons: WeaponDefinition[] = [
 
   // ───────────── 弓系 ─────────────
   {
-    id: "tongbei-bow", series: "bow", name: "弓", glyph: "弓",
-    description: "军中制式木弓，适合远距离射击。",
+    id: "tongbei-bow", series: "bow", name: "铜臂弓", glyph: "弓",
+    description: "军中制式长弓，射程稳定。",
     attackType: "ranged", rarity: "common", status: "available",
     stats: { damage: 5, attackSpeed: 1100, range: 180 },
   },
@@ -405,22 +405,22 @@ const weapons: WeaponDefinition[] = [
     stats: { damage: 10, attackSpeed: 1000, range: 230, critRate: 0.15 },
   },
   {
-    id: "luori-bow", series: "bow", name: "养由基神弓", glyph: "弓",
-    description: "神射养由基所用强弓，百步穿杨。",
+    id: "luori-bow", series: "bow", name: "落日弓", glyph: "弓",
+    description: "箭出如落日坠山，势大力沉。",
     attackType: "ranged", rarity: "legendary", status: "available",
     stats: { damage: 16, attackSpeed: 1250, range: 280, critRate: 0.16, critDamage: 2 },
     tags: ["穿透"],
   },
   {
-    id: "wanshi-bow", series: "bow", name: "飞将军弓", glyph: "弓",
-    description: "李广所用强弓，可射石没镞，箭贯战阵。",
+    id: "wanshi-bow", series: "bow", name: "万石穿云弓", glyph: "弓",
+    description: "强弓穿云，箭矢可破重甲。",
     attackType: "ranged", rarity: "legendary", status: "available",
     stats: { damage: 15, attackSpeed: 1300, range: 300, critRate: 0.12 },
     tags: ["破甲"],
   },
   {
-    id: "fengmu-bow", series: "bow", name: "开元神臂弓", glyph: "弓",
-    description: "唐军开元年间神臂弓，力道远胜常弓。",
+    id: "fengmu-bow", series: "bow", name: "风木弓", glyph: "弓",
+    description: "取材千年风木，箭带风啸。",
     attackType: "ranged", rarity: "legendary", status: "available",
     stats: { damage: 14, attackSpeed: 1100, range: 270, critRate: 0.18 },
   },
