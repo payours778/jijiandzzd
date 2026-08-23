@@ -69,6 +69,7 @@ export class GamePlayScene extends Phaser.Scene {
   private tapStartY = 0;
   private gameOver = false;
   private gameOverShown = false;
+  private surrenderConfirmOpen = false;
   private wave = 1;
   private earnedCoins = 0;
   private zombiesSpawnedInWave = 0;
@@ -604,7 +605,7 @@ export class GamePlayScene extends Phaser.Scene {
       .setOrigin(1, 0)
       .setDepth(60)
       .setInteractive({ useHandCursor: true })
-      .on("pointerdown", () => this.surrender());
+      .on("pointerdown", () => this.showSurrenderConfirm());
 
     this.updateMantouText();
     this.updateCoinText();
@@ -1551,6 +1552,78 @@ export class GamePlayScene extends Phaser.Scene {
         this.showGameOverPanel();
       }
     }
+  }
+
+  private showSurrenderConfirm() {
+    if (this.gameOver || this.surrenderConfirmOpen) return;
+    this.surrenderConfirmOpen = true;
+
+    const cx = this.px(50);
+    const cy = this.py(50);
+    const panel = this.add.graphics();
+    panel.fillStyle(0x15171b, 0.98);
+    panel.fillRoundedRect(cx - 200, cy - 100, 400, 200, 10);
+    panel.lineStyle(2, 0xef4444, 0.9);
+    panel.strokeRoundedRect(cx - 200, cy - 100, 400, 200, 10);
+    panel.setDepth(150);
+
+    const title = this.add
+      .text(cx, cy - 60, "确定要投降吗？", {
+        fontFamily: Config.fontFamily,
+        fontSize: "28px",
+        color: "#f87171",
+        fontStyle: "bold",
+      })
+      .setOrigin(0.5)
+      .setDepth(151);
+
+    const hint = this.add
+      .text(cx, cy - 22, "投降后将结算本局（波次 + 金币）", {
+        fontFamily: Config.fontFamily,
+        fontSize: "16px",
+        color: "#d1d5db",
+      })
+      .setOrigin(0.5)
+      .setDepth(151);
+
+    const confirmBtn = this.add
+      .text(cx - 85, cy + 55, "确认投降", {
+        fontFamily: Config.fontFamily,
+        fontSize: "18px",
+        color: "#111",
+        backgroundColor: "#ef4444",
+        padding: { x: 18, y: 10 },
+      })
+      .setOrigin(0.5)
+      .setDepth(152)
+      .setInteractive({ useHandCursor: true });
+
+    const cancelBtn = this.add
+      .text(cx + 85, cy + 55, "取消", {
+        fontFamily: Config.fontFamily,
+        fontSize: "18px",
+        color: "#e5e7eb",
+        backgroundColor: "#4b5563",
+        padding: { x: 24, y: 10 },
+      })
+      .setOrigin(0.5)
+      .setDepth(152)
+      .setInteractive({ useHandCursor: true });
+
+    const close = () => {
+      this.surrenderConfirmOpen = false;
+      panel.destroy();
+      title.destroy();
+      hint.destroy();
+      confirmBtn.destroy();
+      cancelBtn.destroy();
+    };
+
+    confirmBtn.on("pointerdown", () => {
+      close();
+      this.surrender();
+    });
+    cancelBtn.on("pointerdown", close);
   }
 
   private surrender() {
