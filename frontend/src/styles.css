@@ -5691,7 +5691,8 @@ img { max-width: 100%; display: block; }
 .tower-defense-gacha-test {
   position: fixed;
   top: 16px;
-  right: 176px;
+  left: 50%;
+  transform: translateX(-50%);
   z-index: 80;
   border: 1px solid rgba(251, 191, 36, 0.45);
   box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.4);
@@ -5759,7 +5760,8 @@ img { max-width: 100%; display: block; }
 @media (max-width: 900px) and (orientation: landscape) {
   .tower-defense-gacha-test {
     top: 8px;
-    right: 184px;
+    left: 50%;
+    transform: translateX(-50%);
     padding: 6px 10px;
     font-size: 11px;
   }
@@ -5767,8 +5769,92 @@ img { max-width: 100%; display: block; }
 @media (orientation: landscape) and (max-height: 500px) {
   .tower-defense-gacha-test {
     top: 6px !important;
-    right: 172px !important;
+    left: 50% !important;
+    transform: translateX(-50%) !important;
     padding: 4px 10px !important;
     font-size: 11px !important;
+  }
+}
+
+/* ---------- 招募测试：指定招募与无限券 ---------- */
+.tg-gacha__pools {
+  grid-template-columns: repeat(4, 1fr);
+}
+.tg-gacha__target-pick {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 6px;
+}
+.tg-gacha__target-pick button {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  min-width: 0;
+  height: 54px;
+  padding: 5px 4px;
+  border: 1px solid color-mix(in srgb, var(--rarity) 42%, transparent);
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--rarity) 8%, transparent);
+  color: var(--rarity);
+  cursor: pointer;
+}
+.tg-gacha__target-pick button:hover,
+.tg-gacha__target-pick button.is-active {
+  background: color-mix(in srgb, var(--rarity) 18%, transparent);
+  box-shadow: 0 0 16px var(--rarity-glow);
+}
+.tg-gacha__target-pick button span {
+  display: grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 6px;
+  background: color-mix(in srgb, var(--rarity) 20%, transparent);
+  font-size: 12px;
+  font-weight: 900;
+}
+.tg-gacha__target-pick button b {
+  color: #f3f4f6;
+  font-size: 12px;
+  font-weight: 900;
+  white-space: nowrap;
+}
+.tg-gacha__target-pick button em {
+  color: #8b90a0;
+  font-size: 9px;
+  font-style: normal;
+  font-weight: 800;
+}
+.tg-gacha__rates span.is-target {
+  border-color: rgba(251, 191, 36, 0.45);
+  background: rgba(251, 191, 36, 0.12);
+}
+.tg-gacha__unlimited {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  height: 38px;
+  padding: 0 18px;
+  border: 1px solid rgba(251, 191, 36, 0.4);
+  border-radius: 8px;
+  background: rgba(251, 191, 36, 0.08);
+  color: #fde68a;
+  font-size: 12px;
+  font-weight: 900;
+}
+@media (max-width: 860px) {
+  .tg-gacha__pools {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .tg-gacha__target-pick {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+@media (max-width: 520px) {
+  .tg-gacha__target-pick {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }

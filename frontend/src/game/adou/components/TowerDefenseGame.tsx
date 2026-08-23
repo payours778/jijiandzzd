@@ -229,7 +229,7 @@ export function TowerDefenseGame({
                 </button>
               </div>
               <div className="tower-gacha-test-body">
-                <HeroCollectionScreen />
+                <HeroCollectionScreen unlimitedTickets />
               </div>
             </div>
           )}

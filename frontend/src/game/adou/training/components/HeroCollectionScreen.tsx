@@ -10,6 +10,7 @@ import {
   Shield,
   Sparkles,
   Star,
+  Target,
   Ticket,
   Users,
 } from "lucide-react";
@@ -37,7 +38,7 @@ interface DrawResult {
   fragmentReward: number;
 }
 
-type RecruitPoolId = "basic" | "elite" | "legend";
+type RecruitPoolId = "basic" | "elite" | "legend" | "targeted";
 
 interface RecruitPool {
   id: RecruitPoolId;
@@ -54,6 +55,7 @@ const POOL_LABELS: Record<RecruitPoolId, string> = {
   basic: "基础招募",
   elite: "精英招募",
   legend: "巅峰招募",
+  targeted: "指定招募",
 };
 
 const RECRUIT_POOLS: RecruitPool[] = [
@@ -86,6 +88,16 @@ const RECRUIT_POOLS: RecruitPool[] = [
     legendPity: RECRUIT_POOL_RULES.legend.legendPity,
     rates: { rare: 0.8, epic: 0.15, legendary: 0.05 },
     icon: Crown,
+  },
+  {
+    id: "targeted",
+    label: "指定招募",
+    short: "自主选择",
+    cost: RECRUIT_POOL_RULES.targeted.cost,
+    epicPity: RECRUIT_POOL_RULES.targeted.epicPity,
+    legendPity: RECRUIT_POOL_RULES.targeted.legendPity,
+    rates: { rare: 1, epic: 0, legendary: 0 },
+    icon: Target,
   },
 ];
 
@@ -194,11 +206,16 @@ function playLegendHeroVoice(heroId: string) {
   }
 }
 
-export function HeroCollectionScreen() {
+export function HeroCollectionScreen({
+  unlimitedTickets = false,
+}: {
+  unlimitedTickets?: boolean;
+}) {
   const [tab, setTab] = useState<CollectionTab>("recruit");
   const [selectedId, setSelectedId] = useState<string>(RECRUIT_HEROES[0].id);
   const [featuredId, setFeaturedId] = useState<string>("liubei");
   const [activePoolId, setActivePoolId] = useState<RecruitPoolId>("basic");
+  const [targetedHeroId, setTargetedHeroId] = useState<string>(RECRUIT_HEROES[3].id);
   const [drawing, setDrawing] = useState(false);
   const [drawResult, setDrawResult] = useState<DrawResult | null>(null);
   const drawTimer = useRef<number | null>(null);
@@ -246,19 +263,24 @@ export function HeroCollectionScreen() {
   }, []);
 
   const performDraw = () => {
-    if (drawing || recruitTickets < activePool.cost) return;
+    if (drawing || (!unlimitedTickets && recruitTickets < activePool.cost)) return;
     setDrawing(true);
     setDrawResult(null);
     playSfx("click");
-    const hero = rollHero(
-      activePool,
-      isEpicPityReady(activePool.id, activeStats),
-      isLegendPityReady(activePool.id, activeStats),
-    );
+    const hero =
+      activePool.id === "targeted"
+        ? RECRUIT_HEROES.find((item) => item.id === targetedHeroId) ?? RECRUIT_HEROES[0]
+        : rollHero(
+            activePool,
+            isEpicPityReady(activePool.id, activeStats),
+            isLegendPityReady(activePool.id, activeStats),
+          );
     const isNew = !recruitedIds.includes(hero.id);
     const fragmentReward = isNew ? 0 : DUPLICATE_FRAGMENT_REWARD[hero.rarity];
     drawTimer.current = window.setTimeout(() => {
-      spendRecruitTicket(activePool.cost);
+      if (!unlimitedTickets) {
+        spendRecruitTicket(activePool.cost);
+      }
       if (isNew) {
         recruitHero(hero.id);
       } else {
@@ -410,32 +432,69 @@ export function HeroCollectionScreen() {
                     );
                   })}
                 </div>
+                {activePoolId === "targeted" && (
+                  <div className="tg-gacha__target-pick">
+                    {RECRUIT_HEROES.map((hero) => (
+                      <button
+                        type="button"
+                        key={hero.id}
+                        className={targetedHeroId === hero.id ? "is-active" : ""}
+                        style={rarityStyle(hero.rarity)}
+                        disabled={drawing}
+                        onClick={() => {
+                          playSfx("click");
+                          setTargetedHeroId(hero.id);
+                          setDrawResult(null);
+                        }}
+                      >
+                        <span>{hero.name[0]}</span>
+                        <b>{hero.name}</b>
+                        <em>{HERO_RARITY_META[hero.rarity].label}</em>
+                      </button>
+                    ))}
+                  </div>
+                )}
                 <div className="tg-gacha__top">
                   <div className="tg-gacha__rates">
-                    {HERO_RARITY_ORDER.map((rarity) => (
-                      <span key={rarity} style={{ color: HERO_RARITY_META[rarity].color }}>
-                        {HERO_RARITY_META[rarity].label}
-                        <b>{Math.round(activePool.rates[rarity] * 100)}%</b>
+                    {activePoolId === "targeted" ? (
+                      <span className="is-target" style={{ color: "#fbbf24" }}>
+                        指定招募
+                        <b>必出所选武将</b>
                       </span>
-                    ))}
+                    ) : (
+                      HERO_RARITY_ORDER.map((rarity) => (
+                        <span key={rarity} style={{ color: HERO_RARITY_META[rarity].color }}>
+                          {HERO_RARITY_META[rarity].label}
+                          <b>{Math.round(activePool.rates[rarity] * 100)}%</b>
+                        </span>
+                      ))
+                    )}
                   </div>
                   <div className="tg-gacha__ticket">
                     <Ticket size={15} />
                     <span>招募券</span>
-                    <strong>{recruitTickets}</strong>
+                    <strong>{unlimitedTickets ? "∞" : recruitTickets}</strong>
                   </div>
                 </div>
 
-                <div className="tg-gacha__pity">
-                  <span className={isEpicPityReady(activePool.id, activeStats) ? "is-ready" : ""} style={{ color: "#c084fc" }}>
-                    史诗保底 {activeStats.epicCounter}/{activeRules.epicPity}
-                    {isEpicPityReady(activePool.id, activeStats) ? " 必出" : ""}
-                  </span>
-                  <span className={isLegendPityReady(activePool.id, activeStats) ? "is-ready" : ""} style={{ color: "#fbbf24" }}>
-                    传说保底 {activeStats.legendCounter}/{activeRules.legendPity}
-                    {isLegendPityReady(activePool.id, activeStats) ? " 必出" : ""}
-                  </span>
-                </div>
+                {activePoolId === "targeted" ? (
+                  <div className="tg-gacha__pity">
+                    <span className="is-ready" style={{ color: "#fbbf24" }}>
+                      指定招募 · 必出所选武将
+                    </span>
+                  </div>
+                ) : (
+                  <div className="tg-gacha__pity">
+                    <span className={isEpicPityReady(activePool.id, activeStats) ? "is-ready" : ""} style={{ color: "#c084fc" }}>
+                      史诗保底 {activeStats.epicCounter}/{activeRules.epicPity}
+                      {isEpicPityReady(activePool.id, activeStats) ? " 必出" : ""}
+                    </span>
+                    <span className={isLegendPityReady(activePool.id, activeStats) ? "is-ready" : ""} style={{ color: "#fbbf24" }}>
+                      传说保底 {activeStats.legendCounter}/{activeRules.legendPity}
+                      {isLegendPityReady(activePool.id, activeStats) ? " 必出" : ""}
+                    </span>
+                  </div>
+                )}
 
                 <div className={`tg-gacha__stage ${drawing ? "is-rolling" : ""}`}>
                   <div
@@ -471,26 +530,36 @@ export function HeroCollectionScreen() {
                   <button
                     type="button"
                     className="tg-gacha__draw"
-                    disabled={drawing || recruitTickets < activePool.cost}
+                    disabled={drawing || (!unlimitedTickets && recruitTickets < activePool.cost)}
                     onClick={performDraw}
                   >
                     <Dices size={16} />
-                    {drawing ? "招募中" : `招募一次 · ${activePool.cost} 券`}
+                    {drawing
+                      ? "招募中"
+                      : activePoolId === "targeted"
+                        ? "指定招募"
+                        : unlimitedTickets
+                          ? "招募一次"
+                          : `招募一次 · ${activePool.cost} 券`}
                   </button>
-                  <button
-                    type="button"
-                    className="tg-gacha__replenish"
-                    disabled={demoTaskCount >= DEMO_TASK_LIMIT}
-                    onClick={collectDemoTickets}
-                  >
-                    <RefreshCw size={14} />
-                    演示任务 +{DEMO_TICKET_GRANT}
-                  </button>
+                  {unlimitedTickets ? (
+                    <span className="tg-gacha__unlimited">测试无限券</span>
+                  ) : (
+                    <button
+                      type="button"
+                      className="tg-gacha__replenish"
+                      disabled={demoTaskCount >= DEMO_TASK_LIMIT}
+                      onClick={collectDemoTickets}
+                    >
+                      <RefreshCw size={14} />
+                      演示任务 +{DEMO_TICKET_GRANT}
+                    </button>
+                  )}
                 </div>
 
                 <div className="tg-gacha__recent">
                   <span>最近招募</span>
-                  <em>{demoTaskCount}/{DEMO_TASK_LIMIT}</em>
+                  <em>{unlimitedTickets ? "不限次" : `${demoTaskCount}/${DEMO_TASK_LIMIT}`}</em>
                   <div>
                     {drawHistory.length === 0 ? (
                       <em className="tg-gacha__recent-empty">暂无</em>
@@ -548,14 +617,22 @@ export function HeroCollectionScreen() {
                         <span>史诗 <b>{stats.epicCount ?? 0}</b></span>
                         <span>传说 <b>{stats.legendCount ?? 0}</b></span>
                       </div>
-                      <div className="tg-collection__pity-row">
-                        <span className={epicReady ? "is-ready" : ""} style={{ color: "#c084fc" }}>
-                          史诗 {stats.epicCounter}/{rules.epicPity}
-                        </span>
-                        <span className={legendReady ? "is-ready" : ""} style={{ color: "#fbbf24" }}>
-                          传说 {stats.legendCounter}/{rules.legendPity}
-                        </span>
-                      </div>
+                      {pool.id === "targeted" ? (
+                        <div className="tg-collection__pity-row">
+                          <span className="is-ready" style={{ color: "#fbbf24" }}>
+                            指定必出
+                          </span>
+                        </div>
+                      ) : (
+                        <div className="tg-collection__pity-row">
+                          <span className={epicReady ? "is-ready" : ""} style={{ color: "#c084fc" }}>
+                            史诗 {stats.epicCounter}/{rules.epicPity}
+                          </span>
+                          <span className={legendReady ? "is-ready" : ""} style={{ color: "#fbbf24" }}>
+                            传说 {stats.legendCounter}/{rules.legendPity}
+                          </span>
+                        </div>
+                      )}
                     </div>
                   );
                 })}

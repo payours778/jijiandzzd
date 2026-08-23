@@ -1,5 +1,5 @@
 export type HeroRarity = "rare" | "epic" | "legendary";
-export type RecruitPoolId = "basic" | "elite" | "legend";
+export type RecruitPoolId = "basic" | "elite" | "legend" | "targeted";
 
 export interface RecruitHero {
   id: string;
@@ -194,6 +194,7 @@ export const RECRUIT_POOL_RULES: Record<RecruitPoolId, RecruitPoolRule> = {
   basic: { cost: 1, epicPity: 10, legendPity: 80 },
   elite: { cost: 2, epicPity: 10, legendPity: 50 },
   legend: { cost: 3, epicPity: 10, legendPity: 30 },
+  targeted: { cost: 5, epicPity: 1, legendPity: 1 },
 };
 
 export interface PoolDrawStats {
@@ -212,6 +213,7 @@ export function createDefaultPoolStats(): PoolStats {
     basic: { total: 0, epicCounter: 0, legendCounter: 0, rareCount: 0, epicCount: 0, legendCount: 0 },
     elite: { total: 0, epicCounter: 0, legendCounter: 0, rareCount: 0, epicCount: 0, legendCount: 0 },
     legend: { total: 0, epicCounter: 0, legendCounter: 0, rareCount: 0, epicCount: 0, legendCount: 0 },
+    targeted: { total: 0, epicCounter: 0, legendCounter: 0, rareCount: 0, epicCount: 0, legendCount: 0 },
   };
 }
 
@@ -295,6 +297,7 @@ export function readPoolStats(): PoolStats {
       basic: { ...fallback.basic, ...parsed.basic },
       elite: { ...fallback.elite, ...parsed.elite },
       legend: { ...fallback.legend, ...parsed.legend },
+      targeted: { ...fallback.targeted, ...parsed.targeted },
     };
   } catch {
     return fallback;
