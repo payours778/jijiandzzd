@@ -9,6 +9,7 @@ import { loadDevConfig } from "../devConfig";
 import { AudioToggleButton } from "../../../audio/AudioToggleButton";
 import { playMusic, playSfx, stopMusic, unlock } from "../../../audio/audioSystem";
 import { useAppStore } from "../../../store/useAppStore";
+import { HeroCollectionScreen } from "../training";
 
 /** 检测是否为移动端（触屏 + 窄屏） */
 function isMobileDevice(): boolean {
@@ -27,6 +28,7 @@ export function TowerDefenseGame({
 }) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [consoleOpen, setConsoleOpen] = useState(false);
+  const [gachaOpen, setGachaOpen] = useState(false);
   const [started, setStarted] = useState(false);
   const [showOrientationHint, setShowOrientationHint] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
@@ -200,6 +202,39 @@ export function TowerDefenseGame({
       <div ref={containerRef} className="tower-defense-container" />
       <div className="crt-overlay" aria-hidden="true" />
       <DevConsole open={consoleOpen} onClose={() => setConsoleOpen(false)} />
+      {mode === "fx-test" && (
+        <>
+          <button
+            className="tower-defense-gacha-test"
+            type="button"
+            onClick={() => {
+              playSfx("click");
+              setGachaOpen(true);
+            }}
+          >
+            招募测试
+          </button>
+          {gachaOpen && (
+            <div className="tower-gacha-test-overlay" role="dialog" aria-label="招募测试">
+              <div className="tower-gacha-test-head">
+                <span>招募测试</span>
+                <button
+                  type="button"
+                  onClick={() => {
+                    playSfx("click");
+                    setGachaOpen(false);
+                  }}
+                >
+                  关闭
+                </button>
+              </div>
+              <div className="tower-gacha-test-body">
+                <HeroCollectionScreen />
+              </div>
+            </div>
+          )}
+        </>
+      )}
     </div>
   );
 }

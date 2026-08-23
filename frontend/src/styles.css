@@ -5686,3 +5686,89 @@ img { max-width: 100%; display: block; }
     grid-template-columns: 30px minmax(0, 1fr) auto;
   }
 }
+
+/* ---------- 特效测试：招募测试弹层 ---------- */
+.tower-defense-gacha-test {
+  position: fixed;
+  top: 16px;
+  right: 176px;
+  z-index: 80;
+  border: 1px solid rgba(251, 191, 36, 0.45);
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.4);
+  border-radius: 6px;
+  background: #201908;
+  color: #fde68a;
+  padding: 8px 12px;
+  font-size: 13px;
+  font-weight: 800;
+  cursor: pointer;
+}
+.tower-defense-gacha-test:hover {
+  border-color: #fbbf24;
+  color: #ffef9e;
+}
+.tower-gacha-test-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  display: flex;
+  flex-direction: column;
+  background:
+    radial-gradient(90% 70% at 50% 10%, rgba(251, 191, 36, 0.08), transparent 55%),
+    #0d1015;
+}
+.tower-gacha-test-head {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 10px 14px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(8, 10, 14, 0.9);
+}
+.tower-gacha-test-head span {
+  color: #fbbf24;
+  font-size: 14px;
+  font-weight: 900;
+}
+.tower-gacha-test-head button {
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.05);
+  color: #e5e7eb;
+  padding: 6px 12px;
+  font-size: 12px;
+  font-weight: 800;
+  cursor: pointer;
+}
+.tower-gacha-test-head button:hover {
+  color: #fbbf24;
+  border-color: rgba(251, 191, 36, 0.4);
+}
+.tower-gacha-test-body {
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
+.tower-gacha-test-body .tg-collection {
+  height: 100%;
+  border: 0;
+}
+
+@media (max-width: 900px) and (orientation: landscape) {
+  .tower-defense-gacha-test {
+    top: 8px;
+    right: 184px;
+    padding: 6px 10px;
+    font-size: 11px;
+  }
+}
+@media (orientation: landscape) and (max-height: 500px) {
+  .tower-defense-gacha-test {
+    top: 6px !important;
+    right: 172px !important;
+    padding: 4px 10px !important;
+    font-size: 11px !important;
+  }
+}
