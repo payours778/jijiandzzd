@@ -5116,6 +5116,7 @@ img { max-width: 100%; display: block; }
 .tg-gacha__fives-actions {
   position: relative;
   z-index: 20;
+  margin-top: 16px;
   display: flex;
   justify-content: center;
 }
