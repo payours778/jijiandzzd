@@ -5866,25 +5866,31 @@ img { max-width: 100%; display: block; }
   width: 128px;
   height: 200px;
   perspective: 1200px;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
 }
 .tg-gacha__flip.is-ready {
   cursor: pointer;
-  animation: gachaReadyBob 1.1s ease-in-out infinite alternate;
+  animation: gachaReadyPulse 2.4s ease-in-out infinite;
 }
-@keyframes gachaReadyBob {
-  from { transform: translateY(0); }
-  to { transform: translateY(-5px); }
+@keyframes gachaReadyPulse {
+  0%, 100% { filter: brightness(1); }
+  50% { filter: brightness(1.08); }
 }
-.tg-gacha__flip.is-ready:hover .tg-gacha__flip-front {
-  border-color: rgba(251, 191, 36, 0.9);
-  box-shadow: 0 18px 34px rgba(0, 0, 0, 0.5), 0 0 28px rgba(251, 191, 36, 0.22);
+.tg-gacha__flip.is-ready:hover .tg-gacha__flip-front,
+.tg-gacha__flip.is-ready:focus-visible .tg-gacha__flip-front {
+  border-color: rgba(251, 191, 36, 0.95);
+  box-shadow: 0 18px 34px rgba(0, 0, 0, 0.5), 0 0 34px rgba(251, 191, 36, 0.35);
+  outline: none;
 }
 .tg-gacha__flip-inner {
   position: relative;
+  z-index: 2;
   width: 100%;
   height: 100%;
   transform-style: preserve-3d;
   transition: transform var(--flip-duration, 700ms) cubic-bezier(0.55, 0, 0.2, 1);
+  will-change: transform;
 }
 .tg-gacha__flip.is-flipping .tg-gacha__flip-inner,
 .tg-gacha__flip.is-flipped .tg-gacha__flip-inner {
@@ -5909,21 +5915,51 @@ img { max-width: 100%; display: block; }
 .tg-gacha__flip .tg-gacha__result-card {
   transform: rotateY(180deg);
 }
+.tg-gacha__flip.is-flipping .tg-gacha__result-card.is-legendary,
+.tg-gacha__flip.is-flipped .tg-gacha__result-card.is-legendary {
+  box-shadow:
+    0 24px 48px rgba(0, 0, 0, 0.5),
+    0 -6px 34px rgba(251, 191, 36, 0.28),
+    0 18px 80px rgba(251, 191, 36, 0.55);
+}
+.tg-gacha__flip.is-flipping .tg-gacha__result-card.is-epic,
+.tg-gacha__flip.is-flipped .tg-gacha__result-card.is-epic {
+  box-shadow:
+    0 24px 48px rgba(0, 0, 0, 0.5),
+    0 -6px 30px rgba(192, 132, 252, 0.25),
+    0 18px 72px rgba(192, 132, 252, 0.5);
+}
 
+.tg-gacha__flip.is-legendary::before,
+.tg-gacha__flip.is-epic::before,
 .tg-gacha__flip.is-legendary::after,
 .tg-gacha__flip.is-epic::after {
   content: "";
   position: absolute;
   left: 50%;
-  bottom: -32px;
-  width: 104px;
-  height: 52px;
+  bottom: -42px;
+  width: 240px;
+  height: 110px;
   transform: translateX(-50%) scale(0.5);
   border-radius: 50%;
-  filter: blur(12px);
+  filter: blur(14px);
   opacity: 0;
   pointer-events: none;
-  transition: opacity 0.2s ease, transform 0.2s ease;
+  transition: opacity 0.18s ease, transform 0.18s ease, filter 0.18s ease;
+}
+.tg-gacha__flip.is-legendary::before,
+.tg-gacha__flip.is-epic::before {
+  bottom: -18px;
+  width: 150px;
+  height: 64px;
+  filter: blur(16px);
+}
+.tg-gacha__flip.is-legendary.is-ready::before,
+.tg-gacha__flip.is-epic.is-ready::before,
+.tg-gacha__flip.is-legendary.is-ready::after,
+.tg-gacha__flip.is-epic.is-ready::after {
+  opacity: 0.45;
+  transform: translateX(-50%) scale(0.92);
 }
 .tg-gacha__flip.is-legendary.is-flipping::after,
 .tg-gacha__flip.is-legendary.is-flipped::after,
@@ -5932,19 +5968,40 @@ img { max-width: 100%; display: block; }
   opacity: 1;
   transform: translateX(-50%) scale(1);
 }
+.tg-gacha__flip.is-legendary.is-flipping::before,
+.tg-gacha__flip.is-epic.is-flipping::before {
+  opacity: 1;
+  transform: translateX(-50%) scale(1);
+}
 .tg-gacha__flip.is-legendary.is-flipping::after {
   background: radial-gradient(rgba(251, 191, 36, 0.95), rgba(251, 191, 36, 0.4) 42%, transparent 72%);
   animation: gachaGoldLeak 1.4s ease-in-out infinite;
 }
+.tg-gacha__flip.is-legendary.is-flipping::before {
+  background: linear-gradient(0deg, rgba(251, 191, 36, 0.95), rgba(251, 191, 36, 0) 72%);
+  animation: gachaGoldRay 1.4s ease-in-out infinite;
+}
 .tg-gacha__flip.is-legendary.is-flipped::after {
   background: radial-gradient(rgba(251, 191, 36, 0.6), transparent 72%);
+}
+.tg-gacha__flip.is-legendary.is-flipped::before {
+  background: linear-gradient(0deg, rgba(251, 191, 36, 0.55), transparent 72%);
+  opacity: 0.6;
 }
 .tg-gacha__flip.is-epic.is-flipping::after {
   background: radial-gradient(rgba(192, 132, 252, 0.95), rgba(168, 85, 247, 0.4) 42%, transparent 72%);
   animation: gachaPurpleLeak 1.05s ease-in-out infinite;
 }
+.tg-gacha__flip.is-epic.is-flipping::before {
+  background: linear-gradient(0deg, rgba(192, 132, 252, 0.95), rgba(168, 85, 247, 0) 72%);
+  animation: gachaPurpleRay 1.05s ease-in-out infinite;
+}
 .tg-gacha__flip.is-epic.is-flipped::after {
   background: radial-gradient(rgba(192, 132, 252, 0.6), transparent 72%);
+}
+.tg-gacha__flip.is-epic.is-flipped::before {
+  background: linear-gradient(0deg, rgba(192, 132, 252, 0.55), transparent 72%);
+  opacity: 0.6;
 }
 @keyframes gachaGoldLeak {
   0%, 100% { opacity: 0.6; transform: translateX(-50%) scale(0.9); }
@@ -5953,6 +6010,14 @@ img { max-width: 100%; display: block; }
 @keyframes gachaPurpleLeak {
   0%, 100% { opacity: 0.55; transform: translateX(-50%) scale(0.92); }
   50% { opacity: 0.95; transform: translateX(-50%) scale(1.08); }
+}
+@keyframes gachaGoldRay {
+  0%, 100% { opacity: 0.55; transform: translateX(-50%) scaleX(0.86) scaleY(0.92); }
+  45%, 60% { opacity: 1; transform: translateX(-50%) scaleX(1.2) scaleY(1.08); }
+}
+@keyframes gachaPurpleRay {
+  0%, 100% { opacity: 0.5; transform: translateX(-50%) scaleX(0.88) scaleY(0.94); }
+  45%, 60% { opacity: 0.95; transform: translateX(-50%) scaleX(1.14) scaleY(1.04); }
 }
 /* 结果页动画只在真正翻牌时播放，避免卡背阶段先出现“自动翻开再退回” */
 .tg-gacha__flip .tg-gacha__result-card.is-epic,
