@@ -29,10 +29,7 @@ export function applySeriesBonus(weapon: WeaponDefinition): WeaponStats {
   const stats = weapon.stats;
   return {
     damage: Math.round(stats.damage * (1 + (bonus.damagePct ?? 0))),
-    attackSpeed: stats.attackSpeed,
-    range: Math.round(stats.range * (1 + (bonus.rangePct ?? 0))),
     critRate: (stats.critRate ?? 0) + (bonus.critRate ?? 0),
-    critDamage: stats.critDamage,
   };
 }
 
@@ -45,7 +42,7 @@ export function calcWeaponDamage(
   const random = ctx.random ?? Math.random();
 
   const isCrit = random < (stats.critRate ?? 0);
-  const critMul = isCrit ? (stats.critDamage ?? 1.5) : 1;
+  const critMul = isCrit ? 1.5 : 1;
 
   const base = stats.damage * (ctx.attackerBonus ?? 1) * critMul;
   const reduction = Math.min(0.9, Math.max(0, ctx.defenderReduction ?? 0));

@@ -78,7 +78,7 @@ export function HeroDetailDrawer() {
               <div className="tg-drawer__weapon-name">{weapon.name}</div>
               <div className="tg-drawer__weapon-desc">{weapon.description}</div>
               <div className="tg-drawer__weapon-stats">
-                伤害 {weapon.stats.damage} · 攻速 {weapon.stats.attackSpeed}ms · 射程 {weapon.stats.range}
+                伤害 {weapon.stats.damage} · 暴击 {(weapon.stats.critRate ?? 0) * 100}%
               </div>
             </div>
           </div>

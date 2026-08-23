@@ -49,12 +49,10 @@ export interface WeaponSeries {
 }
 
 /** 基础属性 */
+/** 基础属性 */
 export interface WeaponStats {
   damage: number;        // 基础伤害
-  attackSpeed: number;   // 攻击间隔（ms）
-  range: number;         // 攻击范围（像素）
   critRate?: number;     // 暴击率 0~1
-  critDamage?: number;   // 暴击伤害倍率
 }
 
 /** 视觉效果钩子（用于特效系统接入） */
