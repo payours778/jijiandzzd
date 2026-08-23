@@ -6713,3 +6713,38 @@ body {
     width: 100%;
   }
 }
+
+/* =========================================================
+   武器卡：图像居中醒目 + 名称置底居中（参考图样式）
+   ========================================================= */
+.tg-armory__card {
+  min-height: 196px;
+}
+.tg-armory__glyph-img {
+  width: 76px;
+  height: 76px;
+  align-self: center;
+  margin: 12px auto 10px;
+  object-fit: contain;
+  image-rendering: pixelated;
+  filter: drop-shadow(0 0 14px var(--q-glow));
+}
+.tg-armory__card > strong {
+  margin-top: auto;
+  padding-top: 10px;
+  font-size: 15px;
+  font-weight: 800;
+  text-align: center;
+}
+.tg-armory__quality-name {
+  text-align: center;
+}
+@media (max-width: 820px) {
+  .tg-armory__card {
+    min-height: 176px !important;
+  }
+  .tg-armory__glyph-img {
+    width: 64px !important;
+    height: 64px !important;
+  }
+}
