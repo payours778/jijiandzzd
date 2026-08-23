@@ -111,7 +111,7 @@ export function ArmoryScreen() {
   const [attack, setAttack] = useState<AttackFilter>("all");
   const [quality, setQuality] = useState<"all" | QualityKey>("all");
   const [ownership, setOwnership] = useState<OwnershipFilter>("all");
-  const [selectedId, setSelectedId] = useState<string | null>("longdan-spear");
+  const [selectedId, setSelectedId] = useState<string | null>(null);
   const [ownedIds, setOwnedIds] = useState<string[]>(() =>
     readStringList(OWNED_KEY, DEFAULT_OWNED_WEAPONS),
   );
@@ -187,6 +187,12 @@ export function ArmoryScreen() {
     } catch {
       // Storage may be unavailable.
     }
+  };
+
+  /** 点击武器：显示其详情；再次点击同一武器则隐藏 */
+  const toggleWeaponDetail = (id: string) => {
+    playSfx("click");
+    setSelectedId((prev) => (prev === id ? null : id));
   };
 
   const switchView = (next: ArmoryView) => {
@@ -369,10 +375,7 @@ export function ArmoryScreen() {
                       key={weapon.id}
                       className={`tg-armory__card${selectedId === weapon.id ? " is-selected" : ""}`}
                       style={{ "--q": QUALITY_META[q].color, "--q-glow": QUALITY_META[q].glow } as React.CSSProperties}
-                      onClick={() => {
-                        playSfx("click");
-                        setSelectedId(weapon.id);
-                      }}
+                      onClick={() => toggleWeaponDetail(weapon.id)}
                     >
                       <span className="tg-armory__card-top">
                         <span className="tg-armory__series">{seriesName(weapon.series)}</span>
@@ -482,10 +485,7 @@ export function ArmoryScreen() {
                 key={w.id}
                 className={equippedId === w.id ? "is-active" : ""}
                 style={{ "--q": QUALITY_META[qualityOf(w)].color } as React.CSSProperties}
-                onClick={() => {
-                  playSfx("click");
-                  setSelectedId(w.id);
-                }}
+                onClick={() => toggleWeaponDetail(w.id)}
               >
                 <img src={weaponIconPath(w)} alt={w.name} />
               </button>
