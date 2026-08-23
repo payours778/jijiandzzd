@@ -37,7 +37,6 @@ export function HeroCollectionScreen() {
   const selectedHero = RECRUIT_HEROES.find((hero) => hero.id === selectedId) ?? RECRUIT_HEROES[0];
   const selectedRecruited = recruitedIds.includes(selectedHero.id);
   const recruitedHeroes = RECRUIT_HEROES.filter((hero) => recruitedIds.includes(hero.id));
-  const unrecruitedHeroes = RECRUIT_HEROES.filter((hero) => !recruitedIds.includes(hero.id));
 
   const recruit = (id: string) => {
     if (recruitedIds.includes(id)) return;
@@ -293,11 +292,9 @@ export function HeroCollectionScreen() {
             </div>
           </section>
 
-          {unrecruitedHeroes.length > 0 && (
-            <button type="button" className="tg-collection__reset" onClick={resetRecruitDemo}>
-              重置招募演示
-            </button>
-          )}
+          <button type="button" className="tg-collection__reset" onClick={resetRecruitDemo}>
+            重置招募演示
+          </button>
         </aside>
       </div>
     </div>
