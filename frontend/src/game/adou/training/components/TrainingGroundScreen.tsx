@@ -1,11 +1,8 @@
 import { TopBar } from "./TopBar";
 import { LeftMenu } from "./LeftMenu";
-import { Stage } from "./Stage";
 import { ArmoryScreen } from "./ArmoryScreen";
 import { BottomBar } from "./BottomBar";
-import { HeroDetailDrawer } from "./HeroDetailDrawer";
 import { ComingSoonOverlay } from "./ComingSoonOverlay";
-import { useTrainingGroundStore } from "../store";
 import { useAppStore } from "../../../../store/useAppStore";
 
 interface TrainingGroundScreenProps {
@@ -14,7 +11,6 @@ interface TrainingGroundScreenProps {
 
 export function TrainingGroundScreen({ onBack }: TrainingGroundScreenProps) {
   const user = useAppStore((s) => s.user);
-  const activeMenu = useTrainingGroundStore((s) => s.activeMenu);
   const showToast = (msg: string) => {
     useAppStore.setState({ toast: msg });
     setTimeout(() => useAppStore.setState({ toast: null }), 2200);
@@ -35,11 +31,10 @@ export function TrainingGroundScreen({ onBack }: TrainingGroundScreenProps) {
       <div className="tg-body">
         <LeftMenu onStart={handleStart} />
         <main className="tg-main">
-          {activeMenu === "armory" ? <ArmoryScreen /> : <Stage />}
+          <ArmoryScreen />
         </main>
       </div>
       <BottomBar />
-      <HeroDetailDrawer />
       <ComingSoonOverlay />
       <button
         className="tg-sr-only"
