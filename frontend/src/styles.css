@@ -6537,7 +6537,7 @@ img { max-width: 100%; display: block; }
 /* ═══════════ 全局抽卡背景：暗黑哥特图置于最底层 ═══════════ */
 .tg-collection {
   background:
-    linear-gradient(rgba(8, 10, 16, 0.66), rgba(8, 10, 16, 0.66)),
+    linear-gradient(rgba(8, 10, 16, 0.72), rgba(8, 10, 16, 0.72)),
     url('/assets/gacha-bg.jpg') center / cover no-repeat;
   background-color: #08090e;
 }
@@ -6546,7 +6546,7 @@ img { max-width: 100%; display: block; }
 }
 .tower-gacha-test-overlay {
   background:
-    linear-gradient(rgba(8, 10, 16, 0.66), rgba(8, 10, 16, 0.66)),
+    linear-gradient(rgba(8, 10, 16, 0.72), rgba(8, 10, 16, 0.72)),
     url('/assets/gacha-bg.jpg') center / cover no-repeat;
   background-color: #0a0c10;
 }
