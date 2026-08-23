@@ -5013,6 +5013,115 @@ img { max-width: 100%; display: block; }
   border-radius: 99px;
   background: rgba(255, 255, 255, 0.04);
 }
+.tg-gacha__five {
+  height: 36px;
+  padding: 0 14px;
+  border: 1px solid rgba(192, 132, 252, 0.4);
+  border-radius: 8px;
+  background: rgba(192, 132, 252, 0.12);
+  color: #e9d5ff;
+  font-size: 12px;
+  font-weight: 900;
+  cursor: pointer;
+}
+.tg-gacha__five:hover {
+  border-color: rgba(192, 132, 252, 0.7);
+  background: rgba(192, 132, 252, 0.22);
+}
+.tg-gacha__fives {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  border-radius: 10px;
+  background:
+    radial-gradient(60% 80% at 50% 20%, rgba(192, 132, 252, 0.08), transparent 70%),
+    rgba(8, 10, 14, 0.72);
+}
+.tg-gacha__fives-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+.tg-gacha__fives-head strong {
+  color: #f3f4f6;
+  font-size: 14px;
+}
+.tg-gacha__fives-head span {
+  color: #8b90a0;
+  font-size: 12px;
+  font-weight: 800;
+}
+.tg-gacha__fives-head button,
+.tg-gacha__fives-actions button {
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 7px;
+  background: rgba(255, 255, 255, 0.06);
+  color: #e5e7eb;
+  padding: 6px 12px;
+  font-size: 12px;
+  font-weight: 900;
+  cursor: pointer;
+}
+.tg-gacha__fives-head button:hover,
+.tg-gacha__fives-actions button:hover {
+  border-color: rgba(192, 132, 252, 0.5);
+  color: #f1d4ff;
+}
+.tg-gacha__fives-grid {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 10px;
+  justify-content: center;
+}
+.tg-batch-flip {
+  width: 100%;
+  height: 176px;
+}
+.tg-batch-flip .tg-gacha__result-card {
+  gap: 5px;
+  padding: 8px 6px;
+}
+.tg-batch-flip .tg-gacha__result-card strong {
+  font-size: 14px;
+}
+.tg-batch-flip .tg-gacha__result-card em,
+.tg-batch-flip .tg-gacha__result-card small {
+  font-size: 10px;
+}
+.tg-batch-flip .tg-gacha__result-glyph {
+  width: 38px;
+  height: 38px;
+  border-radius: 8px;
+  font-size: 17px;
+}
+.tg-batch-flip::before,
+.tg-batch-flip::after {
+  bottom: -24px;
+  width: 160px;
+  height: 68px;
+}
+.tg-batch-flip::before {
+  bottom: -8px;
+  width: 94px;
+  height: 38px;
+}
+.tg-gacha__fives-actions {
+  display: flex;
+  justify-content: center;
+}
+@media (max-width: 760px) {
+  .tg-gacha__fives-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+@media (max-width: 520px) {
+  .tg-gacha__fives-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
 .tg-gacha__stage {
   position: relative;
   width: 100%;
@@ -6104,4 +6213,54 @@ img { max-width: 100%; display: block; }
 /* 结果页动画只在真正翻牌时播放，避免卡背阶段先出现“自动翻开再退回” */
 .tg-gacha__flip .tg-gacha__result-card {
   animation: none;
+}
+
+/* 五连抽：放在翻牌基础样式后覆盖尺寸 */
+.tg-gacha__fives {
+  min-height: 300px;
+}
+.tg-gacha__fives-grid {
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+}
+.tg-batch-flip {
+  width: 100%;
+  height: 176px;
+}
+.tg-batch-flip .tg-gacha__result-card {
+  gap: 5px;
+  padding: 8px 6px;
+}
+.tg-batch-flip .tg-gacha__result-card strong {
+  font-size: 14px;
+}
+.tg-batch-flip .tg-gacha__result-card em,
+.tg-batch-flip .tg-gacha__result-card small {
+  font-size: 10px;
+}
+.tg-batch-flip .tg-gacha__result-glyph {
+  width: 38px;
+  height: 38px;
+  border-radius: 8px;
+  font-size: 17px;
+}
+.tg-batch-flip::before,
+.tg-batch-flip::after {
+  bottom: -24px;
+  width: 160px;
+  height: 68px;
+}
+.tg-batch-flip::before {
+  bottom: -8px;
+  width: 94px;
+  height: 38px;
+}
+@media (max-width: 760px) {
+  .tg-gacha__fives-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+@media (max-width: 520px) {
+  .tg-gacha__fives-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
 }

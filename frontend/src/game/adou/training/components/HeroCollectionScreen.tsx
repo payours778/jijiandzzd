@@ -24,6 +24,7 @@ import {
   DUPLICATE_FRAGMENT_REWARD,
   HERO_RARITY_META,
   HERO_RARITY_ORDER,
+  advancePoolStats,
   RECRUIT_POOL_RULES,
   RECRUIT_HEROES,
   isEpicPityReady,
@@ -228,12 +229,112 @@ function playHeroRecruitVoice(hero: RecruitHero) {
   }
 }
 
+function BatchFlipCard({ result }: { result: DrawResult }) {
+  const [status, setStatus] = useState<"ready" | "flipping" | "flipped">("ready");
+  const timer = useRef<number | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (timer.current !== null) {
+        window.clearTimeout(timer.current);
+      }
+    };
+  }, []);
+
+  const flip = () => {
+    if (status !== "ready") return;
+    playSfx("click");
+    setStatus("flipping");
+    const duration = flipDurationMs(result.hero.rarity);
+    timer.current = window.setTimeout(() => {
+      setStatus("flipped");
+      playSfx("synthesize");
+      if (result.hero.rarity === "legendary" || result.hero.rarity === "epic") {
+        playHeroRecruitVoice(result.hero);
+      }
+    }, duration);
+  };
+  const shownRarity = status === "ready" ? "rare" : result.hero.rarity;
+  const shownRarityStyle = status === "ready" ? undefined : rarityStyle(result.hero.rarity);
+
+  return (
+    <div
+      className={`tg-gacha__flip tg-batch-flip is-${status} is-${shownRarity}`}
+      style={
+        {
+          "--flip-duration": `${flipDurationMs(result.hero.rarity)}ms`,
+          ...(shownRarityStyle ?? {}),
+        } as React.CSSProperties
+      }
+      role={status === "ready" ? "button" : undefined}
+      tabIndex={status === "ready" ? 0 : undefined}
+      aria-label={status === "ready" ? "点击翻开五连抽卡牌" : undefined}
+      onClick={flip}
+      onKeyDown={(e) => {
+        if (status === "ready" && (e.key === "Enter" || e.key === " ")) {
+          e.preventDefault();
+          flip();
+        }
+      }}
+    >
+      <div className="tg-gacha__flip-inner">
+        <div className="tg-gacha__flip-face tg-gacha__cardback tg-gacha__flip-front">
+          <Sparkles size={24} />
+          <strong>{status === "ready" ? "点击翻牌" : status === "flipping" ? "翻开中" : result.hero.name}</strong>
+          <small>{status === "flipped" ? result.hero.title : "五连抽"}</small>
+        </div>
+        <div className={`tg-gacha__flip-face tg-gacha__result-card ${result.hero.rarity === "legendary" ? "is-legendary" : ""} ${result.hero.rarity === "epic" ? "is-epic" : ""}`}>
+          <span className="tg-gacha__result-rank">{HERO_RARITY_META[result.hero.rarity].label}</span>
+          <span className="tg-gacha__result-glyph">{result.hero.name[0]}</span>
+          <strong>{result.hero.name}</strong>
+          <em>{result.hero.title}</em>
+          <small>{result.isNew ? "新武将入营" : `碎片 +${result.fragmentReward}`}</small>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function BatchDrawPanel({
+  poolLabel,
+  cards,
+  round,
+  onDrawAgain,
+  onBack,
+}: {
+  poolLabel: string;
+  cards: DrawResult[];
+  round: number;
+  onDrawAgain: () => void;
+  onBack: () => void;
+}) {
+  return (
+    <div className="tg-gacha__fives">
+      <div className="tg-gacha__fives-head">
+        <strong>五连抽 · {poolLabel}</strong>
+        <span>点击卡牌依次翻面</span>
+        <button type="button" onClick={onBack}>返回单抽</button>
+      </div>
+      <div className="tg-gacha__fives-grid">
+        {cards.map((result, index) => (
+          <BatchFlipCard key={`${round}-${index}`} result={result} />
+        ))}
+      </div>
+      <div className="tg-gacha__fives-actions">
+        <button type="button" onClick={onDrawAgain}>再来五连</button>
+      </div>
+    </div>
+  );
+}
+
 export function HeroCollectionScreen({
   unlimitedTickets = false,
   withTargetedRecruit = false,
+  enableFiveDraw = false,
 }: {
   unlimitedTickets?: boolean;
   withTargetedRecruit?: boolean;
+  enableFiveDraw?: boolean;
 }) {
   const [tab, setTab] = useState<CollectionTab>("recruit");
   const [selectedId, setSelectedId] = useState<string>(RECRUIT_HEROES[0].id);
@@ -244,6 +345,9 @@ export function HeroCollectionScreen({
   const [pendingResult, setPendingResult] = useState<DrawResult | null>(null);
   const [revealing, setRevealing] = useState(false);
   const [drawResult, setDrawResult] = useState<DrawResult | null>(null);
+  const [fiveActive, setFiveActive] = useState(false);
+  const [fiveCards, setFiveCards] = useState<DrawResult[]>([]);
+  const [fiveRound, setFiveRound] = useState(0);
   const drawTimer = useRef<number | null>(null);
   const revealTimer = useRef<number | null>(null);
 
@@ -376,6 +480,46 @@ export function HeroCollectionScreen({
     }, duration);
   };
 
+  const performFiveDraw = () => {
+    if (drawing || pendingResult || revealing) return;
+    setDrawing(true);
+    playSfx("click");
+    const knownRecruited = new Set(recruitedIds);
+    let localStats = { ...activeStats };
+    const results: DrawResult[] = [];
+    for (let i = 0; i < 5; i += 1) {
+      const hero =
+        activePool.id === "targeted"
+          ? RECRUIT_HEROES.find((item) => item.id === targetedHeroId) ?? RECRUIT_HEROES[0]
+          : rollHero(
+              activePool,
+              isEpicPityReady(activePool.id, localStats),
+              isLegendPityReady(activePool.id, localStats),
+            );
+      const isNew = !knownRecruited.has(hero.id);
+      const fragmentReward = isNew ? 0 : DUPLICATE_FRAGMENT_REWARD[hero.rarity];
+      if (isNew) {
+        recruitHero(hero.id);
+        knownRecruited.add(hero.id);
+      } else {
+        addHeroFragments(hero.id, fragmentReward);
+      }
+      recordDraw(activePool.id, hero.id, hero.rarity, isNew, fragmentReward);
+      results.push({ hero, isNew, fragmentReward });
+      localStats = advancePoolStats(activePool.id, localStats, hero.rarity);
+    }
+    setFiveCards(results);
+    setFiveRound((round) => round + 1);
+    setFiveActive(true);
+    setDrawing(false);
+  };
+
+  const closeFiveDraw = () => {
+    playSfx("click");
+    setFiveActive(false);
+    setFiveCards([]);
+  };
+
   const collectRecruitSupplies = () => {
     if (demoTaskCount >= DEMO_TASK_LIMIT) return;
     collectDemoTickets();
@@ -492,8 +636,17 @@ export function HeroCollectionScreen({
       <div className="tg-collection__body">
         <section className="tg-collection__catalog">
           {tab === "recruit" ? (
-            <>
-              <section className="tg-gacha">
+            fiveActive ? (
+              <BatchDrawPanel
+                poolLabel={activePool.label}
+                cards={fiveCards}
+                round={fiveRound}
+                onDrawAgain={performFiveDraw}
+                onBack={closeFiveDraw}
+              />
+            ) : (
+              <>
+                <section className="tg-gacha">
                 <div className="tg-gacha__pools">
                   {availablePools.map((pool) => {
                     const Icon = pool.icon;
@@ -668,8 +821,17 @@ export function HeroCollectionScreen({
                         ? "指定招募"
                         : unlimitedTickets
                           ? "招募一次"
-                          : `${activePool.label} · ${activePool.costLabel}`}
+                      : `${activePool.label} · ${activePool.costLabel}`}
                   </button>
+                  {enableFiveDraw && !drawing && !pendingResult && !revealing && !fiveActive && (
+                    <button
+                      type="button"
+                      className="tg-gacha__five"
+                      onClick={performFiveDraw}
+                    >
+                      五连抽
+                    </button>
+                  )}
                   {unlimitedTickets ? (
                     <span className="tg-gacha__unlimited">测试无限券</span>
                   ) : (
@@ -706,10 +868,11 @@ export function HeroCollectionScreen({
                     )}
                   </div>
                 </div>
-              </section>
+                </section>
 
-              {renderHeroGroups(false)}
-            </>
+                {renderHeroGroups(false)}
+              </>
+            )
           ) : tab === "archive" ? (
             <section className="tg-collection__archive">
               <div className="tg-collection__archive-summary">
