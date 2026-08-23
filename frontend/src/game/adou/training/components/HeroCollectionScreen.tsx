@@ -750,21 +750,6 @@ export function HeroCollectionScreen({
                   </div>
                 )}
                 <div className="tg-gacha__top">
-                  <div className="tg-gacha__rates">
-                    {activePoolId === "targeted" ? (
-                      <span className="is-target" style={{ color: "#fbbf24" }}>
-                        指定招募
-                        <b>必出所选武将</b>
-                      </span>
-                    ) : (
-                      HERO_RARITY_ORDER.map((rarity) => (
-                        <span key={rarity} style={{ color: HERO_RARITY_META[rarity].color }}>
-                          {HERO_RARITY_META[rarity].label}
-                          <b>{Math.round(activePool.rates[rarity] * 100)}%</b>
-                        </span>
-                      ))
-                    )}
-                  </div>
                   <div className="tg-gacha__frag">
                     <Gem size={15} />
                     <span>武将碎片</span>
@@ -778,24 +763,6 @@ export function HeroCollectionScreen({
                 </div>
 
 
-                {activePoolId === "targeted" ? (
-                  <div className="tg-gacha__pity">
-                    <span className="is-ready" style={{ color: "#fbbf24" }}>
-                      指定招募 · 必出所选武将
-                    </span>
-                  </div>
-                ) : (
-                  <div className="tg-gacha__pity">
-                    <span className={isEpicPityReady(activePool.id, activeStats) ? "is-ready" : ""} style={{ color: "#c084fc" }}>
-                      史诗保底 {activeStats.epicCounter}/{activeRules.epicPity}
-                      {isEpicPityReady(activePool.id, activeStats) ? " 必出" : ""}
-                    </span>
-                    <span className={isLegendPityReady(activePool.id, activeStats) ? "is-ready" : ""} style={{ color: "#fbbf24" }}>
-                      传说保底 {activeStats.legendCounter}/{activeRules.legendPity}
-                      {isLegendPityReady(activePool.id, activeStats) ? " 必出" : ""}
-                    </span>
-                  </div>
-                )}
 
                 <div className={`tg-gacha__stage ${drawing ? "is-rolling" : ""}`}>
                   <div
@@ -890,7 +857,6 @@ export function HeroCollectionScreen({
 
                 </section>
 
-                {renderHeroGroups(false)}
               </>
             )
           ) : tab === "archive" ? (
