@@ -196,12 +196,21 @@ function rollHero(
   return candidates[Math.floor(Math.random() * candidates.length)];
 }
 
-function playLegendHeroVoice(heroId: string) {
-  if (heroId === "weiyan") {
+function playHeroRecruitVoice(hero: RecruitHero) {
+  if (hero.rarity === "rare") return;
+  if (hero.id === "liubei") {
+    playSfx("liubei_heal_voice");
+  } else if (hero.id === "zhangfei") {
+    playSfx("zhangfei_roar");
+  } else if (hero.id === "guanyu") {
+    playSfx("guanyu_skill_voice");
+  } else if (hero.id === "zhaoyun") {
+    playSfx("zhaoyun_longdan");
+  } else if (hero.id === "weiyan") {
     playSfx("weiyan_enter");
-  } else if (heroId === "machao") {
+  } else if (hero.id === "machao") {
     playSfx("machao_attack");
-  } else if (heroId === "huangzhong") {
+  } else if (hero.id === "huangzhong") {
     playSfx("huangzhong_skill_voice");
   }
 }
@@ -290,9 +299,9 @@ export function HeroCollectionScreen({
       setDrawResult({ hero, isNew, fragmentReward });
       setSelectedId(hero.id);
       setDrawing(false);
-      if (hero.rarity === "legendary") {
+      if (hero.rarity === "legendary" || hero.rarity === "epic") {
         playSfx("synthesize");
-        window.setTimeout(() => playLegendHeroVoice(hero.id), 420);
+        window.setTimeout(() => playHeroRecruitVoice(hero), 420);
       } else {
         playSfx("synthesize");
       }
