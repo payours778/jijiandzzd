@@ -73,6 +73,20 @@ function priceOf(weapon: WeaponDefinition) {
   if (weapon.status === "development") return 0;
   return base[quality];
 }
+/** 商店可购买规则：按系列+品质控制 */
+function isShopBuyable(weapon: WeaponDefinition, all: WeaponDefinition[]) {
+  if (weapon.status === "development") return false;
+  const series = all.filter((w) => w.series === weapon.series);
+  const sameQuality = series.filter((w) => qualityOf(w) === qualityOf(weapon));
+  const index = sameQuality.indexOf(weapon);
+  const q = qualityOf(weapon);
+  if (q === "white") return true;
+  if (q === "green" || q === "purple") return sameQuality.length <= 1 ? true : index < sameQuality.length - 1;
+  if (q === "gold") return index < 1;
+  if (q === "red") return index < 1;
+  return true;
+}
+
 
 function readStringList(key: string, fallback: string[]) {
   try {
@@ -128,7 +142,7 @@ export function ArmoryScreen() {
       if (quality !== "all" && qualityOf(w) !== quality) return false;
       if (ownership === "owned" && !ownedIds.includes(w.id)) return false;
       if (ownership === "unowned" && ownedIds.includes(w.id)) return false;
-      if (view === "shop" && w.status === "development") return false;
+      if (view === "shop" && (w.status === "development" || !isShopBuyable(w, weapons))) return false;
       return true;
     });
   }, [weapons, series, attack, quality, ownership, ownedIds, view]);
@@ -439,7 +453,7 @@ export function ArmoryScreen() {
               )}
 
               <div className="tg-armory__actions">
-                {!isOwned && selectedPrice > 0 && view === "shop" && (
+                {!isOwned && selectedPrice > 0 && view === "shop" && selected && isShopBuyable(selected, weapons) && (
                   <button
                     type="button"
                     className="tg-armory__buy"
