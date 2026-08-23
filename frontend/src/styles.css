@@ -5029,6 +5029,8 @@ img { max-width: 100%; display: block; }
   background: rgba(192, 132, 252, 0.22);
 }
 .tg-gacha__fives {
+  position: relative;
+  z-index: 2;
   display: flex;
   flex-direction: column;
   gap: 12px;
@@ -5040,6 +5042,8 @@ img { max-width: 100%; display: block; }
     rgba(8, 10, 14, 0.72);
 }
 .tg-gacha__fives-head {
+  position: relative;
+  z-index: 20;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -5077,6 +5081,7 @@ img { max-width: 100%; display: block; }
   justify-content: center;
 }
 .tg-batch-flip {
+  z-index: 1;
   width: 100%;
   height: 176px;
 }
@@ -5109,6 +5114,8 @@ img { max-width: 100%; display: block; }
   height: 38px;
 }
 .tg-gacha__fives-actions {
+  position: relative;
+  z-index: 20;
   display: flex;
   justify-content: center;
 }
@@ -5120,6 +5127,56 @@ img { max-width: 100%; display: block; }
 @media (max-width: 520px) {
   .tg-gacha__fives-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+/* 五连抽：手机横屏下保持操作区可见，避免“再来五连”被裁到可视区外 */
+@media (orientation: landscape) and (max-height: 560px) {
+  .tg-gacha__fives {
+    min-height: 0;
+    padding: 10px 12px 12px;
+    gap: 8px;
+  }
+  .tg-gacha__fives-head {
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+  .tg-gacha__fives-head span {
+    display: none;
+  }
+  .tg-gacha__fives-grid {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 6px;
+  }
+  .tg-batch-flip {
+    height: 128px;
+  }
+  .tg-batch-flip .tg-gacha__result-card {
+    gap: 3px;
+    padding: 6px 4px;
+  }
+  .tg-batch-flip .tg-gacha__result-glyph {
+    width: 30px;
+    height: 30px;
+    font-size: 14px;
+  }
+  .tg-batch-flip .tg-gacha__result-card strong {
+    font-size: 12px;
+  }
+  .tg-batch-flip .tg-gacha__result-card em,
+  .tg-batch-flip .tg-gacha__result-card small {
+    font-size: 9px;
+  }
+  .tg-gacha__fives-actions {
+    position: sticky;
+    bottom: 0;
+    z-index: 60;
+    margin-top: 0;
+    padding: 8px 0 2px;
+    background: linear-gradient(180deg, transparent, rgba(8, 10, 14, 0.92) 22%, rgba(8, 10, 14, 0.98));
+  }
+  .tg-gacha__fives-actions button {
+    min-height: 34px;
+    padding: 6px 20px;
   }
 }
 .tg-gacha__stage {
