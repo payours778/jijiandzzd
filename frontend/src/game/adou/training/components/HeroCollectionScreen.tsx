@@ -223,8 +223,10 @@ function playHeroRecruitVoice(hero: RecruitHero) {
 
 export function HeroCollectionScreen({
   unlimitedTickets = false,
+  withTargetedRecruit = false,
 }: {
   unlimitedTickets?: boolean;
+  withTargetedRecruit?: boolean;
 }) {
   const [tab, setTab] = useState<CollectionTab>("recruit");
   const [selectedId, setSelectedId] = useState<string>(RECRUIT_HEROES[0].id);
@@ -252,7 +254,8 @@ export function HeroCollectionScreen({
   const resetRecruitDemo = useTrainingGroundStore((s) => s.resetRecruitDemo);
 
   const selectedHero = RECRUIT_HEROES.find((hero) => hero.id === selectedId) ?? RECRUIT_HEROES[0];
-  const activePool = RECRUIT_POOLS.find((pool) => pool.id === activePoolId) ?? RECRUIT_POOLS[0];
+  const availablePools = RECRUIT_POOLS.filter((pool) => withTargetedRecruit || pool.id !== "targeted");
+  const activePool = availablePools.find((pool) => pool.id === activePoolId) ?? availablePools[0];
   const activeStats = poolStats[activePool.id];
   const activeRules = RECRUIT_POOL_RULES[activePool.id];
   const selectedRecruited = recruitedIds.includes(selectedHero.id);
@@ -448,7 +451,7 @@ export function HeroCollectionScreen({
             <>
               <section className="tg-gacha">
                 <div className="tg-gacha__pools">
-                  {RECRUIT_POOLS.map((pool) => {
+                  {availablePools.map((pool) => {
                     const Icon = pool.icon;
                     return (
                       <button
@@ -667,7 +670,7 @@ export function HeroCollectionScreen({
               </div>
 
               <div className="tg-collection__archive-pools">
-                {RECRUIT_POOLS.map((pool) => {
+                {availablePools.map((pool) => {
                   const Icon = pool.icon;
                   const stats = poolStats[pool.id] ?? { total: 0, epicCounter: 0, legendCounter: 0, rareCount: 0, epicCount: 0, legendCount: 0 };
                   const rules = RECRUIT_POOL_RULES[pool.id];
