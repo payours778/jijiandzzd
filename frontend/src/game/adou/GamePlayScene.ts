@@ -2562,7 +2562,7 @@ export class GamePlayScene extends Phaser.Scene {
 
   showHealNumber(unit: Unit, amount: number) {
     const text = this.add
-      .text(unit.x, unit.y - 20, `+${amount.toFixed(2)}`, {
+      .text(unit.x, unit.y - 20, `+${Math.round(amount)}`, {
         fontFamily: Config.fontFamily,
         fontSize: "16px",
         color: "#4ade80",

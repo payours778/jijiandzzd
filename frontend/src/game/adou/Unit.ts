@@ -332,7 +332,7 @@ export abstract class Unit extends Phaser.GameObjects.Text {
 
   protected showDamageNumber(damage: number) {
     const number = this.scene.add
-      .text(this.x, this.y - 20, `-${damage.toFixed(2)}`, {
+      .text(this.x, this.y - 20, `-${Math.round(damage)}`, {
         fontFamily: Config.fontFamily,
         fontSize: "16px",
         color: "#f87171",

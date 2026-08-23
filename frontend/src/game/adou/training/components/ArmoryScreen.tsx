@@ -395,8 +395,8 @@ export function ArmoryScreen() {
                       <strong>{weapon.name}</strong>
                       <span className="tg-armory__quality-name">{qualityLabel(q)}</span>
                       <span className="tg-armory__stats">
-                        <em>伤 {weapon.stats.damage}</em>
-                        <em>暴 {(weapon.stats.critRate ?? 0) * 100}%</em>
+                        <em>伤 {Math.round(weapon.stats.damage)}</em>
+                        <em>暴 {Math.round((weapon.stats.critRate ?? 0) * 100)}%</em>
                       </span>
                       {(equipped || canBuy) && (
                         <span className={`tg-armory__card-cta${equipped ? " is-equipped" : ""}`}>
@@ -437,11 +437,11 @@ export function ArmoryScreen() {
               <div className="tg-armory__attribute-list">
                 <div className="tg-armory__attribute">
                   <span>攻击</span>
-                  <strong>{selected.stats.damage}</strong>
+                  <strong>{Math.round(selected.stats.damage)}</strong>
                 </div>
                 <div className="tg-armory__attribute">
                   <span>暴击</span>
-                  <strong>{(selected.stats.critRate ?? 0) * 100}%</strong>
+                  <strong>{Math.round((selected.stats.critRate ?? 0) * 100)}%</strong>
                 </div>
               </div>
 
