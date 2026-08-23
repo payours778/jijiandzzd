@@ -765,7 +765,6 @@ export function HeroCollectionScreen({
 
 
                 <div className={`tg-gacha__stage ${drawing ? "is-rolling" : ""}`}>
-                  <div className="tg-gacha__bg" aria-hidden="true" />
                   <div
                     className={`tg-gacha__orb ${drawing ? "is-rolling" : ""} ${(pendingResult || drawResult) && !drawing ? "has-result" : ""} ${shownRarity === "legendary" && !drawing ? "is-legendary" : ""} ${shownRarity === "epic" && !drawing ? "is-epic" : ""}`}
                     style={shownRarityStyle}
