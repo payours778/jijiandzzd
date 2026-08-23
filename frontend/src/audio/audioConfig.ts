@@ -31,6 +31,9 @@ export type SfxKey =
   | "zhangfei_attack"
   | "machao_attack"
   | "weiyan_enter"
+  | "lubu_boss_entry"
+  | "caocao_boss_entry"
+  | "diaochan_boss_entry"
   | "weiyan_kill"
   | "caocao_skill1_voice"
   | "caocao_skill2_voice"
@@ -93,6 +96,9 @@ export const SFX_FILES: Record<SfxKey, string> = {
   zhangfei_attack: "",
   machao_attack: "/assets/audio/sfx/马超普攻.ogg",
   weiyan_enter: "/assets/audio/sfx/魏延登场音效.ogg",
+  lubu_boss_entry: "/assets/audio/sfx/吕布出场音效.mp3",
+  caocao_boss_entry: "/assets/audio/sfx/曹操出场音效.mp3",
+  diaochan_boss_entry: "/assets/audio/sfx/貂蝉出场音效.mp3",
   weiyan_kill: "/assets/audio/sfx/魏延击杀音效.ogg",
   caocao_skill1_voice: "/assets/audio/sfx/曹操播放完语音释放技能1.mp3",
   caocao_skill2_voice: "/assets/audio/sfx/曹操播放完该语言释放技能2.mp3",

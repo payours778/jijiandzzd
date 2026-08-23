@@ -1926,7 +1926,13 @@ export class GamePlayScene extends Phaser.Scene {
   }
 
   showBossWarning(boss: "吕布" | "貂蝉" | "曹操") {
-    playSfx("boss_warning");
+    if (boss === "吕布") {
+      playSfx("lubu_boss_entry");
+    } else if (boss === "曹操") {
+      playSfx("caocao_boss_entry");
+    } else {
+      playSfx("diaochan_boss_entry");
+    }
 
     const color =
       boss === "貂蝉"
