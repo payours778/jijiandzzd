@@ -18,7 +18,6 @@ import { playSfx } from "../../../../audio/audioSystem";
 import { useTrainingGroundStore } from "../store";
 import { useAppStore } from "../../../../store/useAppStore";
 import {
-  BOSS_DROP_GUARANTEE,
   DUPLICATE_FRAGMENT_REWARD,
   HERO_RARITY_META,
   HERO_RARITY_ORDER,
@@ -408,7 +407,6 @@ export function HeroCollectionScreen({
   const recruitTickets = useTrainingGroundStore((s) => s.recruitTickets);
   const eliteRecruitItems = useTrainingGroundStore((s) => s.eliteRecruitItems);
   const legendRecruitScrolls = useTrainingGroundStore((s) => s.legendRecruitScrolls);
-  const bossDropPity = useTrainingGroundStore((s) => s.bossDropPity);
   const poolStats = useTrainingGroundStore((s) => s.poolStats);
   const drawHistory = useTrainingGroundStore((s) => s.drawHistory);
 
@@ -418,16 +416,14 @@ export function HeroCollectionScreen({
   const spendRecruitTicket = useTrainingGroundStore((s) => s.spendRecruitTicket);
   const recordDraw = useTrainingGroundStore((s) => s.recordDraw);
 
-  const resetRecruitDemo = useTrainingGroundStore((s) => s.resetRecruitDemo);
   const coins = useAppStore((s) => s.coins);
 
-  const selectedHero = RECRUIT_HEROES.find((hero) => hero.id === selectedId) ?? RECRUIT_HEROES[0];
   const availablePools = RECRUIT_POOLS.filter((pool) => withTargetedRecruit || pool.id !== "targeted");
   const activePool = availablePools.find((pool) => pool.id === activePoolId) ?? availablePools[0];
   const activeStats = poolStats[activePool.id];
   const activeRules = RECRUIT_POOL_RULES[activePool.id];
-  const selectedRecruited = recruitedIds.includes(selectedHero.id);
   const recruitedHeroes = RECRUIT_HEROES.filter((hero) => recruitedIds.includes(hero.id));
+  const totalFragments = RECRUIT_HEROES.reduce((sum, hero) => sum + (heroFragments[hero.id] ?? 0), 0);
   const shownOffer = (revealing || drawResult) && !drawing ? (pendingResult ?? drawResult) : null;
   const shownRarity = shownOffer?.hero.rarity ?? "rare";
   const shownRarityStyle = shownOffer ? rarityStyle(shownOffer.hero.rarity) : undefined;
@@ -769,6 +765,11 @@ export function HeroCollectionScreen({
                       ))
                     )}
                   </div>
+                  <div className="tg-gacha__frag">
+                    <Gem size={15} />
+                    <span>武将碎片</span>
+                    <strong>{totalFragments}</strong>
+                  </div>
                   <div className="tg-gacha__ticket">
                     {activeRules.resource === "gold" ? <Coins size={15} /> : <Ticket size={15} />}
                     <span>{activeResourceLabel}</span>
@@ -776,17 +777,6 @@ export function HeroCollectionScreen({
                   </div>
                 </div>
 
-                {!unlimitedTickets && (
-                  <div className="tg-gacha__source">
-                    {activePool.id === "basic" && <span>来源：战斗结算金币 · {activeRules.cost} 金币 / 次</span>}
-                    {activePool.id === "elite" && <span>来源：商店 500 金币购买招募道具</span>}
-                    {activePool.id === "legend" && (
-                      <span>
-                        来源：击败 Boss 概率掉落 · 保底 {bossDropPity}/{BOSS_DROP_GUARANTEE}
-                      </span>
-                    )}
-                  </div>
-                )}
 
                 {activePoolId === "targeted" ? (
                   <div className="tg-gacha__pity">
@@ -1005,103 +995,6 @@ export function HeroCollectionScreen({
           )}
         </section>
 
-        <aside className="tg-collection__side">
-          <section className="tg-collection__frag-pocket">
-            <header>
-              <div>
-                <span>碎片仓库</span>
-                <strong>{RECRUIT_HEROES.reduce((sum, hero) => sum + (heroFragments[hero.id] ?? 0), 0)}</strong>
-              </div>
-              <small>重复武将自动折算</small>
-            </header>
-            <div className="tg-collection__frag-grid">
-              {RECRUIT_HEROES.filter((hero) => (heroFragments[hero.id] ?? 0) > 0).map((hero) => (
-                <span key={hero.id} style={{ color: HERO_RARITY_META[hero.rarity].color }}>
-                  <b>{hero.name[0]}</b>
-                  <i>x{heroFragments[hero.id]}</i>
-                </span>
-              ))}
-              {RECRUIT_HEROES.every((hero) => (heroFragments[hero.id] ?? 0) === 0) && (
-                <em>暂无重复碎片</em>
-              )}
-            </div>
-          </section>
-
-          <section className="tg-collection__pool">
-            <header>
-              <div>
-                <span>牌库碎片</span>
-                <strong>{recruitedHeroes.length * 2}/{RECRUIT_HEROES.length * 2}</strong>
-              </div>
-              <small>未入营武将碎片不进牌库</small>
-            </header>
-            <div className="tg-collection__pool-grid">
-              {RECRUIT_HEROES.map((hero) => {
-                const recruited = recruitedIds.includes(hero.id);
-                return (
-                  <span
-                    key={hero.id}
-                    className={`tg-collection__pool-chip ${recruited ? "is-in" : "is-out"}`}
-                  >
-                    <b>{hero.fragments[0]}</b>
-                    <i>+</i>
-                    <b>{hero.fragments[1]}</b>
-                    {recruited ? <Check size={11} /> : <Lock size={11} />}
-                  </span>
-                );
-              })}
-            </div>
-          </section>
-
-          <section className="tg-collection__detail" style={rarityStyle(selectedHero.rarity)}>
-            <div className="tg-collection__detail-portrait">
-              <span>{selectedHero.name[0]}</span>
-            </div>
-            <div className="tg-collection__detail-head">
-              <span>{HERO_RARITY_META[selectedHero.rarity].label}</span>
-              <h3>{selectedHero.name}</h3>
-              <p>{selectedHero.title}</p>
-            </div>
-            <div className="tg-collection__detail-role">{selectedHero.role}</div>
-            <p className="tg-collection__detail-bio">{selectedHero.bio}</p>
-            <div className="tg-collection__detail-frags">
-              <span>{selectedHero.fragments[0]}</span>
-              <i>+</i>
-              <span>{selectedHero.fragments[1]}</span>
-            </div>
-            {heroFragments[selectedHero.id] ? (
-              <div className="tg-collection__detail-fragment">
-                武将碎片
-                <b>x{heroFragments[selectedHero.id]}</b>
-              </div>
-            ) : null}
-            <div className="tg-collection__detail-actions">
-              {!selectedRecruited ? (
-                <button type="button" className="is-muted" onClick={() => setTab("recruit")}>
-                  <Dices size={14} />
-                  抽卡招募
-                </button>
-              ) : (
-                <button
-                  type="button"
-                  className="is-owned"
-                  onClick={() => {
-                    playSfx("click");
-                    setTab("owned");
-                    setFeaturedId(selectedHero.id);
-                  }}
-                >
-                  <Star size={14} />
-                  设为展示
-                </button>
-              )}
-            </div>
-          </section>
-
-          <button type="button" className="tg-collection__reset" onClick={resetRecruitDemo}>
-            重置招募演示
-          </button>
-        </aside>
       </div>
     </div>
   );

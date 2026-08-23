@@ -4994,6 +4994,24 @@ img { max-width: 100%; display: block; }
 .tg-gacha__ticket strong {
   font-size: 16px;
 }
+.tg-gacha__frag {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  height: 34px;
+  padding: 0 12px;
+  border-radius: 8px;
+  border: 1px solid rgba(167, 139, 250, 0.34);
+  background: rgba(167, 139, 250, 0.08);
+  color: #a78bfa;
+  font-size: 12px;
+  font-weight: 800;
+}
+.tg-gacha__frag strong {
+  font-size: 16px;
+  color: #c4b5fd;
+}
+
 .tg-gacha__source {
   display: flex;
   justify-content: flex-end;
