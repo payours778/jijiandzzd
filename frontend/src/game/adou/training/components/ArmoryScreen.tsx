@@ -2,7 +2,7 @@ import { useMemo, useState } from "react";
 import { Check, Coins, Gem, Lock, ShoppingBag, Swords, Ticket } from "lucide-react";
 import { useAppStore } from "../../../../store/useAppStore";
 import { playSfx } from "../../../../audio/audioSystem";
-import { useTrainingGroundStore } from "../store";
+import { useRecruitStore } from "../../recruit/store";
 import {
   getSeries,
   listWeapons,
@@ -105,7 +105,7 @@ function writeStringList(key: string, values: string[]) {
 
 export function ArmoryScreen() {
   const coins = useAppStore((s) => s.coins);
-  const eliteRecruitItems = useTrainingGroundStore((s) => s.eliteRecruitItems);
+  const eliteRecruitItems = useRecruitStore((s) => s.eliteRecruitItems);
   const [view, setView] = useState<ArmoryView>("armory");
   const [series, setSeries] = useState<SeriesFilter>("all");
   const [attack, setAttack] = useState<AttackFilter>("all");
@@ -175,7 +175,7 @@ export function ArmoryScreen() {
     if (coins < 500) return;
     playSfx("click");
     useAppStore.getState().addCoins(-500);
-    useTrainingGroundStore.getState().addEliteRecruitItems(1);
+    useRecruitStore.getState().addEliteRecruitItems(1);
   };
 
   const equipWeapon = (weapon: WeaponDefinition) => {

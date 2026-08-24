@@ -36,6 +36,7 @@ import {
   readBossDropPity,
 } from "./training/heroes";
 import { useTrainingGroundStore } from "./training/store";
+import { useRecruitStore } from "./recruit/store";
 import { useAppStore } from "../../store/useAppStore";
 
 // 1E: 中文武将名 -> 招募系统 heroId 映射
@@ -1877,7 +1878,7 @@ export class GamePlayScene extends Phaser.Scene {
     // 存 heroId
     const heroId = heroIdByName(pair.general);
     // 入库 addHeroFragments(heroId, count)
-    useTrainingGroundStore.getState().addHeroFragments(heroId, count);
+    useRecruitStore.getState().addHeroFragments(heroId, count);
     // 视觉: 紫色碎片盒
     for (let i = 0; i < count; i += 1) {
       const g = i === 0 ? glyph : (glyph === pair.first ? pair.second : pair.first);
@@ -1889,7 +1890,7 @@ export class GamePlayScene extends Phaser.Scene {
     const nextPity = Math.min(readBossDropPity() + 1, BOSS_DROP_GUARANTEE);
     const guaranteed = nextPity >= BOSS_DROP_GUARANTEE;
     const dropped = guaranteed || Math.random() < bossDropChanceForWave(this.wave);
-    useTrainingGroundStore.getState().recordBossDropAttempt(dropped);
+    useRecruitStore.getState().recordBossDropAttempt(dropped);
     if (dropped) {
       this.messageText?.setText("击败 Boss · 获得巅峰招募卷");
       // 1D: 物品掉落特效

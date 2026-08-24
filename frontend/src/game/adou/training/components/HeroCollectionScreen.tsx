@@ -15,7 +15,7 @@ import {
   Users,
 } from "lucide-react";
 import { playSfx } from "../../../../audio/audioSystem";
-import { useTrainingGroundStore } from "../store";
+import { useRecruitStore } from "../../recruit/store";
 import { useAppStore } from "../../../../store/useAppStore";
 import {
   DUPLICATE_FRAGMENT_REWARD,
@@ -403,18 +403,18 @@ export function HeroCollectionScreen({
   const drawTimer = useRef<number | null>(null);
   const revealTimer = useRef<number | null>(null);
 
-  const recruitedIds = useTrainingGroundStore((s) => s.recruitedHeroIds);
-  const recruitTickets = useTrainingGroundStore((s) => s.recruitTickets);
-  const eliteRecruitItems = useTrainingGroundStore((s) => s.eliteRecruitItems);
-  const legendRecruitScrolls = useTrainingGroundStore((s) => s.legendRecruitScrolls);
-  const poolStats = useTrainingGroundStore((s) => s.poolStats);
-  const drawHistory = useTrainingGroundStore((s) => s.drawHistory);
+  const recruitedIds = useRecruitStore((s) => s.recruitedHeroIds);
+  const recruitTickets = useRecruitStore((s) => s.recruitTickets);
+  const eliteRecruitItems = useRecruitStore((s) => s.eliteRecruitItems);
+  const legendRecruitScrolls = useRecruitStore((s) => s.legendRecruitScrolls);
+  const poolStats = useRecruitStore((s) => s.poolStats);
+  const drawHistory = useRecruitStore((s) => s.drawHistory);
 
-  const recruitHero = useTrainingGroundStore((s) => s.recruitHero);
-  const heroFragments = useTrainingGroundStore((s) => s.heroFragments);
-  const addHeroFragments = useTrainingGroundStore((s) => s.addHeroFragments);
-  const spendRecruitTicket = useTrainingGroundStore((s) => s.spendRecruitTicket);
-  const recordDraw = useTrainingGroundStore((s) => s.recordDraw);
+  const recruitHero = useRecruitStore((s) => s.recruitHero);
+  const heroFragments = useRecruitStore((s) => s.heroFragments);
+  const addHeroFragments = useRecruitStore((s) => s.addHeroFragments);
+  const spendRecruitTicket = useRecruitStore((s) => s.spendRecruitTicket);
+  const recordDraw = useRecruitStore((s) => s.recordDraw);
 
   const coins = useAppStore((s) => s.coins);
 
@@ -494,9 +494,9 @@ export function HeroCollectionScreen({
         if (activeRules.resource === "gold") {
           useAppStore.getState().addCoins(-activeRules.cost);
         } else if (activeRules.resource === "eliteItem") {
-          useTrainingGroundStore.getState().spendEliteRecruitItems(activeRules.cost);
+          useRecruitStore.getState().spendEliteRecruitItems(activeRules.cost);
         } else if (activeRules.resource === "legendScroll") {
-          useTrainingGroundStore.getState().spendLegendRecruitScrolls(activeRules.cost);
+          useRecruitStore.getState().spendLegendRecruitScrolls(activeRules.cost);
         } else {
           spendRecruitTicket(activeRules.cost);
         }
@@ -540,9 +540,9 @@ export function HeroCollectionScreen({
       if (activeRules.resource === "gold") {
         useAppStore.getState().addCoins(-fiveCost);
       } else if (activeRules.resource === "eliteItem") {
-        useTrainingGroundStore.getState().spendEliteRecruitItems(fiveCost);
+        useRecruitStore.getState().spendEliteRecruitItems(fiveCost);
       } else if (activeRules.resource === "legendScroll") {
-        useTrainingGroundStore.getState().spendLegendRecruitScrolls(fiveCost);
+        useRecruitStore.getState().spendLegendRecruitScrolls(fiveCost);
       } else {
         spendRecruitTicket(fiveCost);
       }

@@ -1,20 +1,18 @@
 /**
- * 招募系统 - 旧入口 (向后兼容)
+ * 招募系统 - 公开 API
  *
- * 此文件已迁移到 ../recruit/。这里仅做 re-export，
- * 老代码 import from "../heroes" 仍然可以工作。
- *
- * 新代码请直接 import from "../recruit"。
+ * 重导出全部子模块的公共 API。
+ * 外部只需 `import from "../recruit"` 即可访问。
  */
-export * from "../recruit/types";
+export * from "./types";
 export {
   RECRUIT_HEROES,
   HERO_RARITY_META,
   HERO_RARITY_ORDER,
   DEFAULT_RECRUITED_IDS,
   DUPLICATE_FRAGMENT_REWARD,
-} from "../recruit/registry";
-export { RECRUIT_POOL_RULES } from "../recruit/pool";
+} from "./registry";
+export { RECRUIT_POOL_RULES } from "./pool";
 export {
   BOSS_DROP_GUARANTEE,
   bossDropChanceForWave,
@@ -22,7 +20,7 @@ export {
   isEpicPityReady,
   isLegendPityReady,
   advancePoolStats,
-} from "../recruit/pity";
+} from "./pity";
 export {
   STARTING_DEMO_TICKETS,
   DEMO_TICKET_GRANT,
@@ -47,5 +45,8 @@ export {
   writeDrawHistory,
   readDemoTaskCount,
   writeDemoTaskCount,
-} from "../recruit/storage";
-export { createDrawHistoryEntry } from "../recruit/drawEngine";
+} from "./storage";
+export { rollHero, createDrawHistoryEntry } from "./drawEngine";
+export type { RollPoolContext } from "./drawEngine";
+export { useRecruitStore } from "./store";
+export type { RecruitState } from "./store";
