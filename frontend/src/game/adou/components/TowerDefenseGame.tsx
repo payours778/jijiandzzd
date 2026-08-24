@@ -29,7 +29,7 @@ export function TowerDefenseGame({
   const containerRef = useRef<HTMLDivElement>(null);
   const [consoleOpen, setConsoleOpen] = useState(false);
   const [gachaOpen, setGachaOpen] = useState(false);
-  const [started, setStarted] = useState(false);
+  const [started, setStarted] = useState(true);  // 17: 进入即开始, GameStartScreen 已合并到 Stage
   const [showOrientationHint, setShowOrientationHint] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const fromTraining =
@@ -72,7 +72,7 @@ export function TowerDefenseGame({
       document.body.classList.add("game-active");
     }
 
-    if (mode === "game" && !started) {
+    if (mode === "fx-test" && !started) {
       // 进入塔防界面（开始前）即停止军营背景音乐，避免残留到主界面
       stopMusic();
       return;
