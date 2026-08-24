@@ -15,6 +15,8 @@ import { RECRUIT_HEROES, HERO_RARITY_META } from "../recruit/registry";
 import { GeneralConfig } from "./registry";
 import { useGeneralStore, type GeneralInstance } from "./store";
 import { playSfx } from "../../../audio/audioSystem";
+import { Info } from "lucide-react";
+import { GeneralDetailPanel } from "./GeneralDetailPanel";
 
 const STAR_PER_LEVEL = 4; // 升 1 星消耗 4 碎片 (设计默认值, 控制台可改)
 const STAR_DAMAGE_BONUS = 0.1; // 每星 +10% 攻击
@@ -37,6 +39,7 @@ export function GeneralCollectionScreen() {
   const consumeFragment = useGeneralStore((s) => s.consumeFragment);
 
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [showDetail, setShowDetail] = useState(false);
 
   // 首次进入时, 给所有已招募的武将确保 instance
   useEffect(() => {
@@ -154,6 +157,11 @@ export function GeneralCollectionScreen() {
           )}
         </div>
 
+        {selected && (
+          <button onClick={() => { playSfx("click"); setShowDetail(true); }} style={{ width: "100%", padding: "8px 16px", marginTop: 8, background: "linear-gradient(90deg, rgba(96, 165, 250, 0.2), rgba(99, 102, 241, 0.2))", border: "1px solid #60a5fa", borderRadius: 6, color: "#60a5fa", fontSize: 13, fontWeight: 600, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 6 }}>
+            <Info size={14} />查看完整详情
+          </button>
+        )}
         {selected && selected.inst && (
           <GeneralDetail
             inst={selected.inst}
@@ -161,6 +169,13 @@ export function GeneralCollectionScreen() {
             onStarUp={() => handleStarUp(selected.inst)}
             onEquipMain={() => handleEquipMain(selected.inst)}
             recruitFragments={heroFragments[selected.hero.id] ?? 0}
+          />
+        )}
+        {showDetail && selected && (
+          <GeneralDetailPanel
+            heroId={selected.hero.id}
+            instance={selected.inst}
+            onClose={() => setShowDetail(false)}
           />
         )}
       </div>

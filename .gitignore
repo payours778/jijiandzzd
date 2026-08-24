@@ -15,3 +15,6 @@ tools/deploy.log
 backend/patch-*.cjs
 backend/patch-*.js
 
+
+frontend/src/game/adou/**/patch-*.cjs
+
