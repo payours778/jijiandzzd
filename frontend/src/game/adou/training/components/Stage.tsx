@@ -21,6 +21,31 @@ const BG_IMAGES = [
   "/assets/training-ground/background/bg-04-night.png",
 ];
 
+// 每张背景图各自的旗帜帧动画 (原图旗面烘焙, 坐标为背景图内百分比)
+interface FlagSprite {
+  src: string;
+  x: number;
+  y: number;
+  w: number;
+  h: number;
+  dur: number;
+}
+
+const FLAG_SHEETS: Record<string, FlagSprite[]> = {
+  "bg-main.png": [
+    { src: "/assets/training-ground/flags/bg-main-left-sheet.png", x: 9.01, y: 21.61, w: 13.01, h: 18.62, dur: 1.5 },
+    { src: "/assets/training-ground/flags/bg-main-right-sheet.png", x: 87.35, y: 21.61, w: 11.77, h: 18.62, dur: 1.7 },
+  ],
+  "bg-02-dawn.png": [
+    { src: "/assets/training-ground/flags/bg-02-dawn-left-sheet.png", x: 11.77, y: 27.6, w: 5.74, h: 19.66, dur: 1.6 },
+    { src: "/assets/training-ground/flags/bg-02-dawn-right-sheet.png", x: 84.96, y: 27.6, w: 11.12, h: 15.62, dur: 1.8 },
+  ],
+  "bg-04-night.png": [
+    { src: "/assets/training-ground/flags/bg-04-night-left-sheet.png", x: 19.33, y: 27.6, w: 15.7, h: 17.58, dur: 1.5 },
+    { src: "/assets/training-ground/flags/bg-04-night-right-sheet.png", x: 65.48, y: 31.64, w: 13.08, h: 17.06, dur: 1.7 },
+  ],
+};
+
 interface LeaderboardEntry {
   rank: number;
   displayName: string;
@@ -45,6 +70,8 @@ export function Stage() {
   const bgRef = useRef<HTMLDivElement>(null);
   const [bgCover, setBgCover] = useState<{ left: number; top: number; width: number; height: number } | null>(null);
   const audio = useAudioSettings();
+  const activeBgFile = BG_IMAGES[bgIdx].split("/").pop() ?? "";
+  const activeFlags = FLAG_SHEETS[activeBgFile] ?? [];
   const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([]);
   const [myRank, setMyRank] = useState<MyRank | null>(null);
   const [lbLoading, setLbLoading] = useState(true);
@@ -144,31 +171,31 @@ export function Stage() {
             draggable={false}
           />
         ))}
-        <div className="tg-stage__bg-shade" />
-
-        {/* 背景旗帜: 预烘焙精灵帧波浪动画 (参考成熟 RTS 做法) */}
+        {/* 原图旗帜帧动画: 位于暗角层下方, 与原画同光照, 随背景图轮换 */}
         {bgCover && (
           <div
             className="tg-stage__flags"
             style={{ left: bgCover.left, top: bgCover.top, width: bgCover.width, height: bgCover.height }}
             aria-hidden="true"
           >
-            <div
-              className="tg-flag tg-flag--shu"
-              style={{ "--x": "29%", "--y": "56%", "--cloth-w": "11cqw", "--cloth-h": "8.5cqh", "--pole-below": "13cqh" } as CSSProperties}
-            >
-              <div className="tg-flag__cloth" />
-              <div className="tg-flag__pole" />
-            </div>
-            <div
-              className="tg-flag tg-flag--han tg-flag--slow"
-              style={{ "--x": "73.5%", "--y": "63%", "--cloth-w": "8.5cqw", "--cloth-h": "6.5cqh", "--pole-below": "9cqh" } as CSSProperties}
-            >
-              <div className="tg-flag__cloth" />
-              <div className="tg-flag__pole" />
-            </div>
+            {activeFlags.map((f) => (
+              <div
+                key={f.src}
+                className="tg-flag-anim"
+                style={{
+                  left: `${f.x}%`,
+                  top: `${f.y}%`,
+                  width: `${f.w}%`,
+                  height: `${f.h}%`,
+                  backgroundImage: `url("${f.src}")`,
+                  animationDuration: `${f.dur}s`,
+                  ["--shift" as string]: `-${(f.w * 10).toFixed(2)}cqw`,
+                } as CSSProperties}
+              />
+            ))}
           </div>
         )}
+        <div className="tg-stage__bg-shade" />
       </div>
 
       {/* 用户卡片 (左上) */}
