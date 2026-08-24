@@ -57,11 +57,14 @@ function buildCommitMessage(arg) {
 
 function listFiles(dir, base, ignore) {
   const results = [];
-  for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
-    if (ignore.some(re => re.test(entry.name))) continue;
-    const full = path.join(dir, entry.name);
-    if (entry.isDirectory()) {
-      results = results.concat(listFiles(full, base, ignore));
+  const entries = fs.readdirSync(dir, { withFileTypes: true });
+  for (let i = 0; i < entries.length; i++) {
+    const e = entries[i];
+    if (ignore.some(re => re.test(e.name))) continue;
+    const full = path.join(dir, e.name);
+    if (e.isDirectory()) {
+      const sub = listFiles(full, base, ignore);
+      for (let j = 0; j < sub.length; j++) results.push(sub[j]);
     } else {
       results.push(path.relative(base, full).replace(/\\/g, "/"));
     }
