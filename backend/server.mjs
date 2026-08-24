@@ -426,8 +426,6 @@ async function handleApi(req, res, pathname) {
     return;
   }
 
-  if (pathname === "/api/adou/coins" && req.method === "POST") {
-
   if (pathname === "/api/adou/generals" && req.method === "GET") {
     const session = getSessionFromRequest(req);
     if (!session || !session.accountId) { sendJson(res, 401, { error: "Unauthorized" }); return; }
@@ -484,6 +482,8 @@ async function handleApi(req, res, pathname) {
     sendJson(res, 200, { ok: true, count });
     return;
   }
+
+  if (pathname === "/api/adou/coins" && req.method === "POST") {
     const session = getSessionFromRequest(req);
 
     if (!session || !session.accountId) {
