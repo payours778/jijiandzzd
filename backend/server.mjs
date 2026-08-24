@@ -49,6 +49,28 @@ try {
   // 老数据库已存在该列时忽略。
 }
 
+// 6A: 武将 instance 表
+db.exec(`
+  CREATE TABLE IF NOT EXISTS adou_general_instances (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    account_id INTEGER NOT NULL,
+    hero_id TEXT NOT NULL,
+    level INTEGER NOT NULL DEFAULT 1,
+    star INTEGER NOT NULL DEFAULT 0,
+    fragments INTEGER NOT NULL DEFAULT 0,
+    equipped_main TEXT,
+    equipped_secondary TEXT,
+    equipped_accessory TEXT,
+    status TEXT NOT NULL DEFAULT 'idle',
+    position_row INTEGER,
+    position_col INTEGER,
+    total_kills INTEGER NOT NULL DEFAULT 0,
+    updated_at TEXT NOT NULL,
+    UNIQUE(account_id, hero_id),
+    FOREIGN KEY (account_id) REFERENCES accounts(id) ON DELETE CASCADE
+  )`
+);
+
 const mimeTypes = {
   ".html": "text/html; charset=utf-8",
   ".css": "text/css; charset=utf-8",
@@ -405,6 +427,63 @@ async function handleApi(req, res, pathname) {
   }
 
   if (pathname === "/api/adou/coins" && req.method === "POST") {
+
+  if (pathname === "/api/adou/generals" && req.method === "GET") {
+    const session = getSessionFromRequest(req);
+    if (!session || !session.accountId) { sendJson(res, 401, { error: "Unauthorized" }); return; }
+    const rows = db.prepare("SELECT hero_id, level, star, fragments, equipped_main, equipped_secondary, equipped_accessory, status, position_row, position_col, total_kills, updated_at FROM adou_general_instances WHERE account_id = ?").all(session.accountId);
+    const list = rows.map((r) => ({
+      heroId: r.hero_id,
+      level: r.level,
+      star: r.star,
+      fragments: r.fragments,
+      equippedWeapons: { main: r.equipped_main, secondary: r.equipped_secondary, accessory: r.equipped_accessory },
+      status: r.status,
+      position: r.position_row != null ? { row: r.position_row, col: r.position_col } : null,
+      totalKills: r.total_kills,
+      updatedAt: r.updated_at,
+    }));
+    sendJson(res, 200, { ok: true, instances: list });
+    return;
+  }
+
+  if (pathname === "/api/adou/generals/sync" && req.method === "POST") {
+    const session = getSessionFromRequest(req);
+    if (!session || !session.accountId) { sendJson(res, 401, { error: "Unauthorized" }); return; }
+    const body = await readBody(req);
+    const list = Array.isArray(body?.instances) ? body.instances : [];
+    const now = new Date().toISOString();
+    const upsert = db.prepare(`
+      INSERT INTO adou_general_instances (account_id, hero_id, level, star, fragments, equipped_main, equipped_secondary, equipped_accessory, status, position_row, position_col, total_kills, updated_at)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      ON CONFLICT(account_id, hero_id) DO UPDATE SET
+        level=excluded.level, star=excluded.star, fragments=excluded.fragments,
+        equipped_main=excluded.equipped_main, equipped_secondary=excluded.equipped_secondary, equipped_accessory=excluded.equipped_accessory,
+        status=excluded.status, position_row=excluded.position_row, position_col=excluded.position_col,
+        total_kills=excluded.total_kills, updated_at=excluded.updated_at
+    `);
+    let count = 0;
+    const tx = db.transaction((items) => { for (const it of items) {
+      const w = it.equippedWeapons || {};
+      const pos = it.position || null;
+      upsert.run(
+        session.accountId,
+        String(it.heroId || ""),
+        Math.max(1, Math.min(5, Number(it.level) || 1)),
+        Math.max(0, Math.min(5, Number(it.star) || 0)),
+        Math.max(0, Math.floor(Number(it.fragments) || 0)),
+        w.main || null, w.secondary || null, w.accessory || null,
+        String(it.status || "idle"),
+        pos ? pos.row : null, pos ? pos.col : null,
+        Math.max(0, Math.floor(Number(it.totalKills) || 0)),
+        now,
+      );
+      count += 1;
+    } });
+    tx(list);
+    sendJson(res, 200, { ok: true, count });
+    return;
+  }
     const session = getSessionFromRequest(req);
 
     if (!session || !session.accountId) {

@@ -1,4 +1,8 @@
-/**
+// patch6c.js - rewrite generals/store.ts with backend sync
+const fs = require("fs");
+const path = "frontend/src/game/adou/generals/store.ts";
+
+const content = String.raw`/**
  * 武将系统 - 武将 instance 元数据 store
  *
  * 一个武将一个 instance (按 heroId 区分):
@@ -293,4 +297,7 @@ export function getTopFragments(
     .filter((entry) => entry.fragments > 0)
     .sort((a, b) => b.fragments - a.fragments)
     .slice(0, n);
-}
+}`;
+
+fs.writeFileSync(path, content, "utf8");
+console.log("wrote " + path + " (" + content.length + " bytes)");
