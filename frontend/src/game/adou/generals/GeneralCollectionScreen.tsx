@@ -44,10 +44,7 @@ export function GeneralCollectionScreen() {
   // 首次进入时, 给所有已招募的武将确保 instance
   useEffect(() => {
     recruitedIds.forEach((id) => ensureInstance(id));
-    if (!selectedId && recruitedIds.length > 0) {
-      setSelectedId(recruitedIds[0]);
-    }
-  }, [recruitedIds, ensureInstance, selectedId]);
+  }, [recruitedIds, ensureInstance]);
 
   const recruited = useMemo(
     () => RECRUIT_HEROES.filter((h) => recruitedIds.includes(h.id)),
@@ -64,7 +61,8 @@ export function GeneralCollectionScreen() {
 
   const handleSelect = (id: string) => {
     playSfx("click");
-    setSelectedId(id);
+    // 与军械库一致: 点击展开详情, 再点同一张收起
+    setSelectedId((cur) => (cur === id ? null : id));
   };
 
   const handleToggleDeploy = (inst: GeneralInstance | undefined) => {
