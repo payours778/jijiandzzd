@@ -29,6 +29,7 @@ import {
   type HeroRarity,
   type RecruitHero,
 } from "../heroes";
+import { rollHero as drawHero, type RollPoolContext } from "../../recruit/drawEngine";
 
 type CollectionTab = "recruit" | "owned" | "archive";
 
@@ -193,29 +194,7 @@ function HeroCard({
   );
 }
 
-function rollHero(
-  pool: RecruitPool,
-  epicPityReady: boolean,
-  legendPityReady: boolean,
-): RecruitHero {
-  let rarity: RecruitHero["rarity"];
-  if (legendPityReady) {
-    rarity = "legendary";
-  } else if (epicPityReady) {
-    rarity = "epic";
-  } else {
-    const roll = Math.random();
-    if (roll < pool.rates.legendary) {
-      rarity = "legendary";
-    } else if (roll < pool.rates.legendary + pool.rates.epic) {
-      rarity = "epic";
-    } else {
-      rarity = "rare";
-    }
-  }
-  const candidates = RECRUIT_HEROES.filter((hero) => hero.rarity === rarity);
-  return candidates[Math.floor(Math.random() * candidates.length)];
-}
+
 
 function playHeroRecruitVoice(hero: RecruitHero) {
   if (hero.rarity === "rare") return;
@@ -482,11 +461,7 @@ export function HeroCollectionScreen({
     const hero =
       activePool.id === "targeted"
         ? RECRUIT_HEROES.find((item) => item.id === targetedHeroId) ?? RECRUIT_HEROES[0]
-        : rollHero(
-            activePool,
-            isEpicPityReady(activePool.id, activeStats),
-            isLegendPityReady(activePool.id, activeStats),
-          );
+        : drawHero({ id: activePool.id, rates: activePool.rates, epicPityReady: isEpicPityReady(activePool.id, activeStats), legendPityReady: isLegendPityReady(activePool.id, activeStats) });
     const isNew = !recruitedIds.includes(hero.id);
     const fragmentReward = isNew ? 0 : DUPLICATE_FRAGMENT_REWARD[hero.rarity];
     drawTimer.current = window.setTimeout(() => {
@@ -554,11 +529,7 @@ export function HeroCollectionScreen({
       const hero =
         activePool.id === "targeted"
           ? RECRUIT_HEROES.find((item) => item.id === targetedHeroId) ?? RECRUIT_HEROES[0]
-          : rollHero(
-              activePool,
-              isEpicPityReady(activePool.id, localStats),
-              isLegendPityReady(activePool.id, localStats),
-            );
+          : drawHero({ id: activePool.id, rates: activePool.rates, epicPityReady: isEpicPityReady(activePool.id, localStats), legendPityReady: isLegendPityReady(activePool.id, localStats) });
       const isNew = !knownRecruited.has(hero.id);
       const fragmentReward = isNew ? 0 : DUPLICATE_FRAGMENT_REWARD[hero.rarity];
       if (isNew) {
