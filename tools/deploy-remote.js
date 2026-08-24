@@ -194,7 +194,8 @@ async function upload(conn) {
 
 async function restartAndVerify(conn) {
   // 先杀掉任何残留的 node server.mjs（无论 pm2 / nohup / 手动）
-  await sshExec(conn, "pkill -9 -f 'node server.mjs' 2>/dev/null; fuser -k 3001/tcp 2>/dev/null; sleep 2; echo killed");
+  // 关键：用 pgrep -f + xargs 而非 pkill -f，避免 pkill 把自己所在 sh 也匹配杀掉
+  await sshExec(conn, "pgrep -f 'node server\\.mjs' | xargs -r kill -9 2>/dev/null; fuser -k 3001/tcp 2>/dev/null; sleep 2; echo killed");
   // 用 nohup 后台启动，不依赖 pm2（pm2 daemon 在此环境会失联）
   const startCmd = "cd " + REMOTE.backendDir + " && PORT=3001 nohup node server.mjs > /var/log/mini-playbox.out 2> /var/log/mini-playbox.err < /dev/null & disown; sleep 3; echo started";
   await sshExec(conn, startCmd);
