@@ -10,3 +10,8 @@ Thumbs.db
 # 本地部署配置（包含服务器密码，勿提交）
 tools/deploy.config.json
 tools/deploy.log
+
+# patch scripts (one-shot tools)
+backend/patch-*.cjs
+backend/patch-*.js
+

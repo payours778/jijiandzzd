@@ -71,6 +71,11 @@ db.exec(`
   )`
 );
 
+// 13: daily signin table
+db.exec(`CREATE TABLE IF NOT EXISTS adou_daily_signin (id INTEGER PRIMARY KEY AUTOINCREMENT, account_id TEXT NOT NULL, signin_date TEXT NOT NULL, reward_coins INTEGER NOT NULL, consecutive_days INTEGER NOT NULL, created_at TEXT NOT NULL, UNIQUE(account_id, signin_date), FOREIGN KEY (account_id) REFERENCES accounts(id) ON DELETE CASCADE)`);
+try{db.exec('CREATE INDEX IF NOT EXISTS idx_daily_signin_account_date ON adou_daily_signin(account_id, signin_date DESC)');}catch{}
+
+
 // 7: 商店购买记录表
 db.exec(`
   CREATE TABLE IF NOT EXISTS adou_shop_purchases (
@@ -670,6 +675,50 @@ async function handleApi(req, res, pathname) {
     return;
   }
 
+
+// === 13 daily-signin API ===
+const SIGNIN_REWARDS = [50, 80, 120, 150, 200, 250, 400];
+function todayStr() { return new Date().toISOString().slice(0, 10); }
+function daysBetween(a, b) { return Math.round((new Date(b + 'T00:00:00Z') - new Date(a + 'T00:00:00Z')) / 86400000); }
+
+if (pathname === '/api/adou/daily-signin' && req.method === 'GET') {
+  const s = getSessionFromRequest(req);
+  if (!s || !s.accountId) { sendJson(res, 401, { error: 'Unauthorized' }); return; }
+  const today = todayStr();
+  const tr = db.prepare('SELECT id, reward_coins, consecutive_days, created_at FROM adou_daily_signin WHERE account_id = ? AND signin_date = ?').get(s.accountId, today);
+  const lr = db.prepare('SELECT signin_date, consecutive_days FROM adou_daily_signin WHERE account_id = ? ORDER BY signin_date DESC LIMIT 1').get(s.accountId);
+  const wr = db.prepare('SELECT signin_date, reward_coins, consecutive_days FROM adou_daily_signin WHERE account_id = ? ORDER BY signin_date DESC LIMIT 7').all(s.accountId);
+  const tot = db.prepare('SELECT COUNT(*) AS c, COALESCE(SUM(reward_coins), 0) AS t FROM adou_daily_signin WHERE account_id = ?').get(s.accountId);
+  let cur = 0;
+  if (lr) cur = lr.consecutive_days || 0;
+  const nmd = ((cur % 7) + 1);
+  const nr = SIGNIN_REWARDS[nmd - 1];
+  sendJson(res, 200, { ok: true, today, signedToday: !!tr, currentStreak: cur, nextMilestoneDay: nmd, nextReward: nr, rewards: SIGNIN_REWARDS, recent: wr, totalSignins: tot.c, totalCoins: tot.t });
+  return;
+}
+
+if (pathname === '/api/adou/daily-signin' && req.method === 'POST') {
+  const s = getSessionFromRequest(req);
+  if (!s || !s.accountId) { sendJson(res, 401, { error: 'Unauthorized' }); return; }
+  const today = todayStr();
+  const tr = db.prepare('SELECT id FROM adou_daily_signin WHERE account_id = ? AND signin_date = ?').get(s.accountId, today);
+  if (tr) { sendJson(res, 400, { error: 'already-signed-today', signedToday: true }); return; }
+  const lr = db.prepare('SELECT signin_date, consecutive_days FROM adou_daily_signin WHERE account_id = ? ORDER BY signin_date DESC LIMIT 1').get(s.accountId);
+  let ns = 1;
+  if (lr) {
+    const d = daysBetween(lr.signin_date, today);
+    if (d === 1) ns = (lr.consecutive_days || 0) + 1;
+    else ns = 1;
+  }
+  const di = ((ns - 1) % 7);
+  const reward = SIGNIN_REWARDS[di];
+  const now = new Date().toISOString();
+  db.prepare('INSERT INTO adou_daily_signin (account_id, signin_date, reward_coins, consecutive_days, created_at) VALUES (?, ?, ?, ?, ?)').run(s.accountId, today, reward, ns, now);
+  db.prepare('UPDATE accounts SET coins = coins + ? WHERE id = ?').run(reward, s.accountId);
+  const ar = db.prepare('SELECT coins FROM accounts WHERE id = ?').get(s.accountId);
+  sendJson(res, 200, { ok: true, signedToday: true, consecutiveDays: ns, reward, coins: ar.coins, today });
+  return;
+}
   sendJson(res, 404, { error: "API route not found" });
 }
 

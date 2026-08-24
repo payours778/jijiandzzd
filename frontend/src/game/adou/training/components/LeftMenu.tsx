@@ -1,10 +1,10 @@
-import { Boxes, History, Map, Settings, ShoppingBag, Sparkles, Swords, Trophy, Users } from "lucide-react";
+import { Boxes, Calendar, History, Map, Settings, ShoppingBag, Sparkles, Swords, Trophy, Users } from "lucide-react";
 import { MENU_ITEMS } from "../layout";
 import { useTrainingGroundStore } from "../store";
 import type { MenuKey } from "../types";
 
 const ICONS: Record<string, typeof Swords> = {
-  Swords, Boxes, Map, Settings, Users, Sparkles, Shop: ShoppingBag, Trophy, History,
+  Swords, Boxes, Map, Settings, Users, Sparkles, Shop: ShoppingBag, Trophy, History, Calendar,
 };
 
 interface LeftMenuProps {

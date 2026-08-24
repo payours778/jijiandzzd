@@ -7,6 +7,7 @@ import { ShopScreen } from "./ShopScreen";
 import { LeaderboardScreen } from "./LeaderboardScreen";
 import { RecordsScreen } from "./RecordsScreen";
 import { SettingsScreen } from "./SettingsScreen";
+import { DailySigninScreen } from "./DailySigninScreen";
 import { HeroCollectionScreen } from "./HeroCollectionScreen";
 import { GeneralCollectionScreen } from "../../generals/GeneralCollectionScreen";
 import { BottomBar } from "./BottomBar";
@@ -69,6 +70,8 @@ export function TrainingGroundScreen({ onBack }: TrainingGroundScreenProps) {
             <ArmoryScreen />
           ) : activeMenu === "shop" ? (
             <ShopScreen />
+          ) : activeMenu === "signin" ? (
+            <DailySigninScreen />
           ) : activeMenu === "leaderboard" ? (
             <LeaderboardScreen />
           ) : activeMenu === "records" ? (

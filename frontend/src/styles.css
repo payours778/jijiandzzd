@@ -7266,3 +7266,9 @@ body.game-active{position:fixed;inset:0;overflow:hidden;}
   font-size: 12px;
   color: #cbd5e1;
 }
+
+/* === Phase 13: daily signin === */
+@keyframes tg-fade { 0% { opacity: 0; transform: scale(0.6); } 20% { opacity: 1; transform: scale(1.15); } 80% { opacity: 1; transform: scale(1.0); } 100% { opacity: 0; transform: scale(1.4); } }
+@keyframes tg-signin-pulse { 0%, 100% { box-shadow: 0 4px 12px rgba(251, 191, 36, 0.4); } 50% { box-shadow: 0 4px 24px rgba(251, 191, 36, 0.7); } }
+.tg-signin-claim-btn:not(:disabled):hover { transform: translateY(-2px) !important; animation: tg-signin-pulse 1s ease-in-out infinite !important; }
+
