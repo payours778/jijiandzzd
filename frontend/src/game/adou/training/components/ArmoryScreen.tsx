@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react";
-import { Check, Coins, Gem, Lock, ShoppingBag, Swords, Ticket } from "lucide-react";
+import { Check, Coins, Gem, Lock, ShoppingBag, Swords } from "lucide-react";
+import { ResourceShopGrid } from "./ResourceShopGrid";
 import { useAppStore } from "../../../../store/useAppStore";
 import { playSfx } from "../../../../audio/audioSystem";
 import { useRecruitStore } from "../../recruit/store";
@@ -105,7 +106,6 @@ function writeStringList(key: string, values: string[]) {
 
 export function ArmoryScreen() {
   const coins = useAppStore((s) => s.coins);
-  const eliteRecruitItems = useRecruitStore((s) => s.eliteRecruitItems);
   const [view, setView] = useState<ArmoryView>("armory");
   const [series, setSeries] = useState<SeriesFilter>("all");
   const [attack, setAttack] = useState<AttackFilter>("all");
@@ -169,13 +169,6 @@ export function ArmoryScreen() {
     const next = [...ownedIds, weapon.id];
     setOwnedIds(next);
     writeStringList(OWNED_KEY, next);
-  };
-
-  const buyRecruitItem = () => {
-    if (coins < 500) return;
-    playSfx("click");
-    useAppStore.getState().addCoins(-500);
-    useRecruitStore.getState().addEliteRecruitItems(1);
   };
 
   const equipWeapon = (weapon: WeaponDefinition) => {
@@ -334,26 +327,12 @@ export function ArmoryScreen() {
       <div className={`tg-armory__body${selected ? " has-detail" : ""}`}>
         <section className="tg-armory__catalog">
           {view === "shop" && (
-            <div className="tg-armory__recruit-shop">
-              <div className="tg-armory__recruit-icon">
-                <Ticket size={18} />
+            <div className="tg-armory__resources">
+              <div className="tg-armory__group-head">
+                <strong>资源商店</strong>
+                <span>金币购买招募资源</span>
               </div>
-              <div className="tg-armory__recruit-info">
-                <strong>招募道具</strong>
-                <span>精英招募专用 · 当前持有 {eliteRecruitItems}</span>
-              </div>
-              <div className="tg-armory__recruit-price">
-                <Coins size={14} />
-                500
-              </div>
-              <button
-                type="button"
-                className="tg-armory__recruit-buy"
-                disabled={coins < 500}
-                onClick={buyRecruitItem}
-              >
-                购买
-              </button>
+              <ResourceShopGrid />
             </div>
           )}
           {grouped.map((group) => (
