@@ -5,6 +5,7 @@ import { Stage } from "./Stage";
 import { ArmoryScreen } from "./ArmoryScreen";
 import { SettingsScreen } from "./SettingsScreen";
 import { HeroCollectionScreen } from "./HeroCollectionScreen";
+import { GeneralCollectionScreen } from "../../generals/GeneralCollectionScreen";
 import { BottomBar } from "./BottomBar";
 import { ComingSoonOverlay } from "./ComingSoonOverlay";
 import { useTrainingGroundStore } from "../store";
@@ -59,6 +60,8 @@ export function TrainingGroundScreen({ onBack }: TrainingGroundScreenProps) {
         <main className="tg-main">
           {activeMenu === "heroes" ? (
             <HeroCollectionScreen enableFiveDraw />
+          ) : activeMenu === "generals" ? (
+            <GeneralCollectionScreen />
           ) : activeMenu === "armory" ? (
             <ArmoryScreen />
           ) : activeMenu === "settings" ? (

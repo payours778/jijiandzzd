@@ -6,7 +6,8 @@ import type { MenuItem } from "./types";
 /** 菜单配置 */
 export const MENU_ITEMS: MenuItem[] = [
   { key: "start",     label: "开始游戏",   icon: "Swords",   enabled: true,  subtitle: "进入保卫阿斗" },
-  { key: "heroes",    label: "武将",       icon: "Users",    enabled: true,  subtitle: "招募与武将管理" },
+  { key: "generals",  label: "我的武将",   icon: "Users",    enabled: true,  subtitle: "升星 / 上场 / 装备" },
+  { key: "heroes",    label: "招募",       icon: "Sparkles", enabled: true,  subtitle: "抽取新的武将" },
   { key: "armory",    label: "军械库",     icon: "Boxes",    enabled: true,  subtitle: "兵器谱与商店" },
   { key: "expedition",label: "远征",       icon: "Map",      enabled: false, subtitle: "敬请期待" },
   { key: "settings",  label: "设置",       icon: "Settings", enabled: true,  subtitle: "声音与背景音乐" },

@@ -3,7 +3,7 @@
  */
 
 /** 主菜单 */
-export type MenuKey = "start" | "heroes" | "armory" | "expedition" | "settings";
+export type MenuKey = "start" | "heroes" | "generals" | "armory" | "expedition" | "settings";
 
 /** 菜单项配置 */
 export interface MenuItem {
