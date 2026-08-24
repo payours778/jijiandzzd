@@ -207,5 +207,6 @@ async function main() {
 
 main().catch(err => {
   logLine("!!! 部署失败: " + err.message);
+  logLine("STACK: " + (err.stack || "(none)"));
   process.exit(1);
 });
