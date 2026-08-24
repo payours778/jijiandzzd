@@ -1,9 +1,7 @@
 import { useMemo, useState } from "react";
-import { Check, Coins, Gem, Lock, ShoppingBag, Swords } from "lucide-react";
-import { ResourceShopGrid } from "./ResourceShopGrid";
+import { Check, Coins, Gem, Lock, Swords } from "lucide-react";
 import { useAppStore } from "../../../../store/useAppStore";
 import { playSfx } from "../../../../audio/audioSystem";
-import { useRecruitStore } from "../../recruit/store";
 import {
   getSeries,
   listWeapons,
@@ -16,8 +14,6 @@ type SeriesFilter = "all" | Extract<WeaponSeriesId, "sword" | "spear" | "blade" 
 type AttackFilter = "all" | WeaponDefinition["attackType"];
 type OwnershipFilter = "all" | "owned" | "unowned";
 type QualityKey = "white" | "green" | "purple" | "gold" | "red";
-type ArmoryView = "armory" | "shop";
-
 const ARMORY_SERIES: SeriesFilter[] = ["all", "sword", "spear", "blade", "bow"];
 
 const ATTACK_FILTERS: AttackFilter[] = ["all", "melee", "ranged", "magic", "thrown"];
@@ -47,33 +43,6 @@ function qualityOf(weapon: WeaponDefinition): QualityKey {
 
 function qualityLabel(key: QualityKey) {
   return `${QUALITY_META[key].label}色`;
-}
-
-function priceOf(weapon: WeaponDefinition) {
-  const quality = qualityOf(weapon);
-  const base: Record<QualityKey, number> = {
-    white: 120,
-    green: 420,
-    purple: 1200,
-    gold: 3200,
-    red: 8000,
-  };
-  if (weapon.status === "development") return 0;
-  return base[quality];
-}
-/** 商店可购买规则：按系列+品质控制 */
-function isShopBuyable(weapon: WeaponDefinition, all: WeaponDefinition[]) {
-  if (weapon.status === "development") return false;
-  const q = qualityOf(weapon);
-  if (q === "white") return true;
-  const series = all.filter((w) => w.series === weapon.series);
-  const buyableSameQ = series.filter((w) => qualityOf(w) === q && w.status !== "development");
-  if (q === "green" || q === "purple") {
-    return buyableSameQ.length <= 1 ? true : buyableSameQ.indexOf(weapon) < buyableSameQ.length - 1;
-  }
-  if (q === "gold") return buyableSameQ.indexOf(weapon) === 0;
-  if (q === "red") return buyableSameQ.indexOf(weapon) === 0;
-  return true;
 }
 
 
@@ -106,7 +75,6 @@ function writeStringList(key: string, values: string[]) {
 
 export function ArmoryScreen() {
   const coins = useAppStore((s) => s.coins);
-  const [view, setView] = useState<ArmoryView>("armory");
   const [series, setSeries] = useState<SeriesFilter>("all");
   const [attack, setAttack] = useState<AttackFilter>("all");
   const [quality, setQuality] = useState<"all" | QualityKey>("all");
@@ -130,10 +98,9 @@ export function ArmoryScreen() {
       if (quality !== "all" && qualityOf(w) !== quality) return false;
       if (ownership === "owned" && !ownedIds.includes(w.id)) return false;
       if (ownership === "unowned" && ownedIds.includes(w.id)) return false;
-      if (view === "shop" && (w.status === "development" || !isShopBuyable(w, weapons))) return false;
       return true;
     });
-  }, [weapons, series, attack, quality, ownership, ownedIds, view]);
+  }, [weapons, series, attack, quality, ownership, ownedIds]);
 
   const grouped = useMemo(() => {
     const order: WeaponSeriesId[] = ["sword", "blade", "spear", "bow"];
@@ -157,20 +124,6 @@ export function ArmoryScreen() {
     [weapons, ownedIds],
   );
 
-  const buyWeapon = (weapon: WeaponDefinition) => {
-    const price = priceOf(weapon);
-    if (ownedIds.includes(weapon.id) || price <= 0) return;
-    if (coins < price) {
-      useAppStore.getState().showToast("金币不足，先去闯几关攒点金币");
-      return;
-    }
-    playSfx("synthesize");
-    useAppStore.getState().addCoins(-price);
-    const next = [...ownedIds, weapon.id];
-    setOwnedIds(next);
-    writeStringList(OWNED_KEY, next);
-  };
-
   const equipWeapon = (weapon: WeaponDefinition) => {
     if (!ownedIds.includes(weapon.id)) return;
     playSfx("click");
@@ -188,15 +141,8 @@ export function ArmoryScreen() {
     setSelectedId((prev) => (prev === id ? null : id));
   };
 
-  const switchView = (next: ArmoryView) => {
-    if (next === view) return;
-    playSfx("click");
-    setView(next);
-  };
-
   const seriesName = (id: WeaponSeriesId) => getSeries(id).name;
   const qualityName = selected ? qualityLabel(qualityOf(selected)) : "";
-  const selectedPrice = selected ? priceOf(selected) : 0;
   const isOwned = selected ? ownedIds.includes(selected.id) : false;
   const isEquipped = selectedId === equippedId;
 
@@ -206,25 +152,6 @@ export function ArmoryScreen() {
         <div className="tg-armory__heading">
           <div className="tg-armory__eyebrow">军械库</div>
           <h2>兵器谱</h2>
-        </div>
-
-        <div className="tg-armory__tabs" role="tablist">
-          <button
-            type="button"
-            className={`tg-armory__tab${view === "armory" ? " is-active" : ""}`}
-            onClick={() => switchView("armory")}
-          >
-            <Swords size={16} />
-            <span>兵器</span>
-          </button>
-          <button
-            type="button"
-            className={`tg-armory__tab${view === "shop" ? " is-active" : ""}`}
-            onClick={() => switchView("shop")}
-          >
-            <ShoppingBag size={16} />
-            <span>商店</span>
-          </button>
         </div>
 
         <div className="tg-armory__coins">
@@ -326,15 +253,6 @@ export function ArmoryScreen() {
 
       <div className={`tg-armory__body${selected ? " has-detail" : ""}`}>
         <section className="tg-armory__catalog">
-          {view === "shop" && (
-            <div className="tg-armory__resources">
-              <div className="tg-armory__group-head">
-                <strong>资源商店</strong>
-                <span>金币购买招募资源</span>
-              </div>
-              <ResourceShopGrid />
-            </div>
-          )}
           {grouped.map((group) => (
             <div className="tg-armory__group" key={group.series}>
               <div className="tg-armory__group-head">
@@ -346,8 +264,6 @@ export function ArmoryScreen() {
                   const q = qualityOf(weapon);
                   const owned = ownedIds.includes(weapon.id);
                   const equipped = equippedId === weapon.id;
-                  const price = priceOf(weapon);
-                  const canBuy = !owned && price > 0 && view === "shop";
                   return (
                     <button
                       type="button"
@@ -367,9 +283,9 @@ export function ArmoryScreen() {
                         <em>伤 {Math.round(weapon.stats.damage)}</em>
                         <em>暴 {Math.round((weapon.stats.critRate ?? 0) * 100)}%</em>
                       </span>
-                      {(equipped || canBuy) && (
-                        <span className={`tg-armory__card-cta${equipped ? " is-equipped" : ""}`}>
-                          {equipped ? <><Gem size={13} />已装备</> : <><Coins size={13} />{price}</>}
+                      {equipped && (
+                        <span className="tg-armory__card-cta is-equipped">
+                          <Gem size={13} />已装备
                         </span>
                       )}
                     </button>
@@ -398,7 +314,7 @@ export function ArmoryScreen() {
               <div className="tg-armory__detail-head">
                 <span className="tg-armory__detail-series">{seriesName(selected.series)}</span>
                 <h3>{selected.name}</h3>
-                <p>{qualityName} · {selected.status === "development" ? "专属" : selected && isShopBuyable(selected, weapons) ? "可购买" : "禁售"}</p>
+                <p>{qualityName} · {selected.status === "development" ? "专属" : "普通兵器"}</p>
               </div>
 
               <div className="tg-armory__detail-desc">{selected.description}</div>
@@ -423,17 +339,6 @@ export function ArmoryScreen() {
               )}
 
               <div className="tg-armory__actions">
-                {!isOwned && selectedPrice > 0 && view === "shop" && selected && isShopBuyable(selected, weapons) && (
-                  <button
-                    type="button"
-                    className="tg-armory__buy"
-                    disabled={coins < selectedPrice}
-                    onClick={() => buyWeapon(selected)}
-                  >
-                    <Coins size={15} />
-                    购买 {selectedPrice}
-                  </button>
-                )}
                 {isOwned && !isEquipped && (
                   <button type="button" className="tg-armory__equip" onClick={() => equipWeapon(selected)}>
                     <Swords size={15} />
@@ -452,7 +357,7 @@ export function ArmoryScreen() {
         )}
       </div>
 
-      {ownedWeapons.length > 0 && view === "armory" && (
+      {ownedWeapons.length > 0 && (
         <footer className="tg-armory__owned-strip">
           <strong>已收集</strong>
           <div>

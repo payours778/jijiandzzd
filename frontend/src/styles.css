@@ -7502,3 +7502,88 @@ body.game-active{position:fixed;inset:0;overflow:hidden;}
   color: #94a3b8;
   font-size: 13px;
 }
+
+/* === 独立商店页 (军营商店) === */
+.tg-shop {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  padding: 16px;
+  height: 100%;
+  overflow-y: auto;
+}
+.tg-shop__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 4px 12px;
+  border-bottom: 1px solid #334155;
+}
+.tg-shop__title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: #fbbf24;
+}
+.tg-shop__title h2 { margin: 0; font-size: 20px; color: #f1f5f9; }
+.tg-shop__balance {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  border-radius: 999px;
+  background: rgba(234, 179, 8, 0.14);
+  border: 1px solid rgba(234, 179, 8, 0.3);
+  color: #fbbf24;
+  font-size: 13px;
+  font-weight: 700;
+}
+.tg-shop__section {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.tg-shop__section-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 15px;
+  font-weight: 700;
+  color: #f1f5f9;
+}
+.tg-shop__section-title span {
+  font-size: 11px;
+  font-weight: 400;
+  color: #64748b;
+}
+.tg-shop__card-icon--weapon {
+  background: #0f172a;
+  border: 1px solid #334155;
+  padding: 4px;
+}
+.tg-shop__card-icon--weapon img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  border-radius: 6px;
+}
+.tg-shop__card.is-owned { border-color: rgba(74, 222, 128, 0.4); }
+.tg-shop__card-buy.is-owned { background: rgba(74, 222, 128, 0.15); color: #4ade80; }
+.tg-shop__empty {
+  padding: 24px;
+  text-align: center;
+  color: #64748b;
+  font-size: 13px;
+  border: 1px dashed #334155;
+  border-radius: 8px;
+}
+.tg-shop__note {
+  margin: 4px 0 0;
+  font-size: 12px;
+  color: #64748b;
+  line-height: 1.6;
+  padding: 10px 12px;
+  background: #0f172a;
+  border: 1px solid #1e293b;
+  border-radius: 8px;
+}

@@ -3,6 +3,7 @@ import { TopBar } from "./TopBar";
 import { LeftMenu } from "./LeftMenu";
 import { Stage } from "./Stage";
 import { ArmoryScreen } from "./ArmoryScreen";
+import { ShopScreen } from "./ShopScreen";
 import { LeaderboardScreen } from "./LeaderboardScreen";
 import { RecordsScreen } from "./RecordsScreen";
 import { SettingsScreen } from "./SettingsScreen";
@@ -65,6 +66,8 @@ export function TrainingGroundScreen({ onBack }: TrainingGroundScreenProps) {
             <GeneralCollectionScreen />
           ) : activeMenu === "armory" ? (
             <ArmoryScreen />
+          ) : activeMenu === "shop" ? (
+            <ShopScreen />
           ) : activeMenu === "signin" ? (
             <DailySigninScreen />
           ) : activeMenu === "achievements" ? (
