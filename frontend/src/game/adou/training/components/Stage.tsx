@@ -1,11 +1,9 @@
-import { useEffect, useRef, useState, type CSSProperties } from "react";
+import { useEffect, useState } from "react";
 import { ArrowRight, Coins, Loader2, PlayCircle, Sparkles, Swords, Trophy, X } from "lucide-react";
 import { useAppStore } from "../../../../store/useAppStore";
 import { useRecruitStore } from "../../recruit/store";
 import { useGeneralStore } from "../../generals/store";
-import { playAmbient, playSfx, stopAmbient } from "../../../../audio/audioSystem";
-import { useAudioSettings } from "../../../../audio/useAudioSettings";
-import { AMBIENT_WIND_FILE } from "../../../../audio/audioConfig";
+import { playSfx } from "../../../../audio/audioSystem";
 
 const AVATARS = [
   "/avatars/avatar-01.png",
@@ -42,9 +40,6 @@ export function Stage() {
   );
   const [pickerOpen, setPickerOpen] = useState(false);
   const [bgIdx, setBgIdx] = useState(0);
-  const bgRef = useRef<HTMLDivElement>(null);
-  const [bgCover, setBgCover] = useState<{ left: number; top: number; width: number; height: number } | null>(null);
-  const audio = useAudioSettings();
   const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([]);
   const [myRank, setMyRank] = useState<MyRank | null>(null);
   const [lbLoading, setLbLoading] = useState(true);
@@ -57,36 +52,6 @@ export function Stage() {
     const t = setInterval(() => setBgIdx((i) => (i + 1) % BG_IMAGES.length), 6000);
     return () => clearInterval(t);
   }, []);
-
-  // 背景图 cover 适配后的实际显示区域, 让旗帜始终贴合图内位置
-  useEffect(() => {
-    const el = bgRef.current;
-    if (!el) return;
-    const compute = () => {
-      const cw = el.clientWidth || 1;
-      const ch = el.clientHeight || 1;
-      const iw = 1376;
-      const ih = 768;
-      const scale = Math.max(cw / iw, ch / ih);
-      const dw = iw * scale;
-      const dh = ih * scale;
-      // 与 img 的 object-fit:cover + object-position:center 40% 一致
-      setBgCover({ left: (cw - dw) * 0.5, top: (ch - dh) * 0.4, width: dw, height: dh });
-    };
-    compute();
-    window.addEventListener("resize", compute);
-    return () => window.removeEventListener("resize", compute);
-  }, []);
-
-  // 军营风声环境音 (跟随 BGM 开关/音量/静音设置)
-  useEffect(() => {
-    if (audio.bgmEnabled && audio.musicVolume > 0 && !audio.muted) {
-      playAmbient(AMBIENT_WIND_FILE, 0.5);
-    } else {
-      stopAmbient();
-    }
-    return () => stopAmbient();
-  }, [audio.bgmEnabled, audio.musicVolume, audio.muted]);
 
   // 拉排行榜
   useEffect(() => {
@@ -134,7 +99,7 @@ export function Stage() {
   return (
     <div className="tg-stage">
       {/* 背景层 (轮播) */}
-      <div className="tg-stage__bg" ref={bgRef}>
+      <div className="tg-stage__bg">
         {BG_IMAGES.map((src, i) => (
           <img
             key={src}
@@ -145,30 +110,6 @@ export function Stage() {
           />
         ))}
         <div className="tg-stage__bg-shade" />
-
-        {/* 背景旗帜: 随风飘动 (按背景图内相对位置对齐) */}
-        {bgCover && (
-          <div
-            className="tg-stage__flags"
-            style={{ left: bgCover.left, top: bgCover.top, width: bgCover.width, height: bgCover.height }}
-            aria-hidden="true"
-          >
-            <div
-              className="tg-flag tg-flag--shu"
-              style={{ "--x": "29%", "--y": "56%", "--pole-below": "13cqh", "--cloth-w": "11cqw", "--cloth-h": "8.5cqh" } as CSSProperties}
-            >
-              <div className="tg-flag__pole" />
-              <div className="tg-flag__cloth" />
-            </div>
-            <div
-              className="tg-flag tg-flag--han tg-flag--slow"
-              style={{ "--x": "73.5%", "--y": "63%", "--pole-below": "9cqh", "--cloth-w": "8.5cqw", "--cloth-h": "6.5cqh" } as CSSProperties}
-            >
-              <div className="tg-flag__pole" />
-              <div className="tg-flag__cloth" />
-            </div>
-          </div>
-        )}
       </div>
 
       {/* 用户卡片 (左上) */}
