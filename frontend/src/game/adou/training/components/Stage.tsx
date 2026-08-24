@@ -110,6 +110,29 @@ export function Stage() {
           />
         ))}
         <div className="tg-stage__bg-shade" />
+        {/* 19: 飘动旗帜 (叠加在背景层之上, 模拟战旗随风飘) */}
+        <div className="tg-stage__flags" aria-hidden="true">
+          <div className="tg-flag tg-flag--shu" style={{ left: "8%", top: "38%", width: "110px", height: "56px" }}>
+            <div className="tg-flag__pole" style={{ height: "180px" }} />
+            <div className="tg-flag__cloth" style={{ height: "56px" }} />
+          </div>
+          <div className="tg-flag tg-flag--shu tg-flag--slow" style={{ left: "18%", top: "44%", width: "70px", height: "38px" }}>
+            <div className="tg-flag__pole" style={{ height: "130px" }} />
+            <div className="tg-flag__cloth" style={{ height: "38px" }} />
+          </div>
+          <div className="tg-flag tg-flag--han tg-flag--fast" style={{ right: "22%", top: "40%", width: "90px", height: "48px" }}>
+            <div className="tg-flag__pole" style={{ height: "160px" }} />
+            <div className="tg-flag__cloth" style={{ height: "48px" }} />
+          </div>
+          <div className="tg-flag tg-flag--han" style={{ right: "10%", top: "46%", width: "60px", height: "32px" }}>
+            <div className="tg-flag__pole" style={{ height: "110px" }} />
+            <div className="tg-flag__cloth" style={{ height: "32px" }} />
+          </div>
+          <div className="tg-flag tg-flag--wu tg-flag--slow" style={{ left: "45%", top: "32%", width: "80px", height: "42px" }}>
+            <div className="tg-flag__pole" style={{ height: "140px" }} />
+            <div className="tg-flag__cloth" style={{ height: "42px" }} />
+          </div>
+        </div>
       </div>
 
       {/* 用户卡片 (左上) */}

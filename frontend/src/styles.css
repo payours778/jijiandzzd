@@ -7324,3 +7324,98 @@ body.game-active{position:fixed;inset:0;overflow:hidden;}
 .tg-stage__picker-item img{width:100%;height:auto;display:block;border-radius:4px;}
 
 
+
+/* === 19 飘动旗帜 (叠加在背景层上, 模拟战旗随风飘动) === */
+@keyframes tg-flag-wave-1 {
+  0%, 100% { transform: skewY(0deg) scaleX(1); }
+  25% { transform: skewY(2deg) scaleX(0.96); }
+  50% { transform: skewY(-1deg) scaleX(1.02); }
+  75% { transform: skewY(1.5deg) scaleX(0.98); }
+}
+@keyframes tg-flag-wave-2 {
+  0%, 100% { transform: skewY(0deg) scaleX(1) translateY(0); }
+  33% { transform: skewY(2.5deg) scaleX(0.95) translateY(1px); }
+  66% { transform: skewY(-1.5deg) scaleX(1.03) translateY(-1px); }
+}
+@keyframes tg-flag-wave-3 {
+  0%, 100% { transform: skewY(0deg) scaleX(1) translateY(0); }
+  20% { transform: skewY(1.5deg) scaleX(0.97); }
+  60% { transform: skewY(-2deg) scaleX(1.02) translateY(1px); }
+  80% { transform: skewY(0.5deg) scaleX(0.99) translateY(-1px); }
+}
+
+.tg-flag {
+  position: absolute;
+  z-index: 1;
+  pointer-events: none;
+  transform-origin: 0 50%;
+  filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.5));
+}
+.tg-flag__pole {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 4px;
+  background: linear-gradient(90deg, #4a2c1a 0%, #6b3e22 40%, #2d1a0d 100%);
+  border-radius: 2px 2px 0 0;
+}
+.tg-flag__pole::before {
+  content: "";
+  position: absolute;
+  top: -8px;
+  left: -3px;
+  width: 0;
+  height: 0;
+  border-left: 5px solid transparent;
+  border-right: 5px solid transparent;
+  border-bottom: 8px solid #fbbf24;
+}
+.tg-flag__cloth {
+  position: absolute;
+  left: 4px;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(180deg, #b91c1c 0%, #991b1b 50%, #7f1d1d 100%);
+  clip-path: polygon(0% 0%, 100% 6%, 100% 94%, 0% 100%, 8% 50%);
+  animation: tg-flag-wave-1 2.4s ease-in-out infinite;
+}
+.tg-flag__cloth::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(180deg, transparent 0%, rgba(0, 0, 0, 0.18) 50%, transparent 100%),
+    repeating-linear-gradient(90deg, transparent 0%, transparent 18%, rgba(0, 0, 0, 0.12) 18%, rgba(0, 0, 0, 0.12) 22%);
+  clip-path: inherit;
+  animation: tg-flag-wave-2 2.4s ease-in-out infinite;
+}
+.tg-flag__cloth::after {
+  content: "蜀";
+  position: absolute;
+  left: 28%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  color: #fbbf24;
+  font-size: 18px;
+  font-weight: 700;
+  text-shadow: 0 0 4px rgba(0, 0, 0, 0.6);
+  font-family: serif;
+  animation: tg-flag-wave-3 2.4s ease-in-out infinite;
+}
+.tg-flag--han .tg-flag__cloth { background: linear-gradient(180deg, #ef4444 0%, #b91c1c 50%, #7f1d1d 100%); }
+.tg-flag--han .tg-flag__cloth::after { content: "汉"; }
+.tg-flag--shu .tg-flag__cloth { background: linear-gradient(180deg, #b91c1c 0%, #991b1b 50%, #7f1d1d 100%); }
+.tg-flag--shu .tg-flag__cloth::after { content: "蜀"; }
+.tg-flag--wei .tg-flag__cloth { background: linear-gradient(180deg, #1e3a8a 0%, #1e293b 50%, #0f172a 100%); }
+.tg-flag--wei .tg-flag__cloth::after { content: "魏"; }
+.tg-flag--wu .tg-flag__cloth { background: linear-gradient(180deg, #0d9488 0%, #0f766e 50%, #134e4a 100%); }
+.tg-flag--wu .tg-flag__cloth::after { content: "吴"; }
+
+/* 飘动 2: 用 wave-2 节奏 */
+.tg-flag--slow .tg-flag__cloth { animation-duration: 3.2s; }
+.tg-flag--slow .tg-flag__cloth::before { animation-duration: 3.2s; }
+.tg-flag--slow .tg-flag__cloth::after { animation-duration: 3.2s; }
+.tg-flag--fast .tg-flag__cloth { animation-duration: 1.8s; }
+.tg-flag--fast .tg-flag__cloth::before { animation-duration: 1.8s; }
+.tg-flag--fast .tg-flag__cloth::after { animation-duration: 1.8s; }
