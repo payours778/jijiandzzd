@@ -43,6 +43,7 @@ import {
 } from "./storage";
 import { advancePoolStats, BOSS_DROP_GUARANTEE } from "./pity";
 import type { DrawHistoryEntry, HeroRarity, PoolStats, RecruitPoolId } from "./types";
+import { postAchievementEvent } from "../achievements/client";
 import { createDrawHistoryEntry } from "./drawEngine";
 
 export interface RecruitState {
@@ -280,7 +281,8 @@ export const useRecruitStore = create<RecruitState>()(
           }
         },
 
-        recordDraw: (poolId, heroId, rarity, isNew, fragmentReward) =>
+        recordDraw: (poolId, heroId, rarity, isNew, fragmentReward) => {
+          postAchievementEvent("recruit", 1);
           wrappedSet((state) => {
             const nextStats: PoolStats = {
               ...state.poolStats,
@@ -293,7 +295,8 @@ export const useRecruitStore = create<RecruitState>()(
             writePoolStats(nextStats);
             writeDrawHistory(nextHistory);
             return { poolStats: nextStats, drawHistory: nextHistory };
-          }),
+          });
+        },
 
         collectDemoTickets: () =>
           wrappedSet((state) => {

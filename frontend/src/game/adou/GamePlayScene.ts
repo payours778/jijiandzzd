@@ -28,6 +28,7 @@ import { PlayDropCoinEffect } from "./effects/PlayDropCoinEffect";
 import { PlayDropItemEffect } from "./effects/PlayDropItemEffect";
 import { PlayFragmentSparkEffect } from "./effects/PlayFragmentSparkEffect";
 import { createBoardMap, preloadBoardMap } from "./boardMap";
+import { postAchievementEvent } from "./achievements/client";
 import { playMusic, playSfx } from "../../audio/audioSystem";
 import type { MusicKey } from "../../audio/audioConfig";
 import {
@@ -567,7 +568,9 @@ export class GamePlayScene extends Phaser.Scene {
     this.zombies = this.zombies.filter((zombie) => {
       if (zombie.dead) {
         if (!zombie.isDestroyed) {
+          const wasBoss = zombie instanceof LuBu || zombie instanceof DiaoChan || zombie instanceof CaoCao;
           zombie.destroy();
+          if (wasBoss) postAchievementEvent("boss_kill", 1);
         }
         this.awardZombieXp(zombie);
         this.awardCoins(zombie);

@@ -75,6 +75,30 @@ db.exec(`
 db.exec(`CREATE TABLE IF NOT EXISTS adou_daily_signin (id INTEGER PRIMARY KEY AUTOINCREMENT, account_id TEXT NOT NULL, signin_date TEXT NOT NULL, reward_coins INTEGER NOT NULL, consecutive_days INTEGER NOT NULL, created_at TEXT NOT NULL, UNIQUE(account_id, signin_date), FOREIGN KEY (account_id) REFERENCES accounts(id) ON DELETE CASCADE)`);
 try{db.exec('CREATE INDEX IF NOT EXISTS idx_daily_signin_account_date ON adou_daily_signin(account_id, signin_date DESC)');}catch{}
 
+// 14: 成就进度表
+db.exec(`CREATE TABLE IF NOT EXISTS adou_achievements (
+  account_id TEXT NOT NULL,
+  achv_type TEXT NOT NULL,
+  count INTEGER NOT NULL DEFAULT 0,
+  updated_at TEXT NOT NULL,
+  PRIMARY KEY (account_id, achv_type),
+  FOREIGN KEY (account_id) REFERENCES accounts(id) ON DELETE CASCADE
+)`);
+
+try { db.exec('CREATE INDEX IF NOT EXISTS idx_achievements_account ON adou_achievements(account_id)'); } catch {}
+
+
+// 14: 已领取成就记录
+db.exec(`CREATE TABLE IF NOT EXISTS adou_achievements_claimed (
+  account_id TEXT NOT NULL,
+  achv_id TEXT NOT NULL,
+  claimed_at TEXT NOT NULL,
+  PRIMARY KEY (account_id, achv_id),
+  FOREIGN KEY (account_id) REFERENCES accounts(id) ON DELETE CASCADE
+)`);
+
+
+
 
 // 7: 商店购买记录表
 db.exec(`
@@ -719,6 +743,84 @@ if (pathname === '/api/adou/daily-signin' && req.method === 'POST') {
   sendJson(res, 200, { ok: true, signedToday: true, consecutiveDays: ns, reward, coins: ar.coins, today });
   return;
 }
+
+// === 14 achievements API ===
+const ACHIEVEMENTS = [
+  { id: 'recruit_10',   name: '初出茅庐',   desc: '抽卡累计 10 次',    icon: '🎴', target: 10,  type: 'recruit',    reward: 100  },
+  { id: 'recruit_50',   name: '招募达人',   desc: '抽卡累计 50 次',    icon: '🎴', target: 50,  type: 'recruit',    reward: 500  },
+  { id: 'recruit_100',  name: '招募狂魔',   desc: '抽卡累计 100 次',   icon: '🎴', target: 100, type: 'recruit',    reward: 1500 },
+  { id: 'purchase_5',   name: '初次消费',   desc: '商店购买 5 次',     icon: '🛒', target: 5,   type: 'purchase',   reward: 100  },
+  { id: 'purchase_20',  name: '消费大户',   desc: '商店购买 20 次',    icon: '🛒', target: 20,  type: 'purchase',   reward: 500  },
+  { id: 'signin_7',     name: '坚持不懈',   desc: '累计签到 7 天',     icon: '📅', target: 7,   type: 'signin',     reward: 200  },
+  { id: 'signin_30',    name: '签到达人',   desc: '累计签到 30 天',    icon: '📅', target: 30,  type: 'signin',     reward: 1000 },
+  { id: 'wave_10',      name: '首战告捷',   desc: '最高波次达到 10',   icon: '⚔️', target: 10,  type: 'wave',       reward: 200  },
+  { id: 'wave_20',      name: '战无不胜',   desc: '最高波次达到 20',   icon: '⚔️', target: 20,  type: 'wave',       reward: 800  },
+  { id: 'wave_30',      name: '塔防大师',   desc: '最高波次达到 30',   icon: '🏆', target: 30,  type: 'wave',       reward: 2000 },
+  { id: 'boss_3',       name: 'BOSS 克星',  desc: '累计击杀 BOSS 3 个', icon: '👹', target: 3,   type: 'boss_kill',  reward: 300  },
+  { id: 'boss_10',      name: 'BOSS 终结者', desc: '累计击杀 BOSS 10 个', icon: '👹', target: 10, type: 'boss_kill', reward: 1000 },
+];
+
+if (pathname === '/api/adou/achievements' && req.method === 'GET') {
+  const s = getSessionFromRequest(req);
+  if (!s || !s.accountId) { sendJson(res, 401, { error: 'Unauthorized' }); return; }
+  const progress = {};
+  const rows = db.prepare('SELECT achv_type, count FROM adou_achievements WHERE account_id = ?').all(s.accountId);
+  for (const r of rows) progress[r.achv_type] = r.count;
+  const bestRow = db.prepare('SELECT MAX(best_wave) AS w FROM adou_records WHERE account_id = ?').get(s.accountId);
+  progress['wave'] = bestRow && bestRow.w ? bestRow.w : 0;
+  const claimed = db.prepare('SELECT achv_id FROM adou_achievements_claimed WHERE account_id = ?').all(s.accountId).map((r) => r.achv_id);
+  const list = ACHIEVEMENTS.map((a) => {
+    const cur = progress[a.type] || 0;
+    const done = cur >= a.target;
+    return { ...a, progress: cur, completed: done, claimed: claimed.includes(a.id), claimable: done && !claimed.includes(a.id) };
+  });
+  const totalClaimable = list.filter((x) => x.claimable).length;
+  const totalCompleted = list.filter((x) => x.completed).length;
+  const totalClaimed = claimed.length;
+  sendJson(res, 200, { ok: true, achievements: list, totalClaimable, totalCompleted, totalClaimed });
+  return;
+}
+
+if (pathname === '/api/adou/achievements/event' && req.method === 'POST') {
+  const s = getSessionFromRequest(req);
+  if (!s || !s.accountId) { sendJson(res, 401, { error: 'Unauthorized' }); return; }
+  const body = await readBody(req);
+  const type = String(body?.type || '');
+  const amount = Math.max(0, Math.min(999, Math.floor(Number(body?.amount) || 1)));
+  const ALLOWED = ['recruit', 'purchase', 'signin', 'boss_kill'];
+  if (!ALLOWED.includes(type)) { sendJson(res, 400, { error: 'invalid-type' }); return; }
+  const now = new Date().toISOString();
+  db.prepare('INSERT INTO adou_achievements (account_id, achv_type, count, updated_at) VALUES (?, ?, ?, ?) ON CONFLICT(account_id, achv_type) DO UPDATE SET count = count + excluded.count, updated_at = excluded.updated_at').run(s.accountId, type, amount, now);
+  const row = db.prepare('SELECT count FROM adou_achievements WHERE account_id = ? AND achv_type = ?').get(s.accountId, type);
+  sendJson(res, 200, { ok: true, type, count: row.count });
+  return;
+}
+
+if (pathname === '/api/adou/achievements/claim' && req.method === 'POST') {
+  const s = getSessionFromRequest(req);
+  if (!s || !s.accountId) { sendJson(res, 401, { error: 'Unauthorized' }); return; }
+  const body = await readBody(req);
+  const achvId = String(body?.achievementId || '');
+  const achv = ACHIEVEMENTS.find((a) => a.id === achvId);
+  if (!achv) { sendJson(res, 404, { error: 'achievement-not-found' }); return; }
+  const claimed = db.prepare('SELECT 1 FROM adou_achievements_claimed WHERE account_id = ? AND achv_id = ?').get(s.accountId, achvId);
+  if (claimed) { sendJson(res, 400, { error: 'already-claimed' }); return; }
+  let cur = 0;
+  if (achv.type === 'wave') {
+    const bestRow = db.prepare('SELECT MAX(best_wave) AS w FROM adou_records WHERE account_id = ?').get(s.accountId);
+    cur = bestRow && bestRow.w ? bestRow.w : 0;
+  } else {
+    const row = db.prepare('SELECT count FROM adou_achievements WHERE account_id = ? AND achv_type = ?').get(s.accountId, achv.type);
+    cur = row ? row.count : 0;
+  }
+  if (cur < achv.target) { sendJson(res, 400, { error: 'not-completed', progress: cur, target: achv.target }); return; }
+  db.prepare('INSERT INTO adou_achievements_claimed (account_id, achv_id, claimed_at) VALUES (?, ?, ?)').run(s.accountId, achvId, new Date().toISOString());
+  db.prepare('UPDATE accounts SET coins = coins + ? WHERE id = ?').run(achv.reward, s.accountId);
+  const accRow = db.prepare('SELECT coins FROM accounts WHERE id = ?').get(s.accountId);
+  sendJson(res, 200, { ok: true, achievementId: achvId, reward: achv.reward, coins: accRow.coins });
+  return;
+}
+
   sendJson(res, 404, { error: "API route not found" });
 }
 

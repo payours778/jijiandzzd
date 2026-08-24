@@ -8,6 +8,7 @@ import { Coins, Loader2, ShoppingBag, Sparkles, Ticket } from "lucide-react";
 import { useAppStore } from "../../../../store/useAppStore";
 import { useRecruitStore } from "../../recruit/store";
 import { playSfx } from "../../../../audio/audioSystem";
+import { postAchievementEvent } from "../../achievements/client";
 import { RECRUIT_HEROES } from "../../recruit/registry";
 
 interface ShopItem {
@@ -99,6 +100,7 @@ export function ShopScreen() {
     }
     // 更新本地金币
     if (typeof result.coins === "number") setCoins(result.coins);
+    postAchievementEvent("purchase", 1);
     // 派发到 recruit store (按 grant 字段)
     const g = item.grant || {};
     if (g.recruitTickets) addRecruitTickets(g.recruitTickets);

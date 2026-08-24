@@ -7,6 +7,7 @@ import { useEffect, useState } from "react";
 import { Coins, Flame, Gift, Loader2, Sparkles, Trophy } from "lucide-react";
 import { useAppStore } from "../../../../store/useAppStore";
 import { playSfx } from "../../../../audio/audioSystem";
+import { postAchievementEvent } from "../../achievements/client";
 
 interface SigninStatus {
   ok: boolean;
@@ -83,6 +84,7 @@ export function DailySigninScreen() {
     setAnimating(true);
     setTimeout(() => setAnimating(false), 1500);
     if (typeof r.coins === "number") setCoins(r.coins);
+    postAchievementEvent("signin", 1);
     useAppStore.setState({ toast: "签到成功! +" + (r.reward || 0) + " 金币" });
     playSfx("upgrade");
     // 刷新状态
