@@ -26,6 +26,7 @@ import { WeiUnit } from "./units/WeiUnit";
 import { playSlashDownSwing } from "./effects/playSlashDownSwing";
 import { PlayDropCoinEffect } from "./effects/PlayDropCoinEffect";
 import { PlayDropItemEffect } from "./effects/PlayDropItemEffect";
+import { PlayFragmentSparkEffect } from "./effects/PlayFragmentSparkEffect";
 import { createBoardMap, preloadBoardMap } from "./boardMap";
 import { playMusic, playSfx } from "../../audio/audioSystem";
 import type { MusicKey } from "../../audio/audioConfig";
@@ -98,6 +99,7 @@ export class GamePlayScene extends Phaser.Scene {
   private dropCoinFx?: PlayDropCoinEffect;
   private dropItemFx?: PlayDropItemEffect;
   private fragDropFx?: PlayDropItemEffect;
+  private fragSparkFx?: PlayFragmentSparkEffect;
   private fragCount = 0;
   private fragText?: Phaser.GameObjects.Text;
   private legendScrollText!: Phaser.GameObjects.Text;
@@ -723,6 +725,7 @@ export class GamePlayScene extends Phaser.Scene {
       target: { x: this.fragText.x - 12, y: this.fragText.y + 8 },
       onPickup: () => this.onFragPickedUp(),
     });
+    this.fragSparkFx = new PlayFragmentSparkEffect(this);
     const hudItemX = this.legendScrollText.x - 24;
     const hudItemY = this.legendScrollText.y + 12;
     this.dropItemFx = new PlayDropItemEffect(this, { target: { x: hudItemX, y: hudItemY }, onPickup: () => this.onItemPickedUp() });
@@ -2000,7 +2003,7 @@ private updateFragText() {
   }
 
   private onFragPickedUp() {
-    // 1E: 碎片拾取回调 - 累加 + HUD 闪动
+    // 1E: 碎片拾取回调 - 累加 + HUD 闪动 + 闪光
     this.fragCount += 1;
     this.updateFragText();
     this.tweens.add({
@@ -2010,6 +2013,10 @@ private updateFragText() {
       ease: "Quad.easeOut",
       yoyo: true,
     });
+    // 1F: HUD 位置闪光
+    if (this.fragText) {
+      this.fragSparkFx?.spark(this.fragText.x - 8, this.fragText.y + 8);
+    }
   }
 
 private updateLegendScrollText() {
