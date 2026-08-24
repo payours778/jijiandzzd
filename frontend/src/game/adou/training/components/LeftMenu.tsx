@@ -18,13 +18,10 @@ export function LeftMenu({ onStart }: LeftMenuProps) {
 
   const handleClick = (key: MenuKey, enabled: boolean) => {
     setActiveMenu(key);
-    if (key === "start" && enabled) {
-      onStart();
-      return;
-    }
     if (!enabled) {
       showComingSoon();
     }
+    // 注意: "开始游戏" 不再自动 onStart(), 需用户在 Stage 上点显式按钮
   };
 
   return (
