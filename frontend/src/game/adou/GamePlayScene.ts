@@ -24,6 +24,7 @@ import { CaoCao } from "./units/CaoCao";
 import { WeiUnit } from "./units/WeiUnit";
 import { playSlashDownSwing } from "./effects/playSlashDownSwing";
 import { PlayDropCoinEffect } from "./effects/PlayDropCoinEffect";
+import { PlayDropItemEffect } from "./effects/PlayDropItemEffect";
 import { createBoardMap, preloadBoardMap } from "./boardMap";
 import { playMusic, playSfx } from "../../audio/audioSystem";
 import type { MusicKey } from "../../audio/audioConfig";
@@ -83,6 +84,9 @@ export class GamePlayScene extends Phaser.Scene {
   private wave = 1;
   private earnedCoins = 0;
   private dropCoinFx?: PlayDropCoinEffect;
+  private dropItemFx?: PlayDropItemEffect;
+  private legendScrollText!: Phaser.GameObjects.Text;
+  private legendScrollCount = 0;
   private zombiesSpawnedInWave = 0;
   private getWaveSize(wave: number) {
     return Math.min(10, 5 + Math.floor((wave - 1) / 3));
@@ -673,6 +677,23 @@ export class GamePlayScene extends Phaser.Scene {
     const hudCoinX = this.coinText.x - 40;
     const hudCoinY = this.coinText.y + 12;
     this.dropCoinFx = new PlayDropCoinEffect(this, { target: { x: hudCoinX, y: hudCoinY }, onPickup: (value) => this.onCoinPickedUp(value) });
+
+    // 1D: HUD 巅峰卷显示 + 物品掉落特效
+    this.legendScrollText = this.add
+      .text(this.coinText.x - 130, this.coinText.y, "卷 0", {
+        fontFamily: Config.fontFamily,
+        fontSize: "16px",
+        color: "#fde68a",
+        fontStyle: "bold",
+        backgroundColor: "#7c2d12",
+        padding: { x: 8, y: 4 },
+      })
+      .setOrigin(1, 0)
+      .setDepth(60);
+    this.updateLegendScrollText();
+    const hudItemX = this.legendScrollText.x - 24;
+    const hudItemY = this.legendScrollText.y + 12;
+    this.dropItemFx = new PlayDropItemEffect(this, { target: { x: hudItemX, y: hudItemY }, onPickup: () => this.onItemPickedUp() });
 
     this.updateMantouText();
     this.updateCoinText();
@@ -1792,7 +1813,7 @@ export class GamePlayScene extends Phaser.Scene {
     const value = isBoss ? 15 : 1;
     this.earnedCoins += value;
     if (isBoss) {
-      this.awardBossLegendScroll();
+      this.awardBossLegendScroll(zombie);
     }
     this.updateCoinText();
     // 1B: 触发金币掉落特效 (PVZ 风: 抛物线 -> 落地 -> 飞向 HUD)
@@ -1801,13 +1822,17 @@ export class GamePlayScene extends Phaser.Scene {
     }
   }
 
-  private awardBossLegendScroll() {
+  private awardBossLegendScroll(zombie: Zombie) {
     const nextPity = Math.min(readBossDropPity() + 1, BOSS_DROP_GUARANTEE);
     const guaranteed = nextPity >= BOSS_DROP_GUARANTEE;
     const dropped = guaranteed || Math.random() < bossDropChanceForWave(this.wave);
     useTrainingGroundStore.getState().recordBossDropAttempt(dropped);
     if (dropped) {
       this.messageText?.setText("击败 Boss · 获得巅峰招募卷");
+      // 1D: 物品掉落特效
+      if (this.dropItemFx) {
+        this.dropItemFx.drop(zombie.x, zombie.y, "卷", 0x7c2d12, 0xfbbf24);
+      }
     } else {
       this.messageText?.setText(`Boss 已击败 · 再 ${BOSS_DROP_GUARANTEE - nextPity} 只必掉巅峰卷`);
     }
@@ -1908,6 +1933,23 @@ export class GamePlayScene extends Phaser.Scene {
         }
       }).catch(() => { /* 网络失败保留本地 */ });
     } catch { /* 静默 */ }
+  }
+
+private updateLegendScrollText() {
+    this.legendScrollText?.setText(`卷 ${this.legendScrollCount}`);
+  }
+
+  private onItemPickedUp() {
+    // 1D: 物品拾取回调 - 累加 + HUD 闪动
+    this.legendScrollCount += 1;
+    this.updateLegendScrollText();
+    this.tweens.add({
+      targets: this.legendScrollText,
+      scale: { from: 1, to: 1.4 },
+      duration: 120,
+      ease: "Quad.easeOut",
+      yoyo: true,
+    });
   }
 
 private updateCoinText() {
