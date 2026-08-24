@@ -461,24 +461,31 @@ async function handleApi(req, res, pathname) {
         total_kills=excluded.total_kills, updated_at=excluded.updated_at
     `);
     let count = 0;
-    const tx = db.transaction((items) => { for (const it of items) {
-      const w = it.equippedWeapons || {};
-      const pos = it.position || null;
-      upsert.run(
-        session.accountId,
-        String(it.heroId || ""),
-        Math.max(1, Math.min(5, Number(it.level) || 1)),
-        Math.max(0, Math.min(5, Number(it.star) || 0)),
-        Math.max(0, Math.floor(Number(it.fragments) || 0)),
-        w.main || null, w.secondary || null, w.accessory || null,
-        String(it.status || "idle"),
-        pos ? pos.row : null, pos ? pos.col : null,
-        Math.max(0, Math.floor(Number(it.totalKills) || 0)),
-        now,
-      );
-      count += 1;
-    } });
-    tx(list);
+    // node:sqlite 没有 db.transaction, 用 BEGIN/COMMIT/ROLLBACK 手工包
+    db.exec("BEGIN");
+    try {
+      for (const it of list) {
+        const w = it.equippedWeapons || {};
+        const pos = it.position || null;
+        upsert.run(
+          session.accountId,
+          String(it.heroId || ""),
+          Math.max(1, Math.min(5, Number(it.level) || 1)),
+          Math.max(0, Math.min(5, Number(it.star) || 0)),
+          Math.max(0, Math.floor(Number(it.fragments) || 0)),
+          w.main || null, w.secondary || null, w.accessory || null,
+          String(it.status || "idle"),
+          pos ? pos.row : null, pos ? pos.col : null,
+          Math.max(0, Math.floor(Number(it.totalKills) || 0)),
+          now,
+        );
+        count += 1;
+      }
+      db.exec("COMMIT");
+    } catch (txErr) {
+      db.exec("ROLLBACK");
+      throw txErr;
+    }
     sendJson(res, 200, { ok: true, count });
     return;
   }
