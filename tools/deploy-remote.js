@@ -183,18 +183,15 @@ async function upload(conn) {
 }
 
 async function restartAndVerify(conn) {
-  const cmds = [
-    "cd " + REMOTE.backendDir,
-    "(pm2 describe " + REMOTE.processName + " >/dev/null 2>&1 && pm2 restart " + REMOTE.processName + " --update-env || (PORT=3001 pm2 start server.mjs --name " + REMOTE.processName + " --update-env))",
-    "pm2 save",
-    "(nginx -t >/dev/null 2>&1 && systemctl reload nginx) || true",
-    "sleep 2",
-    'echo "--- HEALTH ---"',
-    'curl -s -o /dev/null -w "API HTTP %{http_code}\\n" http://127.0.0.1:3001/api/health',
-    'curl -s -o /dev/null -w "WEB HTTP %{http_code}\\n" http://127.0.0.1/',
-    "pm2 status | head -8"
-  ];
-  await sshExec(conn, cmds.join(" && "));
+  // 先杀掉任何残留的 node server.mjs（无论 pm2 / nohup / 手动）
+  await sshExec(conn, "pkill -9 -f 'node server.mjs' 2>/dev/null; fuser -k 3001/tcp 2>/dev/null; sleep 2; echo killed");
+  // 用 nohup 后台启动，不依赖 pm2（pm2 daemon 在此环境会失联）
+  const startCmd = "cd " + REMOTE.backendDir + " && PORT=3001 nohup node server.mjs > /var/log/mini-playbox.out 2> /var/log/mini-playbox.err < /dev/null & disown; sleep 3; echo started";
+  await sshExec(conn, startCmd);
+  // reload nginx
+  await sshExec(conn, "(nginx -t >/dev/null 2>&1 && systemctl reload nginx) || true");
+  // 健康检查
+  await sshExec(conn, "sleep 1; echo --- HEALTH ---; curl -s -o /dev/null -w 'API HTTP %{http_code}\\n' http://127.0.0.1:3001/api/health; curl -s -o /dev/null -w 'WEB HTTP %{http_code}\\n' http://127.0.0.1/; ps aux | grep 'node server.mjs' | grep -v grep | head -3");
 }
 
 async function main() {
