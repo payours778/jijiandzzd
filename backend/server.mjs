@@ -71,6 +71,16 @@ db.exec(`
   )`
 );
 
+// 6B: 招募系统 state 表 (整块 JSON 存)
+db.exec(`
+  CREATE TABLE IF NOT EXISTS adou_recruit_state (
+    account_id TEXT PRIMARY KEY,
+    data TEXT NOT NULL,
+    updated_at TEXT NOT NULL,
+    FOREIGN KEY (account_id) REFERENCES accounts(id) ON DELETE CASCADE
+  )`
+);
+
 const mimeTypes = {
   ".html": "text/html; charset=utf-8",
   ".css": "text/css; charset=utf-8",
@@ -487,6 +497,34 @@ async function handleApi(req, res, pathname) {
       throw txErr;
     }
     sendJson(res, 200, { ok: true, count });
+    return;
+  }
+
+  if (pathname === "/api/adou/recruit" && req.method === "GET") {
+    const session = getSessionFromRequest(req);
+    if (!session || !session.accountId) { sendJson(res, 401, { error: "Unauthorized" }); return; }
+    const row = db.prepare("SELECT data, updated_at FROM adou_recruit_state WHERE account_id = ?").get(session.accountId);
+    if (!row) { sendJson(res, 200, { ok: true, data: null }); return; }
+    let parsed = null;
+    try { parsed = JSON.parse(row.data); } catch { parsed = null; }
+    sendJson(res, 200, { ok: true, data: parsed, updatedAt: row.updated_at });
+    return;
+  }
+
+  if (pathname === "/api/adou/recruit/sync" && req.method === "POST") {
+    const session = getSessionFromRequest(req);
+    if (!session || !session.accountId) { sendJson(res, 401, { error: "Unauthorized" }); return; }
+    const body = await readBody(req);
+    const data = body?.data;
+    if (!data || typeof data !== "object") { sendJson(res, 400, { error: "data 字段缺失或非对象" }); return; }
+    const json = JSON.stringify(data);
+    const now = new Date().toISOString();
+    db.prepare(`
+      INSERT INTO adou_recruit_state (account_id, data, updated_at)
+      VALUES (?, ?, ?)
+      ON CONFLICT(account_id) DO UPDATE SET data = excluded.data, updated_at = excluded.updated_at
+    `).run(session.accountId, json, now);
+    sendJson(res, 200, { ok: true, updatedAt: now });
     return;
   }
 

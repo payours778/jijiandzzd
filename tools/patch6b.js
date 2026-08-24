@@ -1,4 +1,7 @@
-/**
+// patch6b.js - rewrite recruit/store.ts with backend sync
+const fs = require("fs");
+const path = "frontend/src/game/adou/recruit/store.ts";
+const content = String.raw`/**
  * 招募系统 - zustand store
  *
  * 招募相关的 state 和 actions 全部在这里:
@@ -361,3 +364,7 @@ export const useRecruitStore = create<RecruitState>()(
 // 兼容旧 API: 旧的 useTrainingGroundStore 仍保留 recruitedHeroIds 等
 // 见 training/store.ts 的 re-export
 export { RECRUIT_HEROES, DUPLICATE_FRAGMENT_REWARD };
+}`;
+
+fs.writeFileSync(path, content, "utf8");
+console.log("wrote " + path + " (" + content.length + " bytes)");
