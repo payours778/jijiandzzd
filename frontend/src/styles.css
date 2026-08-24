@@ -6948,3 +6948,19 @@ html,body{touch-action:manipulation;}
 body.game-active,body.game-active #root{touch-action:none;-ms-touch-action:none;overscroll-behavior:none;user-select:none;-webkit-user-drag:none;-webkit-tap-highlight-color:transparent;}
 .tower-defense-container,.tower-defense-container canvas{touch-action:none !important;-ms-touch-action:none !important;user-select:none !important;-webkit-user-drag:none !important;-webkit-tap-highlight-color:transparent;overscroll-behavior:none;}
 body.game-active{position:fixed;inset:0;overflow:hidden;}
+
+
+/* MOBILE_SCROLL_FIX */
+.x{overflow:auto;}
+
+
+/* SCROLL */.x{overflow:auto;}.y{padding:10px;}
+
+
+/* SCROLL_FIX2 */
+.tg-main{overflow-y:auto !important;}
+
+/* SCROLL2 */.tg-stage__inner,.tg-armory,.tg-collection,.tg-settings{-webkit-overflow-scrolling:touch;}
+@media(max-width:900px) and (orientation:landscape){.tg-main{overflow-y:auto !important;-webkit-overflow-scrolling:touch;}.tg-leftmenu{overflow-y:auto;-webkit-overflow-scrolling:touch;}}
+@media(max-width:820px){.tg-main{overflow-y:auto !important;overflow-x:hidden;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;touch-action:pan-y;padding-bottom:calc(80px + env(safe-area-inset-bottom));}.tg-stage{min-height:100%;overflow:visible !important;}.tg-armory,.tg-collection,.tg-settings{overflow-y:auto !important;-webkit-overflow-scrolling:touch;}}
+@media(max-width:820px){.tg-root{position:fixed;inset:0;width:100vw;height:100vh;height:100dvh;overflow:hidden;overscroll-behavior:none;}.tg-body{min-height:0;height:100%;}}
