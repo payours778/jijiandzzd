@@ -105,7 +105,7 @@ export function GeneralCollectionScreen() {
         <span className="tg-generals__count">{recruited.length} / {RECRUIT_HEROES.length} 已入营</span>
       </div>
 
-      <div className="tg-generals__body">
+      <div className={`tg-generals__body${selected ? " has-detail" : ""}`}>
         <div className="tg-generals__list">
           {recruited.length === 0 ? (
             <div className="tg-generals__empty">尚未招募任何武将，去【武将】→【招募】抽取你的第一张卡吧！</div>
@@ -155,11 +155,6 @@ export function GeneralCollectionScreen() {
           )}
         </div>
 
-        {selected && (
-          <button onClick={() => { playSfx("click"); setShowDetail(true); }} style={{ width: "100%", padding: "8px 16px", marginTop: 8, background: "linear-gradient(90deg, rgba(96, 165, 250, 0.2), rgba(99, 102, 241, 0.2))", border: "1px solid #60a5fa", borderRadius: 6, color: "#60a5fa", fontSize: 13, fontWeight: 600, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 6 }}>
-            <Info size={14} />查看完整详情
-          </button>
-        )}
         {selected && selected.inst && (
           <GeneralDetail
             inst={selected.inst}
@@ -167,6 +162,7 @@ export function GeneralCollectionScreen() {
             onStarUp={() => handleStarUp(selected.inst)}
             onEquipMain={() => handleEquipMain(selected.inst)}
             recruitFragments={heroFragments[selected.hero.id] ?? 0}
+            onShowDetail={() => setShowDetail(true)}
           />
         )}
         {showDetail && selected && (
@@ -187,9 +183,10 @@ interface DetailProps {
   onToggleDeploy: () => void;
   onStarUp: () => void;
   onEquipMain: () => void;
+  onShowDetail: () => void;
 }
 
-function GeneralDetail({ inst, recruitFragments, onToggleDeploy, onStarUp, onEquipMain }: DetailProps) {
+function GeneralDetail({ inst, recruitFragments, onToggleDeploy, onStarUp, onEquipMain, onShowDetail }: DetailProps) {
   const hero = RECRUIT_HEROES.find((h) => h.id === inst.heroId);
   if (!hero) return null;
   const cfg = GeneralConfig[hero.name as keyof typeof GeneralConfig];
@@ -273,6 +270,11 @@ function GeneralDetail({ inst, recruitFragments, onToggleDeploy, onStarUp, onEqu
 
       <div className="tg-general-detail__pool">
         <Shield size={14} /> 招募重复获得碎片: {recruitFragments} | 上阵武将总数: 0
+      </div>
+      <div className="tg-general-detail__more">
+        <button type="button" onClick={onShowDetail}>
+          <Info size={14} /> 查看完整详情
+        </button>
       </div>
     </div>
   );

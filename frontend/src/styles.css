@@ -7019,10 +7019,18 @@ body.game-active{position:fixed;inset:0;overflow:hidden;}
 
 .tg-generals__body {
   display: grid;
-  grid-template-columns: 1fr 1.4fr;
+  /* 默认单列: 未点开时卡片铺满全宽 */
+  grid-template-columns: 1fr;
   gap: 16px;
   flex: 1;
   min-height: 0;
+}
+.tg-generals__body.has-detail {
+  /* 选中武将: 左侧卡片 + 右侧详情面板 (与军械库一致) */
+  grid-template-columns: 1fr 1.4fr;
+}
+.tg-generals__body.has-detail .tg-generals__list {
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
 }
 
 .tg-generals__list {
@@ -7269,6 +7277,29 @@ body.game-active{position:fixed;inset:0;overflow:hidden;}
   border-radius: 6px;
   font-size: 12px;
   color: #cbd5e1;
+}
+
+.tg-general-detail__more {
+  margin-top: auto;
+}
+.tg-general-detail__more button {
+  width: 100%;
+  padding: 9px 16px;
+  background: linear-gradient(90deg, rgba(96, 165, 250, 0.18), rgba(99, 102, 241, 0.18));
+  border: 1px solid #60a5fa;
+  border-radius: 6px;
+  color: #60a5fa;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  transition: background 0.18s;
+}
+.tg-general-detail__more button:hover {
+  background: linear-gradient(90deg, rgba(96, 165, 250, 0.3), rgba(99, 102, 241, 0.3));
 }
 
 /* === Phase 13: daily signin === */
