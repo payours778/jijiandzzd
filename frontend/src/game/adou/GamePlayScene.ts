@@ -170,6 +170,7 @@ export class GamePlayScene extends Phaser.Scene {
   }
 
   preload() {
+    // 18: 极简预加载 - 只加载基础特效图, 武器 spritesheet 全部按需懒加载
     preloadBoardMap(this);
     this.load.image("slash", "effects/slash.png");
     this.load.image("slash-tiny", "effects/slash-tiny.png");
@@ -181,27 +182,35 @@ export class GamePlayScene extends Phaser.Scene {
       endFrame: 7,
     });
     this.load.image("guanping-saber", "effects/guanping-saber.png");
+  }
 
-    // 预加载战斗中会用到的武器动画条（武将专属武器 + 常见小兵兵种）
-    const battleWeaponIds = new Set<string>();
-    for (const w of listWeapons()) {
-      if (w.defaultHolder) battleWeaponIds.add(w.id);
-    }
-    battleWeaponIds.add("podao");
-    battleWeaponIds.add("qixing-spear");
-    battleWeaponIds.add("tongbei-bow");
-    for (const id of battleWeaponIds) {
-      const w = getWeapon(id);
-      if (!w) continue;
-      const animKey = `weapon-anim-${id}`;
-      if (this.textures.exists(animKey)) continue;
-      const frame = weaponAnimFrameSize(w.series);
-      this.load.spritesheet(animKey, weaponAnimPath(w), {
-        frameWidth: frame,
-        frameHeight: frame,
-        endFrame: 8,
-      });
-    }
+  /**
+   * 18: 懒加载武器 spritesheet - 首次 playWeaponStrike 时调用
+   * 返回 true 表示已就绪, false 表示还在加载中 (已加入队列)
+   */
+  private pendingWeaponAnimQueue: Array<{ id: string; unit: Unit }> = [];
+  private loadWeaponAnim(id: string): boolean {
+    const animKey = "weapon-anim-" + id;
+    if (this.textures.exists(animKey)) return true;
+    const w = getWeapon(id);
+    if (!w) return false;
+    const frame = weaponAnimFrameSize(w.series);
+    const eventKey = "filecomplete-spritesheet-" + animKey;
+    this.load.once(eventKey, () => {
+      const remain: Array<{ id: string; unit: Unit }> = [];
+      for (const req of this.pendingWeaponAnimQueue) {
+        if (req.id === id) this.playWeaponStrikeNow(req.unit);
+        else remain.push(req);
+      }
+      this.pendingWeaponAnimQueue = remain;
+    });
+    this.load.spritesheet(animKey, weaponAnimPath(w), {
+      frameWidth: frame,
+      frameHeight: frame,
+      endFrame: 8,
+    });
+    this.load.start();
+    return false;
   }
 
   create() {
@@ -2540,6 +2549,19 @@ private updateCoinText() {
 
   /** 在单位格子播放其武器挥砍/射击动画（低频率节流，避免高频攻击叠加） */
   playWeaponStrike(unit: Unit) {
+    const id = this.resolveBattleWeaponId(unit);
+    if (!id) return;
+    const animKey = `weapon-anim-${id}`;
+    if (!this.textures.exists(animKey)) {
+      if (!this.loadWeaponAnim(id)) {
+        this.pendingWeaponAnimQueue.push({ id, unit });
+        return;
+      }
+    }
+    this.playWeaponStrikeNow(unit);
+  }
+
+  private playWeaponStrikeNow(unit: Unit) {
     const id = this.resolveBattleWeaponId(unit);
     if (!id) return;
     const animKey = `weapon-anim-${id}`;
