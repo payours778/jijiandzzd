@@ -40,6 +40,10 @@ const FLAG_SHEETS: Record<string, FlagSprite[]> = {
     { src: "/assets/training-ground/flags/bg-02-dawn-left-sheet.png", x: 10.17, y: 29.56, w: 9.74, h: 19.01, dur: 1.6 },
     { src: "/assets/training-ground/flags/bg-02-dawn-right-sheet.png", x: 84.81, y: 30.34, w: 11.7, h: 9.51, dur: 1.8 },
   ],
+  "bg-03-overcast-clean.png": [
+    { src: "/assets/training-ground/flags/bg-02-dawn-left-sheet.png", x: 10.17, y: 29.56, w: 9.74, h: 19.01, dur: 1.6 },
+    { src: "/assets/training-ground/flags/bg-02-dawn-right-sheet.png", x: 84.81, y: 30.34, w: 11.7, h: 9.51, dur: 1.8 },
+  ],
   "bg-04-night-clean.png": [
     { src: "/assets/training-ground/flags/bg-04-night-left-sheet.png", x: 15.99, y: 25.78, w: 13.66, h: 20.05, dur: 1.5 },
     { src: "/assets/training-ground/flags/bg-04-night-right-sheet.png", x: 74.2, y: 30.86, w: 7.05, h: 15.23, dur: 1.7 },
