@@ -6976,3 +6976,293 @@ body.game-active{position:fixed;inset:0;overflow:hidden;}
 }
 
 /* MOBILE_DRAG_FIX_V2_TOUCHGAL_UI_ADAPT */
+
+/* ===== 4: 武将系统 (generals) ===== */
+.tg-generals {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 16px;
+  height: 100%;
+  overflow: auto;
+}
+
+.tg-generals__head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 4px;
+  border-bottom: 1px solid #3a3f48;
+}
+
+.tg-generals__title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 18px;
+  font-weight: 600;
+  color: #f1f5f9;
+  margin: 0;
+}
+
+.tg-generals__count {
+  font-size: 12px;
+  color: #94a3b8;
+  background: #1e293b;
+  padding: 4px 10px;
+  border-radius: 10px;
+}
+
+.tg-generals__body {
+  display: grid;
+  grid-template-columns: 1fr 1.4fr;
+  gap: 16px;
+  flex: 1;
+  min-height: 0;
+}
+
+.tg-generals__list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 10px;
+  overflow-y: auto;
+  padding-right: 4px;
+}
+
+.tg-generals__empty {
+  grid-column: 1 / -1;
+  padding: 40px 20px;
+  text-align: center;
+  color: #94a3b8;
+  font-size: 14px;
+  background: #0f172a;
+  border: 1px dashed #334155;
+  border-radius: 8px;
+}
+
+.tg-general-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 10px 12px;
+  background: linear-gradient(160deg, #1e293b 0%, #0f172a 100%);
+  border: 1px solid #334155;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.18s;
+}
+
+.tg-general-card:hover {
+  border-color: var(--rarity, #60a5fa);
+  transform: translateY(-2px);
+  box-shadow: 0 0 12px rgba(96, 165, 250, 0.18);
+}
+
+.tg-general-card.is-selected {
+  border-color: var(--rarity, #60a5fa);
+  background: linear-gradient(160deg, #1e293b 0%, #0c1830 100%);
+  box-shadow: 0 0 16px rgba(96, 165, 250, 0.32);
+}
+
+.tg-general-card__head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.tg-general-card__name {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--rarity, #f1f5f9);
+}
+
+.tg-general-card__star {
+  display: inline-flex;
+  gap: 1px;
+}
+
+.tg-general-card__meta {
+  display: flex;
+  gap: 8px;
+  font-size: 11px;
+  color: #94a3b8;
+}
+
+.tg-general-card__lv {
+  color: #fbbf24;
+  font-weight: 700;
+}
+
+.tg-general-card__role {
+  background: #334155;
+  padding: 1px 6px;
+  border-radius: 4px;
+}
+
+.tg-general-card__status {
+  font-size: 11px;
+  color: #cbd5e1;
+}
+
+.tg-general-card__frags {
+  color: #e9d5ff;
+  margin-left: 6px;
+}
+
+.tg-general-detail {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 16px;
+  background: linear-gradient(160deg, #1e293b 0%, #0f172a 100%);
+  border: 1px solid var(--rarity, #334155);
+  border-radius: 10px;
+  overflow-y: auto;
+}
+
+.tg-general-detail__hero {
+  display: flex;
+  gap: 14px;
+  align-items: center;
+}
+
+.tg-general-detail__glyph {
+  width: 64px;
+  height: 64px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: radial-gradient(circle, var(--rarity, #60a5fa) 0%, #0f172a 100%);
+  color: #fff;
+  font-size: 32px;
+  font-weight: 800;
+  border-radius: 12px;
+  border: 2px solid var(--rarity, #60a5fa);
+  text-shadow: 0 0 8px rgba(0, 0, 0, 0.6);
+}
+
+.tg-general-detail__hero h3 {
+  margin: 0 0 4px 0;
+  font-size: 20px;
+  color: var(--rarity, #f1f5f9);
+}
+
+.tg-general-detail__hero h3 small {
+  color: #94a3b8;
+  font-size: 12px;
+  margin-left: 8px;
+}
+
+.tg-general-detail__hero p {
+  margin: 0;
+  font-size: 12px;
+  color: #94a3b8;
+  line-height: 1.5;
+}
+
+.tg-general-detail__stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+
+.tg-stat {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 8px 10px;
+  background: #0f172a;
+  border: 1px solid #334155;
+  border-radius: 6px;
+}
+
+.tg-stat__label {
+  font-size: 11px;
+  color: #94a3b8;
+}
+
+.tg-stat strong {
+  color: #f1f5f9;
+  font-size: 14px;
+}
+
+.tg-general-detail__actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.tg-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  background: #334155;
+  color: #f1f5f9;
+  border: 1px solid #475569;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 600;
+  transition: all 0.15s;
+}
+
+.tg-btn:hover { background: #475569; }
+.tg-btn--primary { background: #3b82f6; border-color: #3b82f6; }
+.tg-btn--primary:hover { background: #60a5fa; }
+.tg-btn--warn { background: #f59e0b; border-color: #f59e0b; color: #1e293b; }
+.tg-btn--star { background: #fbbf24; border-color: #fbbf24; color: #1e293b; }
+.tg-btn--disabled, .tg-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.tg-general-detail__slots {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+}
+
+.tg-slot {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 10px;
+  background: #0f172a;
+  border: 1px dashed #334155;
+  border-radius: 8px;
+  align-items: center;
+  transition: all 0.15s;
+}
+
+.tg-slot.is-filled {
+  border-style: solid;
+  border-color: #fbbf24;
+  background: linear-gradient(160deg, #451a03 0%, #0f172a 100%);
+}
+
+.tg-slot__label {
+  font-size: 11px;
+  color: #94a3b8;
+}
+
+.tg-slot__icon {
+  color: #94a3b8;
+}
+
+.tg-slot.is-filled .tg-slot__icon { color: #fbbf24; }
+
+.tg-slot__text {
+  font-size: 11px;
+  color: #cbd5e1;
+}
+
+.tg-general-detail__pool {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 12px;
+  background: #1e293b;
+  border: 1px solid #334155;
+  border-radius: 6px;
+  font-size: 12px;
+  color: #cbd5e1;
+}
