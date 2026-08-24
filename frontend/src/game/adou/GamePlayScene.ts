@@ -33,6 +33,7 @@ import {
   readBossDropPity,
 } from "./training/heroes";
 import { useTrainingGroundStore } from "./training/store";
+import { useAppStore } from "../../store/useAppStore";
 import {
   listWeapons,
   getWeapon,
@@ -671,7 +672,7 @@ export class GamePlayScene extends Phaser.Scene {
     // 初始化金币掉落特效 (1B)
     const hudCoinX = this.coinText.x - 40;
     const hudCoinY = this.coinText.y + 12;
-    this.dropCoinFx = new PlayDropCoinEffect(this, { target: { x: hudCoinX, y: hudCoinY } });
+    this.dropCoinFx = new PlayDropCoinEffect(this, { target: { x: hudCoinX, y: hudCoinY }, onPickup: (value) => this.onCoinPickedUp(value) });
 
     this.updateMantouText();
     this.updateCoinText();
@@ -1874,7 +1875,42 @@ export class GamePlayScene extends Phaser.Scene {
     }
   }
 
-  private updateCoinText() {
+  private onCoinPickedUp(value: number) {
+    // 1C: 金币拾取回调 - 累加本地 + POST 后端落盘
+    useAppStore.getState().addCoins(value);
+    this.pulseHudCoin();
+    this.postCoinsToBackend(value);
+  }
+
+  private pulseHudCoin() {
+    // HUD 金币图标缩放闪动反馈
+    this.tweens.add({
+      targets: this.coinText,
+      scale: { from: 1, to: 1.4 },
+      duration: 120,
+      ease: "Quad.easeOut",
+      yoyo: true,
+    });
+  }
+
+  private postCoinsToBackend(amount: number) {
+    // 1C: POST /api/adou/coins 落盘
+    try {
+      const token = typeof localStorage !== "undefined" ? localStorage.getItem("mini-playbox-token") : null;
+      if (!token) return; // 未登录只本地累加
+      fetch("/api/adou/coins", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: "Bearer " + token },
+        body: JSON.stringify({ amount: Math.max(1, Math.floor(amount)) }),
+      }).then((r) => r.json()).then((data) => {
+        if (data && typeof data.coins === "number") {
+          useAppStore.getState().setCoins(data.coins);
+        }
+      }).catch(() => { /* 网络失败保留本地 */ });
+    } catch { /* 静默 */ }
+  }
+
+private updateCoinText() {
     this.coinText?.setText(`获得金币：${this.earnedCoins}`);
   }
 
