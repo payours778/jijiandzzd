@@ -4,6 +4,9 @@ import type { GamePlayScene } from "../GamePlayScene";
 import { playSfx, playVoiceOnce } from "../../../audio/audioSystem";
 // 3A: 数值表已迁到 generals/registry.ts
 import { GeneralConfig, type GeneralKey, type GeneralConfigItem, GENERAL_NAME_TO_ID } from "../generals/registry";
+// 3B: 接入武器系统 - 通用 HasWeaponSlot 接口
+import { attachWeapon, detachWeapon, getEquippedWeapon, type HasWeaponSlot } from "../weapons/mount";
+import type { WeaponDefinition, WeaponId } from "../weapons/types";
 // 3A: 兼容老 API
 export { GeneralConfig, GENERAL_NAME_TO_ID };
 export type { GeneralKey, GeneralConfigItem };
@@ -41,8 +44,11 @@ function playGeneralAttackSfx(name: keyof typeof GeneralConfig) {
   }
 }
 
-export class General extends Unit {
+export class General extends Unit implements HasWeaponSlot {
   generalName: keyof typeof GeneralConfig;
+  // 3B: 武器挂载点 (实现 HasWeaponSlot)
+  readonly id: string = ""; // 实际由构造函数生成, 满足 HasWeaponSlot 接口要求
+  weaponId: WeaponId | null = null;
   private liuBeiHealTimer = 5000;
   longDanStacks = 0;
   private longDanLabel?: Phaser.GameObjects.Text;
@@ -75,6 +81,7 @@ export class General extends Unit {
   ) {
     const config = GeneralConfig[generalName];
     super(scene, x, y, generalName, { color: config.color }, row, col, config.hp);
+    this.id = `general-${generalName}-${row}-${col}-${Date.now()}`;
     this.generalName = generalName;
     this.isFriendly = true;
     this.attachHealthBar(36, 0x22c55e);
@@ -96,6 +103,25 @@ export class General extends Unit {
 
   protected override playDeathSfx() {
     playSfx("general_death");
+  }
+
+  // 3B: 武器变化回调 (HasWeaponSlot 接口)
+  onWeaponChanged(weapon: WeaponDefinition | null): void {
+    // 当前仅做日志, Phase 5 接入战斗时再实现特效切换
+    if (weapon) {
+      console.debug(`[General] ${this.generalName} 装备 ${weapon.name}`);
+    }
+  }
+
+  // 3B: 装备/卸下 API
+  equipWeapon(id: WeaponId) {
+    return attachWeapon(this, id);
+  }
+  unequipWeapon() {
+    return detachWeapon(this);
+  }
+  getWeapon(): WeaponDefinition | null {
+    return getEquippedWeapon(this);
   }
 
   override update(scene: GamePlayScene, _time: number, delta: number) {
