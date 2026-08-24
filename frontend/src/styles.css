@@ -7332,7 +7332,8 @@ body.game-active{position:fixed;inset:0;overflow:hidden;}
 /* === 军营背景旗帜: 原图旗面帧动画 (第0帧=原图, 无缝覆盖原位, 随背景轮换) === */
 .tg-stage__flags {
   position: absolute;
-  z-index: 1;
+  /* 置于暗角层下方, 与原画同光照, 避免旗面比场景亮 */
+  z-index: 0;
   pointer-events: none;
   overflow: hidden;
   container-type: size;
