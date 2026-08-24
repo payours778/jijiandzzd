@@ -209,6 +209,9 @@ export class GamePlayScene extends Phaser.Scene {
       this.createTestBoard();
       this.createTestUI();
       this.updateMantouText();
+      // TouchGalUI 适配：移动端拖动阈值（Phaser 3.87+）
+      (this.input as any).dragDistanceThreshold = 8;
+      (this.input as any).dragTimeThreshold = 0;
       this.input.on("pointerdown", this.handlePointerDown, this);
       this.input.on("drag", this.handleDrag, this);
       this.input.on("dragend", this.handleDragEnd, this);
@@ -220,6 +223,9 @@ export class GamePlayScene extends Phaser.Scene {
     this.createUI();
     this.renderHand();
 
+    // TouchGalUI 适配：移动端拖动阈值（Phaser 3.87+）
+    (this.input as any).dragDistanceThreshold = 8;
+    (this.input as any).dragTimeThreshold = 0;
     this.input.on("pointerdown", this.handlePointerDown, this);
     this.input.on("drag", this.handleDrag, this);
     this.input.on("dragend", this.handleDragEnd, this);

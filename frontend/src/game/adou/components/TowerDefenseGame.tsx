@@ -91,7 +91,7 @@ export function TowerDefenseGame({
       },
       input: {
         activePointers: 3,
-      },
+      } as any,
       render: {
         antialias: true,
         pixelArt: false,
