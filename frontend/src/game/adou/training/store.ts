@@ -35,3 +35,8 @@ export const useTrainingGroundStore = create<TrainingGroundState>((set) => ({
 
 // 招募 store 单独导出 (新代码请用 useRecruitStore)
 export { useRecruitStore, type RecruitState } from "../recruit/store";
+// 武将 store 单独导出 (5A: 挂 window 供 Phaser 场景读取装备)
+import { useGeneralStore } from "../generals/store";
+if (typeof window !== "undefined") {
+  (window as any).__generalStore = useGeneralStore;
+}

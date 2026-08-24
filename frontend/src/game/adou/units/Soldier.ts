@@ -2,9 +2,15 @@ import { SoldierStats, type CardType } from "../config";
 import { Unit } from "../Unit";
 import type { GamePlayScene } from "../GamePlayScene";
 import { playSfx } from "../../../audio/audioSystem";
+// 5A: 武器挂载点
+import { attachWeapon, getEquippedWeapon, type HasWeaponSlot, detachWeapon } from "../weapons/mount";
+import type { WeaponDefinition, WeaponId } from "../weapons/types";
 
-export class Soldier extends Unit {
+export class Soldier extends Unit implements HasWeaponSlot {
   soldierType: CardType;
+  // 5A: 武器挂载 (HasWeaponSlot)
+  readonly id: string = "";
+  weaponId: WeaponId | null = null;
 
   constructor(
     scene: GamePlayScene,
@@ -20,7 +26,14 @@ export class Soldier extends Unit {
     this.isFriendly = true;
     this.attachHealthBar(32, 0x22c55e);
     this.attachOutline(0xffffff);
+    this.id = `soldier-${soldierType}-${row}-${col}-${Date.now()}`;
   }
+
+  // 5A: HasWeaponSlot 钩子
+  onWeaponChanged(_weapon: WeaponDefinition | null) { /* Phase 5B 接入特效 */ }
+  equipWeapon(id: WeaponId) { return attachWeapon(this, id); }
+  unequipWeapon() { return detachWeapon(this); }
+  getWeapon(): WeaponDefinition | null { return getEquippedWeapon(this); }
 
   override update(scene: GamePlayScene, _time: number, delta: number) {
     if (this.dead) {

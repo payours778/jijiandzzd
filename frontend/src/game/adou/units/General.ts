@@ -88,7 +88,16 @@ export class General extends Unit implements HasWeaponSlot {
     this.attachOutline(0xfbbf24);
     this.showHpText(true);
     this.attachXpBar();
-    if (generalName === "关平") {
+    // 5A: 从 generals/store 读取已装备的主武器, 自动 attach
+    try {
+      const inst = (window as any).__generalStore?.getState?.()?.instances?.[GENERAL_NAME_TO_ID[generalName] as string];
+      const mainW = inst?.equippedWeapons?.main;
+      if (mainW) {
+        this.equipWeapon(mainW);
+      }
+    } catch { /* 静默 */ }
+
+        if (generalName === "关平") {
       this.guanpingWeapon = this.scene.add
         .image(x + 26, y + 12, "guanping-saber")
         .setOrigin(0.5, 1)
