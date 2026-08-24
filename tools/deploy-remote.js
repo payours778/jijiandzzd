@@ -90,26 +90,36 @@ function sftpUploadDir(conn, sftp, localDir, remoteDir, ignore) {
     logLine("SFTP 上传 " + localDir + " -> " + remoteDir + "，共 " + files.length + " 个文件");
     // 先用 sshExec 一次性 mkdir -p 所有父目录（流式，比 sftp.mkdir 递归快）
     const dirs = listDirs(files.map(f => remoteDir + "/" + f));
+    const PARALLEL = 4;  // 并发上传数（共享一个 SSH 连接）
+    function startUpload() {
+      let next = 0, done = 0, failed = false;
+      const logEvery = Math.max(50, Math.floor(files.length / 10));
+      function worker() {
+        if (failed) return;
+        if (next >= files.length) return;
+        const myIdx = next++;
+        const rel = files[myIdx];
+        const remote = remoteDir + "/" + rel;
+        sftp.fastPut(path.join(localDir, rel).replace(/\\/g, "/"), remote, (err) => {
+          if (failed) return;
+          if (err) { failed = true; return reject(new Error("上传失败 " + rel + ": " + err.message)); }
+          done++;
+          if (done % logEvery === 0 || done === files.length) logLine("  进度 " + done + "/" + files.length);
+          if (done >= files.length) return resolve();
+          worker();
+        });
+        // 同时启动下一个
+        if (next < files.length) worker();
+      }
+      // 启动 PARALLEL 个 worker
+      for (let k = 0; k < PARALLEL; k++) worker();
+    }
     if (dirs.length > 0) {
       const quoted = dirs.map(d => String.fromCharCode(34) + d + String.fromCharCode(34)); const cmd = "mkdir -p " + quoted.join(" ");
       logLine("  准备 " + dirs.length + " 个目录");
       sshExec(conn, cmd).then(() => startUpload()).catch(reject);
     } else {
       startUpload();
-    }
-    function startUpload() {
-      let i = 0;
-      function next() {
-        if (i >= files.length) return resolve();
-        const rel = files[i++];
-        const remote = remoteDir + "/" + rel;
-        sftp.fastPut(path.join(localDir, rel).replace(/\\/g, "/"), remote, (err) => {
-          if (err) return reject(new Error("上传失败 " + rel + ": " + err.message));
-          if (i % 50 === 0 || i === files.length) logLine("  进度 " + i + "/" + files.length);
-          next();
-        });
-      }
-      next();
     }
   });
 }
