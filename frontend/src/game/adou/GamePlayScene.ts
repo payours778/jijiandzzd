@@ -23,6 +23,7 @@ import { DiaoChan } from "./units/DiaoChan";
 import { CaoCao } from "./units/CaoCao";
 import { WeiUnit } from "./units/WeiUnit";
 import { playSlashDownSwing } from "./effects/playSlashDownSwing";
+import { PlayDropCoinEffect } from "./effects/PlayDropCoinEffect";
 import { createBoardMap, preloadBoardMap } from "./boardMap";
 import { playMusic, playSfx } from "../../audio/audioSystem";
 import type { MusicKey } from "../../audio/audioConfig";
@@ -80,6 +81,7 @@ export class GamePlayScene extends Phaser.Scene {
   private surrenderConfirmOpen = false;
   private wave = 1;
   private earnedCoins = 0;
+  private dropCoinFx?: PlayDropCoinEffect;
   private zombiesSpawnedInWave = 0;
   private getWaveSize(wave: number) {
     return Math.min(10, 5 + Math.floor((wave - 1) / 3));
@@ -666,6 +668,10 @@ export class GamePlayScene extends Phaser.Scene {
       .setDepth(60)
       .setInteractive({ useHandCursor: true })
       .on("pointerdown", () => this.showSurrenderConfirm());
+    // 初始化金币掉落特效 (1B)
+    const hudCoinX = this.coinText.x - 40;
+    const hudCoinY = this.coinText.y + 12;
+    this.dropCoinFx = new PlayDropCoinEffect(this, { target: { x: hudCoinX, y: hudCoinY } });
 
     this.updateMantouText();
     this.updateCoinText();
@@ -1782,11 +1788,16 @@ export class GamePlayScene extends Phaser.Scene {
   private awardCoins(zombie: Zombie) {
     const isBoss =
       zombie instanceof LuBu || zombie instanceof DiaoChan || zombie instanceof CaoCao;
-    this.earnedCoins += isBoss ? 15 : 1;
+    const value = isBoss ? 15 : 1;
+    this.earnedCoins += value;
     if (isBoss) {
       this.awardBossLegendScroll();
     }
     this.updateCoinText();
+    // 1B: 触发金币掉落特效 (PVZ 风: 抛物线 -> 落地 -> 飞向 HUD)
+    if (this.dropCoinFx) {
+      this.dropCoinFx.drop(zombie.x, zombie.y, value);
+    }
   }
 
   private awardBossLegendScroll() {
