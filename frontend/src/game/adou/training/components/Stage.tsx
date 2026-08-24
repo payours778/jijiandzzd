@@ -13,7 +13,7 @@ const AVATARS = [
 ];
 
 const BG_IMAGES = [
-  "/assets/training-ground/background/bg-01-dusk.png",
+  "/assets/training-ground/background/bg-main.png",
   "/assets/training-ground/background/bg-02-dawn.png",
   "/assets/training-ground/background/bg-03-overcast.png",
   "/assets/training-ground/background/bg-04-night.png",
