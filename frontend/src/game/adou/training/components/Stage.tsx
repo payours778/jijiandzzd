@@ -15,10 +15,10 @@ const AVATARS = [
 ];
 
 const BG_IMAGES = [
-  "/assets/training-ground/background/bg-main.png",
-  "/assets/training-ground/background/bg-02-dawn.png",
-  "/assets/training-ground/background/bg-03-overcast.png",
-  "/assets/training-ground/background/bg-04-night.png",
+  "/assets/training-ground/background/bg-main-clean.png",
+  "/assets/training-ground/background/bg-02-dawn-clean.png",
+  "/assets/training-ground/background/bg-03-overcast-clean.png",
+  "/assets/training-ground/background/bg-04-night-clean.png",
 ];
 
 // 每张背景图各自的旗帜帧动画 (原图旗面烘焙, 坐标为背景图内百分比)
@@ -32,17 +32,17 @@ interface FlagSprite {
 }
 
 const FLAG_SHEETS: Record<string, FlagSprite[]> = {
-  "bg-main.png": [
-    { src: "/assets/training-ground/flags/bg-main-left-sheet.png", x: 9.01, y: 21.61, w: 13.01, h: 18.62, dur: 1.5 },
-    { src: "/assets/training-ground/flags/bg-main-right-sheet.png", x: 87.35, y: 21.61, w: 11.77, h: 18.62, dur: 1.7 },
+  "bg-main-clean.png": [
+    { src: "/assets/training-ground/flags/bg-main-left-sheet.png", x: 9.16, y: 21.88, w: 12.28, h: 17.19, dur: 1.5 },
+    { src: "/assets/training-ground/flags/bg-main-right-sheet.png", x: 87.65, y: 24.74, w: 12.35, h: 16.93, dur: 1.7 },
   ],
-  "bg-02-dawn.png": [
-    { src: "/assets/training-ground/flags/bg-02-dawn-left-sheet.png", x: 11.77, y: 27.6, w: 5.74, h: 19.66, dur: 1.6 },
-    { src: "/assets/training-ground/flags/bg-02-dawn-right-sheet.png", x: 84.96, y: 27.6, w: 11.12, h: 15.62, dur: 1.8 },
+  "bg-02-dawn-clean.png": [
+    { src: "/assets/training-ground/flags/bg-02-dawn-left-sheet.png", x: 10.17, y: 29.56, w: 9.74, h: 19.01, dur: 1.6 },
+    { src: "/assets/training-ground/flags/bg-02-dawn-right-sheet.png", x: 84.81, y: 30.34, w: 11.7, h: 9.51, dur: 1.8 },
   ],
-  "bg-04-night.png": [
-    { src: "/assets/training-ground/flags/bg-04-night-left-sheet.png", x: 19.33, y: 27.6, w: 15.7, h: 17.58, dur: 1.5 },
-    { src: "/assets/training-ground/flags/bg-04-night-right-sheet.png", x: 65.48, y: 31.64, w: 13.08, h: 17.06, dur: 1.7 },
+  "bg-04-night-clean.png": [
+    { src: "/assets/training-ground/flags/bg-04-night-left-sheet.png", x: 15.99, y: 25.78, w: 13.66, h: 20.05, dur: 1.5 },
+    { src: "/assets/training-ground/flags/bg-04-night-right-sheet.png", x: 74.2, y: 30.86, w: 7.05, h: 15.23, dur: 1.7 },
   ],
 };
 
