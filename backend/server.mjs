@@ -71,6 +71,19 @@ db.exec(`
   )`
 );
 
+// 7: 商店购买记录表
+db.exec(`
+  CREATE TABLE IF NOT EXISTS adou_shop_purchases (
+    id TEXT PRIMARY KEY,
+    account_id TEXT NOT NULL,
+    item_id TEXT NOT NULL,
+    quantity INTEGER NOT NULL DEFAULT 1,
+    total_price INTEGER NOT NULL,
+    purchased_at TEXT NOT NULL,
+    FOREIGN KEY (account_id) REFERENCES accounts(id) ON DELETE CASCADE
+  )`
+);
+
 // 6B: 招募系统 state 表 (整块 JSON 存)
 db.exec(`
   CREATE TABLE IF NOT EXISTS adou_recruit_state (
@@ -551,6 +564,52 @@ async function handleApi(req, res, pathname) {
       .prepare("SELECT coins FROM accounts WHERE id = ?")
       .get(session.accountId);
     sendJson(res, 200, { ok: true, coins: row.coins });
+    return;
+  }
+
+  // ===== 7: 商店系统 =====
+  // 商品目录 (硬编码, 改这里就行)
+  const SHOP_CATALOG = [
+    { id: "recruit_ticket_1", name: "普通招募券", desc: "1 张普通招募券", price: 50, currency: "coin", grant: { recruitTickets: 1 } },
+    { id: "recruit_ticket_10", name: "普通招募券×10", desc: "10 张普通招募券, 9 折优惠", price: 450, currency: "coin", grant: { recruitTickets: 10 } },
+    { id: "elite_item_1", name: "精英招募符", desc: "1 个精英招募符, 用于精英池", price: 200, currency: "coin", grant: { eliteRecruitItems: 1 } },
+    { id: "legend_scroll_1", name: "巅峰招募卷", desc: "1 个巅峰招募卷, 用于 BOSS 掉落保底", price: 1000, currency: "coin", grant: { legendRecruitScrolls: 1 } },
+    { id: "fragment_box_5", name: "随机碎片盒", desc: "随机 1 个武将的 5 个碎片", price: 300, currency: "coin", grant: { randomFragments: 5 } },
+  ];
+
+  if (pathname === "/api/adou/shop/items" && req.method === "GET") {
+    sendJson(res, 200, { ok: true, items: SHOP_CATALOG });
+    return;
+  }
+
+  if (pathname === "/api/adou/shop/my" && req.method === "GET") {
+    const session = getSessionFromRequest(req);
+    if (!session || !session.accountId) { sendJson(res, 401, { error: "Unauthorized" }); return; }
+    const rows = db.prepare("SELECT id, item_id, quantity, total_price, purchased_at FROM adou_shop_purchases WHERE account_id = ? ORDER BY purchased_at DESC LIMIT 50").all(session.accountId);
+    sendJson(res, 200, { ok: true, purchases: rows });
+    return;
+  }
+
+  if (pathname === "/api/adou/shop/buy" && req.method === "POST") {
+    const session = getSessionFromRequest(req);
+    if (!session || !session.accountId) { sendJson(res, 401, { error: "Unauthorized" }); return; }
+    const body = await readBody(req);
+    const itemId = String(body?.itemId || "");
+    const quantity = Math.max(1, Math.min(99, Math.floor(Number(body?.quantity) || 1)));
+    const item = SHOP_CATALOG.find((x) => x.id === itemId);
+    if (!item) { sendJson(res, 404, { error: "商品不存在" }); return; }
+    const totalPrice = item.price * quantity;
+    // 1) 扣金币
+    const accRow = db.prepare("SELECT coins FROM accounts WHERE id = ?").get(session.accountId);
+    if (!accRow) { sendJson(res, 404, { error: "账户不存在" }); return; }
+    if ((accRow.coins || 0) < totalPrice) { sendJson(res, 400, { error: "金币不足", need: totalPrice, have: accRow.coins }); return; }
+    db.prepare("UPDATE accounts SET coins = coins - ? WHERE id = ?").run(totalPrice, session.accountId);
+    // 2) 记录购买
+    const now = new Date().toISOString();
+    db.prepare("INSERT INTO adou_shop_purchases (id, account_id, item_id, quantity, total_price, purchased_at) VALUES (?, ?, ?, ?, ?, ?)").run(crypto.randomUUID(), session.accountId, itemId, quantity, totalPrice, now);
+    // 3) 返回新余额 + 商品
+    const newRow = db.prepare("SELECT coins FROM accounts WHERE id = ?").get(session.accountId);
+    sendJson(res, 200, { ok: true, coins: newRow.coins, item, quantity, totalPrice, grant: item.grant });
     return;
   }
 
