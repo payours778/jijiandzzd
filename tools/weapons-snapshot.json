@@ -1,0 +1,1204 @@
+[
+  {
+    "id": "chixiao-sword",
+    "name": "赤霄剑",
+    "series": "sword",
+    "attackType": "melee",
+    "rarity": "mythic",
+    "status": "locked",
+    "holder": "",
+    "damage": "26",
+    "crit": "0.18",
+    "tags": [
+      "燃烧"
+    ],
+    "iconPath": "/assets/weapons/sword/chixiao-sword/chixiao-sword-模型.png"
+  },
+  {
+    "id": "rende-sword",
+    "name": "雌雄双股剑",
+    "series": "sword",
+    "attackType": "melee",
+    "rarity": "mythic",
+    "status": "development",
+    "holder": "刘备",
+    "damage": "25",
+    "crit": "0.23",
+    "tags": [
+      "仁德"
+    ],
+    "iconPath": "/assets/weapons/sword/rende-sword/rende-sword-模型.png"
+  },
+  {
+    "id": "ganjiang-moye",
+    "name": "干将莫邪",
+    "series": "sword",
+    "attackType": "melee",
+    "rarity": "mythic",
+    "status": "locked",
+    "holder": "",
+    "damage": "22",
+    "crit": "0.22",
+    "tags": [
+      "双剑"
+    ],
+    "iconPath": "/assets/weapons/sword/ganjiang-moye/ganjiang-moye-模型.png"
+  },
+  {
+    "id": "chunjun-sword",
+    "name": "含光剑",
+    "series": "sword",
+    "attackType": "melee",
+    "rarity": "epic",
+    "status": "available",
+    "holder": "",
+    "damage": "11",
+    "crit": "0.06",
+    "tags": [
+      "穿透"
+    ],
+    "iconPath": "/assets/weapons/sword/chunjun-sword/chunjun-sword-模型.png"
+  },
+  {
+    "id": "jian-of-heyi",
+    "name": "剑",
+    "series": "sword",
+    "attackType": "melee",
+    "rarity": "common",
+    "status": "available",
+    "holder": "",
+    "damage": "6",
+    "crit": "0.04",
+    "tags": [],
+    "iconPath": "/assets/weapons/sword/jian-of-heyi/jian-of-heyi-模型.png"
+  },
+  {
+    "id": "longquan-sword",
+    "name": "精钢剑",
+    "series": "sword",
+    "attackType": "melee",
+    "rarity": "rare",
+    "status": "available",
+    "holder": "",
+    "damage": "10",
+    "crit": "0.08",
+    "tags": [],
+    "iconPath": "/assets/weapons/sword/longquan-sword/longquan-sword-模型.png"
+  },
+  {
+    "id": "longyuan-sword",
+    "name": "龙渊剑",
+    "series": "sword",
+    "attackType": "melee",
+    "rarity": "legendary",
+    "status": "available",
+    "holder": "",
+    "damage": "16",
+    "crit": "0.14",
+    "tags": [
+      "龙威"
+    ],
+    "iconPath": "/assets/weapons/sword/longyuan-sword/longyuan-sword-模型.png"
+  },
+  {
+    "id": "qixing-sword",
+    "name": "七星剑",
+    "series": "sword",
+    "attackType": "melee",
+    "rarity": "legendary",
+    "status": "available",
+    "holder": "",
+    "damage": "15",
+    "crit": "0.16",
+    "tags": [],
+    "iconPath": "/assets/weapons/sword/qixing-sword/qixing-sword-模型.png"
+  },
+  {
+    "id": "qinggang-sword",
+    "name": "青锋剑",
+    "series": "sword",
+    "attackType": "melee",
+    "rarity": "rare",
+    "status": "available",
+    "holder": "",
+    "damage": "9",
+    "crit": "0.1",
+    "tags": [],
+    "iconPath": "/assets/weapons/sword/qinggang-sword/qinggang-sword-模型.png"
+  },
+  {
+    "id": "yuchang-sword",
+    "name": "狭锋剑",
+    "series": "sword",
+    "attackType": "melee",
+    "rarity": "rare",
+    "status": "available",
+    "holder": "",
+    "damage": "8",
+    "crit": "0.12",
+    "tags": [
+      "暴击"
+    ],
+    "iconPath": "/assets/weapons/sword/yuchang-sword/yuchang-sword-模型.png"
+  },
+  {
+    "id": "tai-e-sword",
+    "name": "宵练剑",
+    "series": "sword",
+    "attackType": "melee",
+    "rarity": "epic",
+    "status": "available",
+    "holder": "",
+    "damage": "13",
+    "crit": "0.1",
+    "tags": [],
+    "iconPath": "/assets/weapons/sword/tai-e-sword/tai-e-sword-模型.png"
+  },
+  {
+    "id": "xuanyuan-sword",
+    "name": "轩辕剑",
+    "series": "sword",
+    "attackType": "melee",
+    "rarity": "mythic",
+    "status": "locked",
+    "holder": "",
+    "damage": "24",
+    "crit": "0.2",
+    "tags": [
+      "破甲",
+      "圣剑"
+    ],
+    "iconPath": "/assets/weapons/sword/xuanyuan-sword/xuanyuan-sword-模型.png"
+  },
+  {
+    "id": "zhanlu-sword",
+    "name": "掩日剑",
+    "series": "sword",
+    "attackType": "melee",
+    "rarity": "epic",
+    "status": "available",
+    "holder": "",
+    "damage": "12",
+    "crit": "0.12",
+    "tags": [],
+    "iconPath": "/assets/weapons/sword/zhanlu-sword/zhanlu-sword-模型.png"
+  },
+  {
+    "id": "yitian-sword",
+    "name": "倚天剑",
+    "series": "sword",
+    "attackType": "melee",
+    "rarity": "legendary",
+    "status": "available",
+    "holder": "",
+    "damage": "18",
+    "crit": "0.12",
+    "tags": [],
+    "iconPath": "/assets/weapons/sword/yitian-sword/yitian-sword-模型.png"
+  },
+  {
+    "id": "baihua-blade",
+    "name": "白虹刀",
+    "series": "blade",
+    "attackType": "melee",
+    "rarity": "epic",
+    "status": "available",
+    "holder": "",
+    "damage": "17",
+    "crit": "0.1",
+    "tags": [],
+    "iconPath": "/assets/weapons/blade/baihua-blade/baihua-blade-模型.png"
+  },
+  {
+    "id": "podao",
+    "name": "刀",
+    "series": "blade",
+    "attackType": "melee",
+    "rarity": "common",
+    "status": "available",
+    "holder": "",
+    "damage": "9",
+    "crit": "",
+    "tags": [],
+    "iconPath": "/assets/weapons/blade/podao/podao-模型.png"
+  },
+  {
+    "id": "yanyue-da-dao",
+    "name": "断水刀",
+    "series": "blade",
+    "attackType": "melee",
+    "rarity": "epic",
+    "status": "available",
+    "holder": "",
+    "damage": "18",
+    "crit": "0.08",
+    "tags": [
+      "横扫"
+    ],
+    "iconPath": "/assets/weapons/blade/yanyue-da-dao/yanyue-da-dao-模型.png"
+  },
+  {
+    "id": "hupo-blade",
+    "name": "虎魄刀",
+    "series": "blade",
+    "attackType": "melee",
+    "rarity": "legendary",
+    "status": "available",
+    "holder": "",
+    "damage": "24",
+    "crit": "0.1",
+    "tags": [
+      "暴击",
+      "虎威"
+    ],
+    "iconPath": "/assets/weapons/blade/hupo-blade/hupo-blade-模型.png"
+  },
+  {
+    "id": "dajiangjun-blade",
+    "name": "金背大环刀",
+    "series": "blade",
+    "attackType": "melee",
+    "rarity": "legendary",
+    "status": "available",
+    "holder": "",
+    "damage": "25",
+    "crit": "0.08",
+    "tags": [
+      "威压"
+    ],
+    "iconPath": "/assets/weapons/blade/dajiangjun-blade/dajiangjun-blade-模型.png"
+  },
+  {
+    "id": "yanyang-blade",
+    "name": "冷艳锯",
+    "series": "blade",
+    "attackType": "melee",
+    "rarity": "legendary",
+    "status": "available",
+    "holder": "",
+    "damage": "22",
+    "crit": "0.12",
+    "tags": [],
+    "iconPath": "/assets/weapons/blade/yanyang-blade/yanyang-blade-模型.png"
+  },
+  {
+    "id": "minghong-blade",
+    "name": "鸣鸿刀",
+    "series": "blade",
+    "attackType": "melee",
+    "rarity": "mythic",
+    "status": "locked",
+    "holder": "",
+    "damage": "33",
+    "crit": "0.2",
+    "tags": [
+      "穿透"
+    ],
+    "iconPath": "/assets/weapons/blade/minghong-blade/minghong-blade-模型.png"
+  },
+  {
+    "id": "modao-blade",
+    "name": "陌刀",
+    "series": "blade",
+    "attackType": "melee",
+    "rarity": "epic",
+    "status": "available",
+    "holder": "",
+    "damage": "20",
+    "crit": "",
+    "tags": [
+      "破甲"
+    ],
+    "iconPath": "/assets/weapons/blade/modao-blade/modao-blade-模型.png"
+  },
+  {
+    "id": "qinglong-blade",
+    "name": "青龙偃月刀",
+    "series": "blade",
+    "attackType": "melee",
+    "rarity": "mythic",
+    "status": "development",
+    "holder": "关羽",
+    "damage": "31",
+    "crit": "0.24",
+    "tags": [
+      "横扫"
+    ],
+    "iconPath": "/assets/weapons/blade/qinglong-blade/qinglong-blade-模型.png"
+  },
+  {
+    "id": "shuangyue-blade",
+    "name": "双月弯刀",
+    "series": "blade",
+    "attackType": "melee",
+    "rarity": "rare",
+    "status": "available",
+    "holder": "",
+    "damage": "11",
+    "crit": "0.07",
+    "tags": [
+      "溅射"
+    ],
+    "iconPath": "/assets/weapons/blade/shuangyue-blade/shuangyue-blade-模型.png"
+  },
+  {
+    "id": "tulong-blade",
+    "name": "屠龙刀",
+    "series": "blade",
+    "attackType": "melee",
+    "rarity": "mythic",
+    "status": "locked",
+    "holder": "",
+    "damage": "36",
+    "crit": "0.16",
+    "tags": [
+      "龙威"
+    ],
+    "iconPath": "/assets/weapons/blade/tulong-blade/tulong-blade-模型.png"
+  },
+  {
+    "id": "xuanyuan-blade",
+    "name": "轩辕断刀",
+    "series": "blade",
+    "attackType": "melee",
+    "rarity": "mythic",
+    "status": "locked",
+    "holder": "",
+    "damage": "34",
+    "crit": "0.18",
+    "tags": [
+      "破甲"
+    ],
+    "iconPath": "/assets/weapons/blade/xuanyuan-blade/xuanyuan-blade-模型.png"
+  },
+  {
+    "id": "zhanmadao",
+    "name": "斩马刀",
+    "series": "blade",
+    "attackType": "melee",
+    "rarity": "rare",
+    "status": "available",
+    "holder": "",
+    "damage": "14",
+    "crit": "0.05",
+    "tags": [],
+    "iconPath": "/assets/weapons/blade/zhanmadao/zhanmadao-模型.png"
+  },
+  {
+    "id": "da-dao",
+    "name": "长刀",
+    "series": "blade",
+    "attackType": "melee",
+    "rarity": "rare",
+    "status": "development",
+    "holder": "关平",
+    "damage": "12",
+    "crit": "",
+    "tags": [
+      "横扫"
+    ],
+    "iconPath": "/assets/weapons/blade/da-dao/da-dao-模型.png"
+  },
+  {
+    "id": "bawang-spear",
+    "name": "霸王枪",
+    "series": "spear",
+    "attackType": "melee",
+    "rarity": "legendary",
+    "status": "locked",
+    "holder": "",
+    "damage": "20",
+    "crit": "0.12",
+    "tags": [
+      "霸体"
+    ],
+    "iconPath": "/assets/weapons/spear/bawang-spear/bawang-spear-模型.png"
+  },
+  {
+    "id": "pojun-spear",
+    "name": "钩镰枪",
+    "series": "spear",
+    "attackType": "melee",
+    "rarity": "legendary",
+    "status": "available",
+    "holder": "",
+    "damage": "19",
+    "crit": "0.14",
+    "tags": [
+      "破甲"
+    ],
+    "iconPath": "/assets/weapons/spear/pojun-spear/pojun-spear-模型.png"
+  },
+  {
+    "id": "hutou-qiang",
+    "name": "虎头枪",
+    "series": "spear",
+    "attackType": "melee",
+    "rarity": "legendary",
+    "status": "development",
+    "holder": "马超",
+    "damage": "21",
+    "crit": "0.1",
+    "tags": [],
+    "iconPath": "/assets/weapons/spear/hutou-qiang/hutou-qiang-模型.png"
+  },
+  {
+    "id": "huzhang-spear",
+    "name": "虎头湛金枪",
+    "series": "spear",
+    "attackType": "melee",
+    "rarity": "mythic",
+    "status": "available",
+    "holder": "",
+    "damage": "27",
+    "crit": "0.22",
+    "tags": [],
+    "iconPath": "/assets/weapons/spear/huzhang-spear/huzhang-spear-模型.png"
+  },
+  {
+    "id": "shenlong-spear",
+    "name": "沥泉神枪",
+    "series": "spear",
+    "attackType": "melee",
+    "rarity": "mythic",
+    "status": "locked",
+    "holder": "",
+    "damage": "30",
+    "crit": "0.16",
+    "tags": [
+      "龙威"
+    ],
+    "iconPath": "/assets/weapons/spear/shenlong-spear/shenlong-spear-模型.png"
+  },
+  {
+    "id": "liuxing-spear",
+    "name": "流星枪",
+    "series": "spear",
+    "attackType": "melee",
+    "rarity": "rare",
+    "status": "available",
+    "holder": "",
+    "damage": "10",
+    "crit": "0.1",
+    "tags": [
+      "连击"
+    ],
+    "iconPath": "/assets/weapons/spear/liuxing-spear/liuxing-spear-模型.png"
+  },
+  {
+    "id": "longdan-spear",
+    "name": "龙胆亮银枪",
+    "series": "spear",
+    "attackType": "melee",
+    "rarity": "mythic",
+    "status": "development",
+    "holder": "赵云",
+    "damage": "29",
+    "crit": "0.24",
+    "tags": [
+      "连击"
+    ],
+    "iconPath": "/assets/weapons/spear/longdan-spear/longdan-spear-模型.png"
+  },
+  {
+    "id": "qixing-spear",
+    "name": "枪",
+    "series": "spear",
+    "attackType": "melee",
+    "rarity": "common",
+    "status": "available",
+    "holder": "",
+    "damage": "7",
+    "crit": "",
+    "tags": [],
+    "iconPath": "/assets/weapons/spear/qixing-spear/qixing-spear-模型.png"
+  },
+  {
+    "id": "lietian-spear",
+    "name": "弑神枪",
+    "series": "spear",
+    "attackType": "melee",
+    "rarity": "epic",
+    "status": "available",
+    "holder": "",
+    "damage": "14",
+    "crit": "0.14",
+    "tags": [
+      "穿透",
+      "裂甲"
+    ],
+    "iconPath": "/assets/weapons/spear/lietian-spear/lietian-spear-模型.png"
+  },
+  {
+    "id": "tie-qiang",
+    "name": "铁枪",
+    "series": "spear",
+    "attackType": "melee",
+    "rarity": "epic",
+    "status": "development",
+    "holder": "张苞",
+    "damage": "15",
+    "crit": "0.18",
+    "tags": [],
+    "iconPath": "/assets/weapons/spear/tie-qiang/tie-qiang-模型.png"
+  },
+  {
+    "id": "xuechan-spear",
+    "name": "五虎断魂枪",
+    "series": "spear",
+    "attackType": "melee",
+    "rarity": "rare",
+    "status": "locked",
+    "holder": "",
+    "damage": "9",
+    "crit": "",
+    "tags": [
+      "吸血"
+    ],
+    "iconPath": "/assets/weapons/spear/xuechan-spear/xuechan-spear-模型.png"
+  },
+  {
+    "id": "yaba-spear",
+    "name": "牙旗枪",
+    "series": "spear",
+    "attackType": "melee",
+    "rarity": "rare",
+    "status": "available",
+    "holder": "",
+    "damage": "11",
+    "crit": "0.06",
+    "tags": [],
+    "iconPath": "/assets/weapons/spear/yaba-spear/yaba-spear-模型.png"
+  },
+  {
+    "id": "yinshe-spear",
+    "name": "银蛇枪",
+    "series": "spear",
+    "attackType": "melee",
+    "rarity": "epic",
+    "status": "available",
+    "holder": "",
+    "damage": "13",
+    "crit": "0.13",
+    "tags": [
+      "穿透"
+    ],
+    "iconPath": "/assets/weapons/spear/yinshe-spear/yinshe-spear-模型.png"
+  },
+  {
+    "id": "she-mao",
+    "name": "丈八蛇矛",
+    "series": "spear",
+    "attackType": "melee",
+    "rarity": "mythic",
+    "status": "development",
+    "holder": "张飞",
+    "damage": "28",
+    "crit": "0.2",
+    "tags": [
+      "威慑"
+    ],
+    "iconPath": "/assets/weapons/spear/she-mao/she-mao-模型.png"
+  },
+  {
+    "id": "fangtian-ji",
+    "name": "方天画戟",
+    "series": "halberd",
+    "attackType": "melee",
+    "rarity": "legendary",
+    "status": "development",
+    "holder": "吕布",
+    "damage": "24",
+    "crit": "0.1",
+    "tags": [],
+    "iconPath": "/assets/weapons/halberd/fangtian-ji/fangtian-ji-模型.png"
+  },
+  {
+    "id": "ji-tianshu",
+    "name": "戟天枢",
+    "series": "halberd",
+    "attackType": "melee",
+    "rarity": "rare",
+    "status": "available",
+    "holder": "",
+    "damage": "14",
+    "crit": "",
+    "tags": [
+      "破甲"
+    ],
+    "iconPath": "/assets/weapons/halberd/ji-tianshu/ji-tianshu-模型.png"
+  },
+  {
+    "id": "luan-ji",
+    "name": "鸾羽戟",
+    "series": "halberd",
+    "attackType": "melee",
+    "rarity": "epic",
+    "status": "available",
+    "holder": "",
+    "damage": "16",
+    "crit": "0.08",
+    "tags": [],
+    "iconPath": "/assets/weapons/halberd/luan-ji/luan-ji-模型.png"
+  },
+  {
+    "id": "shuangji",
+    "name": "双刃短戟",
+    "series": "halberd",
+    "attackType": "melee",
+    "rarity": "common",
+    "status": "available",
+    "holder": "",
+    "damage": "9",
+    "crit": "",
+    "tags": [],
+    "iconPath": "/assets/weapons/halberd/shuangji/shuangji-模型.png"
+  },
+  {
+    "id": "duanhan-hammer",
+    "name": "断寒锤",
+    "series": "hammer",
+    "attackType": "melee",
+    "rarity": "epic",
+    "status": "available",
+    "holder": "",
+    "damage": "19",
+    "crit": "",
+    "tags": [
+      "冰冻"
+    ],
+    "iconPath": "/assets/weapons/hammer/duanhan-hammer/duanhan-hammer-模型.png"
+  },
+  {
+    "id": "lianhua-hammer",
+    "name": "炼狱锤",
+    "series": "hammer",
+    "attackType": "melee",
+    "rarity": "epic",
+    "status": "available",
+    "holder": "",
+    "damage": "20",
+    "crit": "",
+    "tags": [
+      "燃烧"
+    ],
+    "iconPath": "/assets/weapons/hammer/lianhua-hammer/lianhua-hammer-模型.png"
+  },
+  {
+    "id": "tiechui",
+    "name": "铁锤",
+    "series": "hammer",
+    "attackType": "melee",
+    "rarity": "common",
+    "status": "available",
+    "holder": "",
+    "damage": "12",
+    "crit": "",
+    "tags": [],
+    "iconPath": "/assets/weapons/hammer/tiechui/tiechui-模型.png"
+  },
+  {
+    "id": "wushuang-hammer",
+    "name": "无双锤",
+    "series": "hammer",
+    "attackType": "melee",
+    "rarity": "legendary",
+    "status": "locked",
+    "holder": "",
+    "damage": "26",
+    "crit": "0.05",
+    "tags": [
+      "连击",
+      "晕眩"
+    ],
+    "iconPath": "/assets/weapons/hammer/wushuang-hammer/wushuang-hammer-模型.png"
+  },
+  {
+    "id": "xuanguan-hammer",
+    "name": "玄关铁锤",
+    "series": "hammer",
+    "attackType": "melee",
+    "rarity": "rare",
+    "status": "available",
+    "holder": "",
+    "damage": "16",
+    "crit": "",
+    "tags": [
+      "晕眩"
+    ],
+    "iconPath": "/assets/weapons/hammer/xuanguan-hammer/xuanguan-hammer-模型.png"
+  },
+  {
+    "id": "du-gong",
+    "name": "毒弓",
+    "series": "bow",
+    "attackType": "ranged",
+    "rarity": "mythic",
+    "status": "development",
+    "holder": "黄祖",
+    "damage": "23",
+    "crit": "0.26",
+    "tags": [
+      "中毒"
+    ],
+    "iconPath": "/assets/weapons/bow/du-gong/du-gong-模型.png"
+  },
+  {
+    "id": "fengmu-bow",
+    "name": "风木弓",
+    "series": "bow",
+    "attackType": "ranged",
+    "rarity": "legendary",
+    "status": "available",
+    "holder": "",
+    "damage": "14",
+    "crit": "0.18",
+    "tags": [],
+    "iconPath": "/assets/weapons/bow/fengmu-bow/fengmu-bow-模型.png"
+  },
+  {
+    "id": "heyi-bow",
+    "name": "黑翼弓",
+    "series": "bow",
+    "attackType": "ranged",
+    "rarity": "rare",
+    "status": "available",
+    "holder": "",
+    "damage": "7",
+    "crit": "0.1",
+    "tags": [],
+    "iconPath": "/assets/weapons/bow/heyi-bow/heyi-bow-模型.png"
+  },
+  {
+    "id": "houyi-bow",
+    "name": "后羿射日弓",
+    "series": "bow",
+    "attackType": "ranged",
+    "rarity": "epic",
+    "status": "locked",
+    "holder": "",
+    "damage": "12",
+    "crit": "0.16",
+    "tags": [
+      "射日",
+      "穿透"
+    ],
+    "iconPath": "/assets/weapons/bow/houyi-bow/houyi-bow-模型.png"
+  },
+  {
+    "id": "juanxin-bow",
+    "name": "卷心弓",
+    "series": "bow",
+    "attackType": "ranged",
+    "rarity": "epic",
+    "status": "available",
+    "holder": "",
+    "damage": "11",
+    "crit": "0.12",
+    "tags": [],
+    "iconPath": "/assets/weapons/bow/juanxin-bow/juanxin-bow-模型.png"
+  },
+  {
+    "id": "lie-gong",
+    "name": "烈弓",
+    "series": "bow",
+    "attackType": "ranged",
+    "rarity": "mythic",
+    "status": "development",
+    "holder": "黄忠",
+    "damage": "26",
+    "crit": "0.22",
+    "tags": [
+      "烈弓"
+    ],
+    "iconPath": "/assets/weapons/bow/lie-gong/lie-gong-模型.png"
+  },
+  {
+    "id": "lujiao-bow",
+    "name": "鹿角弓",
+    "series": "bow",
+    "attackType": "ranged",
+    "rarity": "rare",
+    "status": "available",
+    "holder": "",
+    "damage": "9",
+    "crit": "0.08",
+    "tags": [
+      "穿透"
+    ],
+    "iconPath": "/assets/weapons/bow/lujiao-bow/lujiao-bow-模型.png"
+  },
+  {
+    "id": "luori-bow",
+    "name": "落日弓",
+    "series": "bow",
+    "attackType": "ranged",
+    "rarity": "legendary",
+    "status": "available",
+    "holder": "",
+    "damage": "16",
+    "crit": "0.16",
+    "tags": [
+      "穿透"
+    ],
+    "iconPath": "/assets/weapons/bow/luori-bow/luori-bow-模型.png"
+  },
+  {
+    "id": "pangu-bow",
+    "name": "盘古开天弓",
+    "series": "bow",
+    "attackType": "ranged",
+    "rarity": "mythic",
+    "status": "locked",
+    "holder": "",
+    "damage": "24",
+    "crit": "0.2",
+    "tags": [
+      "开天"
+    ],
+    "iconPath": "/assets/weapons/bow/pangu-bow/pangu-bow-模型.png"
+  },
+  {
+    "id": "qinghua-bow",
+    "name": "青华弓",
+    "series": "bow",
+    "attackType": "ranged",
+    "rarity": "epic",
+    "status": "available",
+    "holder": "",
+    "damage": "10",
+    "crit": "0.15",
+    "tags": [],
+    "iconPath": "/assets/weapons/bow/qinghua-bow/qinghua-bow-模型.png"
+  },
+  {
+    "id": "taichu-bow",
+    "name": "太初鸿蒙弓",
+    "series": "bow",
+    "attackType": "ranged",
+    "rarity": "mythic",
+    "status": "available",
+    "holder": "",
+    "damage": "28",
+    "crit": "0.2",
+    "tags": [
+      "鸿蒙",
+      "破甲"
+    ],
+    "iconPath": "/assets/weapons/bow/taichu-bow/taichu-bow-模型.png"
+  },
+  {
+    "id": "tongbei-bow",
+    "name": "铜臂弓",
+    "series": "bow",
+    "attackType": "ranged",
+    "rarity": "common",
+    "status": "available",
+    "holder": "",
+    "damage": "5",
+    "crit": "",
+    "tags": [],
+    "iconPath": "/assets/weapons/bow/tongbei-bow/tongbei-bow-模型.png"
+  },
+  {
+    "id": "wanshi-bow",
+    "name": "万石穿云弓",
+    "series": "bow",
+    "attackType": "ranged",
+    "rarity": "legendary",
+    "status": "available",
+    "holder": "",
+    "damage": "15",
+    "crit": "0.12",
+    "tags": [
+      "破甲"
+    ],
+    "iconPath": "/assets/weapons/bow/wanshi-bow/wanshi-bow-模型.png"
+  },
+  {
+    "id": "xingchen-bow",
+    "name": "星辰落日弓",
+    "series": "bow",
+    "attackType": "ranged",
+    "rarity": "rare",
+    "status": "locked",
+    "holder": "",
+    "damage": "8",
+    "crit": "",
+    "tags": [
+      "流星"
+    ],
+    "iconPath": "/assets/weapons/bow/xingchen-bow/xingchen-bow-模型.png"
+  },
+  {
+    "id": "buke-fan",
+    "name": "不客扇",
+    "series": "fan",
+    "attackType": "ranged",
+    "rarity": "epic",
+    "status": "available",
+    "holder": "",
+    "damage": "7",
+    "crit": "0.15",
+    "tags": [],
+    "iconPath": "/assets/weapons/fan/buke-fan/buke-fan-模型.png"
+  },
+  {
+    "id": "liuyun-fan",
+    "name": "流云扇",
+    "series": "fan",
+    "attackType": "ranged",
+    "rarity": "rare",
+    "status": "available",
+    "holder": "",
+    "damage": "5",
+    "crit": "0.1",
+    "tags": [],
+    "iconPath": "/assets/weapons/fan/liuyun-fan/liuyun-fan-模型.png"
+  },
+  {
+    "id": "tieshan-fan",
+    "name": "铁扇",
+    "series": "fan",
+    "attackType": "ranged",
+    "rarity": "common",
+    "status": "available",
+    "holder": "",
+    "damage": "4",
+    "crit": "",
+    "tags": [],
+    "iconPath": "/assets/weapons/fan/tieshan-fan/tieshan-fan-模型.png"
+  },
+  {
+    "id": "zhuge-fan",
+    "name": "诸葛羽扇",
+    "series": "fan",
+    "attackType": "ranged",
+    "rarity": "legendary",
+    "status": "locked",
+    "holder": "",
+    "damage": "8",
+    "crit": "0.2",
+    "tags": [
+      "风系"
+    ],
+    "iconPath": "/assets/weapons/fan/zhuge-fan/zhuge-fan-模型.png"
+  },
+  {
+    "id": "qingzhi-dagger",
+    "name": "青芷匕首",
+    "series": "dagger",
+    "attackType": "melee",
+    "rarity": "common",
+    "status": "available",
+    "holder": "",
+    "damage": "4",
+    "crit": "0.12",
+    "tags": [],
+    "iconPath": "/assets/weapons/dagger/qingzhi-dagger/qingzhi-dagger-模型.png"
+  },
+  {
+    "id": "shuangren-dagger",
+    "name": "双刃匕",
+    "series": "dagger",
+    "attackType": "melee",
+    "rarity": "rare",
+    "status": "available",
+    "holder": "",
+    "damage": "4",
+    "crit": "0.15",
+    "tags": [
+      "连击"
+    ],
+    "iconPath": "/assets/weapons/dagger/shuangren-dagger/shuangren-dagger-模型.png"
+  },
+  {
+    "id": "tianming-dagger",
+    "name": "天命匕",
+    "series": "dagger",
+    "attackType": "melee",
+    "rarity": "legendary",
+    "status": "locked",
+    "holder": "",
+    "damage": "7",
+    "crit": "0.3",
+    "tags": [],
+    "iconPath": "/assets/weapons/dagger/tianming-dagger/tianming-dagger-模型.png"
+  },
+  {
+    "id": "wushi-dagger",
+    "name": "无声匕",
+    "series": "dagger",
+    "attackType": "melee",
+    "rarity": "epic",
+    "status": "available",
+    "holder": "",
+    "damage": "6",
+    "crit": "0.22",
+    "tags": [],
+    "iconPath": "/assets/weapons/dagger/wushi-dagger/wushi-dagger-模型.png"
+  },
+  {
+    "id": "yueli-dagger",
+    "name": "月离匕",
+    "series": "dagger",
+    "attackType": "melee",
+    "rarity": "rare",
+    "status": "available",
+    "holder": "",
+    "damage": "5",
+    "crit": "0.18",
+    "tags": [],
+    "iconPath": "/assets/weapons/dagger/yueli-dagger/yueli-dagger-模型.png"
+  },
+  {
+    "id": "baoyu-tome",
+    "name": "抱朴子法典",
+    "series": "tome",
+    "attackType": "magic",
+    "rarity": "epic",
+    "status": "available",
+    "holder": "",
+    "damage": "6",
+    "crit": "",
+    "tags": [
+      "多段",
+      "风系"
+    ],
+    "iconPath": "/assets/weapons/tome/baoyu-tome/baoyu-tome-模型.png"
+  },
+  {
+    "id": "bihai-tome",
+    "name": "碧海潮生卷",
+    "series": "tome",
+    "attackType": "magic",
+    "rarity": "rare",
+    "status": "available",
+    "holder": "",
+    "damage": "5",
+    "crit": "",
+    "tags": [
+      "减速"
+    ],
+    "iconPath": "/assets/weapons/tome/bihai-tome/bihai-tome-模型.png"
+  },
+  {
+    "id": "jiutian-tome",
+    "name": "九天雷印",
+    "series": "tome",
+    "attackType": "magic",
+    "rarity": "legendary",
+    "status": "locked",
+    "holder": "",
+    "damage": "12",
+    "crit": "0.1",
+    "tags": [
+      "溅射",
+      "雷系"
+    ],
+    "iconPath": "/assets/weapons/tome/jiutian-tome/jiutian-tome-模型.png"
+  },
+  {
+    "id": "luoyan-tome",
+    "name": "落雁符书",
+    "series": "tome",
+    "attackType": "magic",
+    "rarity": "common",
+    "status": "available",
+    "holder": "",
+    "damage": "3",
+    "crit": "",
+    "tags": [],
+    "iconPath": "/assets/weapons/tome/luoyan-tome/luoyan-tome-模型.png"
+  },
+  {
+    "id": "taiyi-tome",
+    "name": "太一经",
+    "series": "tome",
+    "attackType": "magic",
+    "rarity": "rare",
+    "status": "available",
+    "holder": "",
+    "damage": "5",
+    "crit": "",
+    "tags": [
+      "回复"
+    ],
+    "iconPath": "/assets/weapons/tome/taiyi-tome/taiyi-tome-模型.png"
+  },
+  {
+    "id": "jinhuan-biao",
+    "name": "金环镖",
+    "series": "throwing",
+    "attackType": "thrown",
+    "rarity": "rare",
+    "status": "available",
+    "holder": "",
+    "damage": "5",
+    "crit": "0.1",
+    "tags": [],
+    "iconPath": "/assets/weapons/throwing/jinhuan-biao/jinhuan-biao-模型.png"
+  },
+  {
+    "id": "shenli-biao",
+    "name": "神璃针",
+    "series": "throwing",
+    "attackType": "thrown",
+    "rarity": "legendary",
+    "status": "locked",
+    "holder": "",
+    "damage": "9",
+    "crit": "0.25",
+    "tags": [
+      "多发",
+      "中毒"
+    ],
+    "iconPath": "/assets/weapons/throwing/shenli-biao/shenli-biao-模型.png"
+  },
+  {
+    "id": "tieluo",
+    "name": "铁蒺藜",
+    "series": "throwing",
+    "attackType": "thrown",
+    "rarity": "common",
+    "status": "available",
+    "holder": "",
+    "damage": "4",
+    "crit": "0.05",
+    "tags": [
+      "多发"
+    ],
+    "iconPath": "/assets/weapons/throwing/tieluo/tieluo-模型.png"
+  },
+  {
+    "id": "wudu-biao",
+    "name": "五毒飞镖",
+    "series": "throwing",
+    "attackType": "thrown",
+    "rarity": "epic",
+    "status": "available",
+    "holder": "",
+    "damage": "7",
+    "crit": "0.15",
+    "tags": [
+      "中毒",
+      "多发"
+    ],
+    "iconPath": "/assets/weapons/throwing/wudu-biao/wudu-biao-模型.png"
+  },
+  {
+    "id": "xuanhu-biao",
+    "name": "玄狐镖",
+    "series": "throwing",
+    "attackType": "thrown",
+    "rarity": "rare",
+    "status": "available",
+    "holder": "",
+    "damage": "6",
+    "crit": "0.12",
+    "tags": [
+      "多发"
+    ],
+    "iconPath": "/assets/weapons/throwing/xuanhu-biao/xuanhu-biao-模型.png"
+  }
+]

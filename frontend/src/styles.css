@@ -6941,3 +6941,10 @@ body {
   .tg-settings { padding: 12px; }
   .tg-settings__heading h2 { font-size: 19px; }
 }
+
+
+/* MOBILE_DRAG_FIX_TOUCHGAL_UI_ADAPT */
+html,body{touch-action:manipulation;}
+body.game-active,body.game-active #root{touch-action:none;-ms-touch-action:none;overscroll-behavior:none;user-select:none;-webkit-user-drag:none;-webkit-tap-highlight-color:transparent;}
+.tower-defense-container,.tower-defense-container canvas{touch-action:none !important;-ms-touch-action:none !important;user-select:none !important;-webkit-user-drag:none !important;-webkit-tap-highlight-color:transparent;overscroll-behavior:none;}
+body.game-active{position:fixed;inset:0;overflow:hidden;}

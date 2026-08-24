@@ -67,6 +67,11 @@ export function TowerDefenseGame({
   useEffect(() => {
     loadDevConfig();
 
+    // TouchGalUI 适配：进游戏时锁定 body 触控，避免双指 zoom / 浏览器抢 drag
+    if (typeof document !== "undefined") {
+      document.body.classList.add("game-active");
+    }
+
     if (mode === "game" && !started) {
       // 进入塔防界面（开始前）即停止军营背景音乐，避免残留到主界面
       stopMusic();
@@ -100,6 +105,9 @@ export function TowerDefenseGame({
     return () => {
       game.destroy(true);
       stopMusic();
+      if (typeof document !== "undefined") {
+        document.body.classList.remove("game-active");
+      }
     };
   }, [mode, started]);
 
