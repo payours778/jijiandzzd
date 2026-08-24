@@ -5,6 +5,7 @@ import {
   RefreshProbability,
   FragmentPool,
   GeneralPieces,
+  FragmentPairs,
   MedicConfig,
   SoldierStats,
   findGeneral,
@@ -35,6 +36,17 @@ import {
 } from "./training/heroes";
 import { useTrainingGroundStore } from "./training/store";
 import { useAppStore } from "../../store/useAppStore";
+
+// 1E: 中文武将名 -> 招募系统 heroId 映射
+const HERO_NAME_TO_ID: Record<string, string> = {
+  刘备: "liubei", 赵云: "zhaoyun", 黄忠: "huangzhong",
+  关羽: "guanyu", 张飞: "zhangfei", 黄祖: "huangzu",
+  张苞: "zhangbao", 关平: "guanping", 马超: "machao",
+  魏延: "weiyan",
+};
+function heroIdByName(name: string): string {
+  return HERO_NAME_TO_ID[name] ?? name;
+}
 import {
   listWeapons,
   getWeapon,
@@ -85,6 +97,9 @@ export class GamePlayScene extends Phaser.Scene {
   private earnedCoins = 0;
   private dropCoinFx?: PlayDropCoinEffect;
   private dropItemFx?: PlayDropItemEffect;
+  private fragDropFx?: PlayDropItemEffect;
+  private fragCount = 0;
+  private fragText?: Phaser.GameObjects.Text;
   private legendScrollText!: Phaser.GameObjects.Text;
   private legendScrollCount = 0;
   private zombiesSpawnedInWave = 0;
@@ -691,6 +706,23 @@ export class GamePlayScene extends Phaser.Scene {
       .setOrigin(1, 0)
       .setDepth(60);
     this.updateLegendScrollText();
+
+    // 1E: HUD 武将碎片显示 + 碎片掉落特效
+    this.fragText = this.add
+      .text(this.legendScrollText.x, this.coinText.y + 28, "碎 0", {
+        fontFamily: Config.fontFamily,
+        fontSize: "14px",
+        color: "#e9d5ff",
+        fontStyle: "bold",
+        backgroundColor: "#581c87",
+        padding: { x: 6, y: 2 },
+      })
+      .setOrigin(1, 0)
+      .setDepth(60);
+    this.fragDropFx = new PlayDropItemEffect(this, {
+      target: { x: this.fragText.x - 12, y: this.fragText.y + 8 },
+      onPickup: () => this.onFragPickedUp(),
+    });
     const hudItemX = this.legendScrollText.x - 24;
     const hudItemY = this.legendScrollText.y + 12;
     this.dropItemFx = new PlayDropItemEffect(this, { target: { x: hudItemX, y: hudItemY }, onPickup: () => this.onItemPickedUp() });
@@ -1816,9 +1848,37 @@ export class GamePlayScene extends Phaser.Scene {
       this.awardBossLegendScroll(zombie);
     }
     this.updateCoinText();
-    // 1B: 触发金币掉落特效 (PVZ 风: 抛物线 -> 落地 -> 飞向 HUD)
+    // 1B: 触发金币掉落特效
     if (this.dropCoinFx) {
       this.dropCoinFx.drop(zombie.x, zombie.y, value);
+    }
+    // 1E: 击杀掉落武将碎片 (普通 1% / 路障 3% / BOSS 100%)
+    this.tryDropFragment(zombie, isBoss);
+  }
+
+  // 1E: 武将碎片掉落表
+  private tryDropFragment(zombie: Zombie, isBoss: boolean) {
+    if (!this.fragDropFx) return;
+    const isCone = zombie.zombieType === "cone";
+    let chance = 0;
+    let count = 1;
+    if (isBoss) { chance = 1; count = 2; } // BOSS 必掉 1 对
+    else if (isCone) { chance = 0.03; count = 1; }
+    else { chance = 0.01; count = 1; }
+    if (Math.random() > chance) return;
+    // 随机选一个 hero (基于 FragmentPairs)
+    const pairs = FragmentPairs;
+    const pair = pairs[Math.floor(Math.random() * pairs.length)];
+    // 选其中一个字作为显示 glyph
+    const glyph = Math.random() < 0.5 ? pair.first : pair.second;
+    // 存 heroId
+    const heroId = heroIdByName(pair.general);
+    // 入库 addHeroFragments(heroId, count)
+    useTrainingGroundStore.getState().addHeroFragments(heroId, count);
+    // 视觉: 紫色碎片盒
+    for (let i = 0; i < count; i += 1) {
+      const g = i === 0 ? glyph : (glyph === pair.first ? pair.second : pair.first);
+      this.fragDropFx.drop(zombie.x + (i - 0.5) * 20, zombie.y, g, 0x581c87, 0xe9d5ff);
     }
   }
 
@@ -1933,6 +1993,23 @@ export class GamePlayScene extends Phaser.Scene {
         }
       }).catch(() => { /* 网络失败保留本地 */ });
     } catch { /* 静默 */ }
+  }
+
+private updateFragText() {
+    this.fragText?.setText(`碎 ${this.fragCount}`);
+  }
+
+  private onFragPickedUp() {
+    // 1E: 碎片拾取回调 - 累加 + HUD 闪动
+    this.fragCount += 1;
+    this.updateFragText();
+    this.tweens.add({
+      targets: this.fragText,
+      scale: { from: 1, to: 1.3 },
+      duration: 100,
+      ease: "Quad.easeOut",
+      yoyo: true,
+    });
   }
 
 private updateLegendScrollText() {
