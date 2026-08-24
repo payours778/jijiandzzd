@@ -586,7 +586,11 @@ async function handleApi(req, res, pathname) {
     const session = getSessionFromRequest(req);
     if (!session || !session.accountId) { sendJson(res, 401, { error: "Unauthorized" }); return; }
     const rows = db.prepare("SELECT id, item_id, quantity, total_price, purchased_at FROM adou_shop_purchases WHERE account_id = ? ORDER BY purchased_at DESC LIMIT 50").all(session.accountId);
-    sendJson(res, 200, { ok: true, purchases: rows });
+    const enriched = rows.map((r) => {
+      const item = SHOP_CATALOG.find((x) => x.id === r.item_id);
+      return { ...r, item_name: item?.name || r.item_id };
+    });
+    sendJson(res, 200, { ok: true, purchases: enriched });
     return;
   }
 

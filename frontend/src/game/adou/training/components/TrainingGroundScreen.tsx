@@ -5,6 +5,7 @@ import { Stage } from "./Stage";
 import { ArmoryScreen } from "./ArmoryScreen";
 import { ShopScreen } from "./ShopScreen";
 import { LeaderboardScreen } from "./LeaderboardScreen";
+import { RecordsScreen } from "./RecordsScreen";
 import { SettingsScreen } from "./SettingsScreen";
 import { HeroCollectionScreen } from "./HeroCollectionScreen";
 import { GeneralCollectionScreen } from "../../generals/GeneralCollectionScreen";
@@ -70,6 +71,8 @@ export function TrainingGroundScreen({ onBack }: TrainingGroundScreenProps) {
             <ShopScreen />
           ) : activeMenu === "leaderboard" ? (
             <LeaderboardScreen />
+          ) : activeMenu === "records" ? (
+            <RecordsScreen />
           ) : activeMenu === "settings" ? (
             <SettingsScreen />
           ) : (
