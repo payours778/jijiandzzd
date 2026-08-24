@@ -7324,3 +7324,89 @@ body.game-active{position:fixed;inset:0;overflow:hidden;}
 .tg-stage__picker-item img{width:100%;height:auto;display:block;border-radius:4px;}
 
 
+
+/* === 军营背景旗帜: 随风飘动 (按背景图内相对位置叠加, 覆盖在暗角层之上) === */
+.tg-stage__flags {
+  position: absolute;
+  z-index: 1;
+  pointer-events: none;
+  overflow: hidden;
+  container-type: size;
+}
+.tg-flag {
+  position: absolute;
+  left: var(--x);
+  top: var(--y);
+  width: 0;
+  height: 0;
+  filter: drop-shadow(2px 6px 10px rgba(0, 0, 0, 0.45));
+  animation: tg-flag-sway 3.6s ease-in-out infinite;
+}
+.tg-flag--slow { animation-duration: 4.8s; }
+.tg-flag__pole {
+  position: absolute;
+  left: 0;
+  top: calc(var(--cloth-h) * 0.5);
+  width: 0.4cqw;
+  min-width: 3px;
+  max-width: 7px;
+  height: var(--pole-below);
+  background: linear-gradient(90deg, #2a1608 0%, #5a3418 45%, #1f0f05 100%);
+  border-radius: 0 0 3px 3px;
+}
+
+.tg-flag__cloth {
+  position: absolute;
+  left: 0.6cqw;
+  top: calc(var(--cloth-h) * -0.5);
+  width: var(--cloth-w);
+  height: var(--cloth-h);
+  background: linear-gradient(180deg, #cf2a2a 0%, #a81c1c 55%, #7f1d1d 100%);
+  clip-path: polygon(0% 0%, 100% 5%, 100% 95%, 0% 100%, 9% 50%);
+  transform-origin: 0 50%;
+  animation: tg-flag-wave 2.4s ease-in-out infinite;
+}
+.tg-flag__cloth::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.14) 0%, transparent 35%, rgba(0, 0, 0, 0.24) 100%),
+    repeating-linear-gradient(90deg, transparent 0%, transparent 15%, rgba(0, 0, 0, 0.10) 15%, rgba(0, 0, 0, 0.10) 19%);
+  clip-path: inherit;
+  animation: tg-flag-wave-inner 2.4s ease-in-out infinite;
+}
+.tg-flag__cloth::after {
+  content: "蜀";
+  position: absolute;
+  left: 36%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  color: #fbbf24;
+  font-size: 5.4cqh;
+  font-weight: 700;
+  font-family: "STKaiti", "KaiTi", "SimSun", serif;
+  text-shadow: 0 0 5px rgba(0, 0, 0, 0.65), 0 1px 2px rgba(0, 0, 0, 0.6);
+  animation: tg-flag-wave-inner 2.4s ease-in-out infinite;
+}
+.tg-flag--han .tg-flag__cloth { background: linear-gradient(180deg, #dc2626 0%, #b91c1c 55%, #7f1d1d 100%); }
+.tg-flag--han .tg-flag__cloth::after { content: "汉"; }
+
+/* 布料波浪 (整体 skew + 水平缩放) */
+@keyframes tg-flag-wave {
+  0%, 100% { transform: skewY(0deg) scaleX(1); }
+  25% { transform: skewY(2.2deg) scaleX(0.95); }
+  50% { transform: skewY(-1.5deg) scaleX(1.04); }
+  75% { transform: skewY(1.7deg) scaleX(0.98); }
+}
+/* 布料内部条纹/文字的错位波动 */
+@keyframes tg-flag-wave-inner {
+  0%, 100% { transform: skewY(0deg) translateY(0); }
+  33% { transform: skewY(2.6deg) translateY(0.6cqh); }
+  66% { transform: skewY(-1.8deg) translateY(-0.6cqh); }
+}
+/* 整面旗轻微左右摇摆 */
+@keyframes tg-flag-sway {
+  0%, 100% { transform: rotate(0.8deg); }
+  50% { transform: rotate(-0.8deg); }
+}

@@ -146,3 +146,7 @@ export const SFX_FILES: Record<SfxKey, string> = {
   boss_warning: "/assets/audio/sfx/horn-1.ogg",
   game_over: "/assets/audio/sfx/游戏失败音效.ogg",
 };
+
+/** 军营场景环境音（风声循环） */
+export const AMBIENT_WIND_FILE = "/assets/audio/ambient/wind-loop.wav";
+
