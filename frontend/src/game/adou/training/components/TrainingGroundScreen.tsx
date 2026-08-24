@@ -3,6 +3,7 @@ import { TopBar } from "./TopBar";
 import { LeftMenu } from "./LeftMenu";
 import { Stage } from "./Stage";
 import { ArmoryScreen } from "./ArmoryScreen";
+import { ShopScreen } from "./ShopScreen";
 import { SettingsScreen } from "./SettingsScreen";
 import { HeroCollectionScreen } from "./HeroCollectionScreen";
 import { GeneralCollectionScreen } from "../../generals/GeneralCollectionScreen";
@@ -64,6 +65,8 @@ export function TrainingGroundScreen({ onBack }: TrainingGroundScreenProps) {
             <GeneralCollectionScreen />
           ) : activeMenu === "armory" ? (
             <ArmoryScreen />
+          ) : activeMenu === "shop" ? (
+            <ShopScreen />
           ) : activeMenu === "settings" ? (
             <SettingsScreen />
           ) : (
