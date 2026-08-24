@@ -23,6 +23,10 @@ let settings = loadSettings();
 let audioContext: AudioContext | null = null;
 let musicElement: HTMLAudioElement | null = null;
 let currentMusicKey: string | null = null;
+// 环境音（风声等）独立通道, 与 BGM 可同时播放
+let ambientElement: HTMLAudioElement | null = null;
+let ambientKey: string | null = null;
+let ambientPendingHandler: (() => void) | null = null;
 // 待用户手势后启动的音乐回调，避免多次注册累积监听器
 let pendingGestureHandler: (() => void) | null = null;
 const MAX_SFX_INSTANCES_PER_SRC = 3;
@@ -384,6 +388,67 @@ export function stopMusic() {
     musicElement = null;
   }
   currentMusicKey = null;
+}
+
+export function stopAmbient() {
+  if (ambientPendingHandler) {
+    window.removeEventListener("pointerdown", ambientPendingHandler);
+    window.removeEventListener("keydown", ambientPendingHandler);
+    ambientPendingHandler = null;
+  }
+  if (ambientElement) {
+    ambientElement.pause();
+    ambientElement.src = "";
+    ambientElement = null;
+  }
+  ambientKey = null;
+}
+
+/** 循环播放一段环境音（如风声），与 BGM 并行；遵循 BGM 开关与音量 */
+export function playAmbient(src: string, volumeFactor = 1) {
+  unlock();
+  if (!src || typeof Audio === "undefined") {
+    stopAmbient();
+    return;
+  }
+  if (!settings.bgmEnabled || settings.muted || settings.musicVolume <= 0) {
+    stopAmbient();
+    return;
+  }
+  if (ambientKey === src && ambientElement && !ambientElement.paused) {
+    // 音量变化时直接更新, 不打断循环
+    ambientElement.volume = Math.min(1, settings.musicVolume * volumeFactor);
+    return;
+  }
+  stopAmbient();
+  ambientKey = src;
+  ambientElement = new Audio(src);
+  ambientElement.loop = true;
+  ambientElement.volume = Math.min(1, settings.musicVolume * volumeFactor);
+  ambientElement.addEventListener("error", () => {
+    ambientElement = null;
+    ambientKey = null;
+  });
+  const startAmbient = () => {
+    if (ambientElement) {
+      ambientElement.play().catch(() => {});
+    }
+  };
+  if (audioContext?.state === "running") {
+    startAmbient();
+  } else {
+    const onGesture = () => {
+      startAmbient();
+      if (ambientPendingHandler) {
+        window.removeEventListener("pointerdown", ambientPendingHandler);
+        window.removeEventListener("keydown", ambientPendingHandler);
+        ambientPendingHandler = null;
+      }
+    };
+    ambientPendingHandler = onGesture;
+    window.addEventListener("pointerdown", onGesture);
+    window.addEventListener("keydown", onGesture);
+  }
 }
 
 export function playSfx(key: SfxKey) {

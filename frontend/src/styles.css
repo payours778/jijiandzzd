@@ -7324,3 +7324,55 @@ body.game-active{position:fixed;inset:0;overflow:hidden;}
 .tg-stage__picker-item img{width:100%;height:auto;display:block;border-radius:4px;}
 
 
+
+/* === 军营背景旗帜: 预烘焙精灵帧波浪动画 (OpenRA 式) + 旗杆 === */
+.tg-stage__flags {
+  position: absolute;
+  z-index: 1;
+  pointer-events: none;
+  overflow: hidden;
+  container-type: size;
+}
+.tg-flag {
+  position: absolute;
+  left: var(--x);
+  top: var(--y);
+  width: 0;
+  height: 0;
+}
+.tg-flag__cloth {
+  position: absolute;
+  left: calc(var(--cloth-w) * -0.5);
+  top: calc(var(--cloth-h) * -0.5);
+  width: var(--cloth-w);
+  height: var(--cloth-h);
+  background-size: 1000% 100%;
+  background-repeat: no-repeat;
+  animation: tg-flag-frames 1.6s steps(10, end) infinite;
+  filter: drop-shadow(2px 5px 8px rgba(0, 0, 0, 0.45));
+}
+.tg-flag--shu .tg-flag__cloth { background-image: url("/assets/training-ground/flags/flag-shu-sheet.png"); }
+.tg-flag--han .tg-flag__cloth { background-image: url("/assets/training-ground/flags/flag-han-sheet.png"); }
+.tg-flag--slow .tg-flag__cloth { animation-duration: 2.1s; }
+@keyframes tg-flag-frames {
+  from { background-position: 0 0; }
+  /* 每帧偏移 = 一个旗面宽度 (10 帧), 用容器查询单位保证与元素宽度精确对齐 */
+  to { background-position: calc(var(--cloth-w) * -10) 0; }
+}
+.tg-flag__pole {
+  position: absolute;
+  left: calc(var(--cloth-w) * -0.5);
+  top: calc(var(--cloth-h) * 0.5);
+  width: 0.4cqw;
+  min-width: 3px;
+  max-width: 7px;
+  height: var(--pole-below);
+  background: linear-gradient(90deg, #2a1608 0%, #5a3418 45%, #1f0f05 100%);
+  border-radius: 0 0 3px 3px;
+  transform-origin: 50% 0;
+  animation: tg-pole-sway 3.6s ease-in-out infinite;
+}
+@keyframes tg-pole-sway {
+  0%, 100% { transform: rotate(0.5deg); }
+  50% { transform: rotate(-0.5deg); }
+}
