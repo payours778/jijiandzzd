@@ -72,25 +72,45 @@ function listFiles(dir, base, ignore) {
   return results;
 }
 
-function sftpUploadDir(sftp, localDir, remoteDir, ignore) {
+function listDirs(files) {
+  const set = new Set();
+  for (let i = 0; i < files.length; i++) {
+    const f = files[i];
+    const idx = f.lastIndexOf("/");
+    if (idx < 0) continue;
+    let p = f.slice(0, idx);
+    while (p.length > 0) { set.add(p); const j = p.lastIndexOf("/"); if (j < 0) break; p = p.slice(0, j); }
+  }
+  return Array.from(set);
+}
+
+function sftpUploadDir(conn, sftp, localDir, remoteDir, ignore) {
   return new Promise((resolve, reject) => {
     const files = listFiles(localDir, localDir, ignore);
     logLine("SFTP 上传 " + localDir + " -> " + remoteDir + "，共 " + files.length + " 个文件");
-    let i = 0;
-    function next() {
-      if (i >= files.length) return resolve();
-      const rel = files[i++];
-      const remote = remoteDir + "/" + rel;
-      const remoteDirname = remote.replace(/\/[^/]+$/, "");
-      sftp.mkdir(remoteDirname, { recursive: true }, () => {
+    // 先用 sshExec 一次性 mkdir -p 所有父目录（流式，比 sftp.mkdir 递归快）
+    const dirs = listDirs(files.map(f => remoteDir + "/" + f));
+    if (dirs.length > 0) {
+      const quoted = dirs.map(d => String.fromCharCode(34) + d + String.fromCharCode(34)); const cmd = "mkdir -p " + quoted.join(" ");
+      logLine("  准备 " + dirs.length + " 个目录");
+      sshExec(conn, cmd).then(() => startUpload()).catch(reject);
+    } else {
+      startUpload();
+    }
+    function startUpload() {
+      let i = 0;
+      function next() {
+        if (i >= files.length) return resolve();
+        const rel = files[i++];
+        const remote = remoteDir + "/" + rel;
         sftp.fastPut(path.join(localDir, rel).replace(/\\/g, "/"), remote, (err) => {
           if (err) return reject(new Error("上传失败 " + rel + ": " + err.message));
-          if (i % 25 === 0 || i === files.length) logLine("  进度 " + i + "/" + files.length);
+          if (i % 50 === 0 || i === files.length) logLine("  进度 " + i + "/" + files.length);
           next();
         });
-      });
+      }
+      next();
     }
-    next();
   });
 }
 
@@ -144,7 +164,7 @@ async function upload(conn) {
           await sshExec(conn, "rm -rf " + REMOTE.frontendDist + " && mkdir -p " + REMOTE.frontendDist);
           logLine("  rm -rf 完成");
         } catch (e) { logLine("  清理失败（忽略）: " + e.message); }
-        await sftpUploadDir(sftp, DIST, REMOTE.frontendDist, []);
+        await sftpUploadDir(conn, sftp, DIST, REMOTE.frontendDist, []);
         await sftpUploadFile(
           sftp,
           path.join(BACKEND, "server.mjs").replace(/\\/g, "/"),
