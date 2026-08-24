@@ -78,6 +78,9 @@ const TEST_SOLDIERS = ["刀", "枪", "骑", "弓"];
 
 export class GamePlayScene extends Phaser.Scene {
   testMode = false;
+  /** 测试模式自动攻击: 每 0.5s 强制触发所有单位攻击 */
+  private autoAttack = false;
+  private autoAttackTimer?: Phaser.Time.TimerEvent;
   private board: (Unit | null)[][] = [];
   private zombies: Zombie[] = [];
   private pendingZombies: Zombie[] = [];
@@ -276,6 +279,37 @@ export class GamePlayScene extends Phaser.Scene {
     this.renderHand();
     this.updateMantouText();
     this.messageText.setText("点击抽卡获取文字卡牌，再点击格子放置");
+
+    // 测试模式: 键盘 A 切换自动攻击, 0.5s 间隔强制触发所有单位 attack()
+    if (this.testMode) {
+      this.input.keyboard?.on('keydown-A', () => {
+        this.autoAttack = !this.autoAttack;
+        if (this.autoAttack) {
+          this.autoAttackTimer = this.time.addEvent({
+            delay: 500,
+            loop: true,
+            callback: () => {
+              for (let r = 0; r < this.board.length; r++) {
+                for (let c = 0; c < this.board[r].length; c++) {
+                  const u = this.board[r][c];
+                  if (u && typeof (u as any).attack === 'function') {
+                    try { (u as any).attack(); } catch (e) { /* ignore */ }
+                  }
+                }
+              }
+            },
+          });
+          this.messageText.setText('自动攻击: 开 (按 A 关闭)');
+        } else {
+          if (this.autoAttackTimer) { this.autoAttackTimer.destroy(); this.autoAttackTimer = undefined; }
+          this.messageText.setText('自动攻击: 关 (按 A 开启)');
+        }
+      });
+      // 加一个屏幕提示
+      this.add.text(220, 48, '按 A 切换自动攻击', {
+        fontFamily: Config.fontFamily, fontSize: '14px', color: '#64748b'
+      });
+    }
   }
 
   shutdown() {

@@ -8,6 +8,7 @@ import { Coins, Loader2, ShoppingBag, Sparkles, Ticket } from "lucide-react";
 import { useAppStore } from "../../../../store/useAppStore";
 import { useRecruitStore } from "../../recruit/store";
 import { playSfx } from "../../../../audio/audioSystem";
+import { RECRUIT_HEROES } from "../../recruit/registry";
 
 interface ShopItem {
   id: string;
@@ -104,9 +105,10 @@ export function ShopScreen() {
     if (g.eliteRecruitItems) addEliteRecruitItems(g.eliteRecruitItems);
     if (g.legendRecruitScrolls) addLegendRecruitScrolls(g.legendRecruitScrolls);
     if (g.randomFragments) {
-      // 随机给 1 个武将加碎片
-      const heroes = ["liubei", "guanyu", "zhangfei", "zhaoyun", "machao", "huangzhong", "guanyu", "huangzu", "zhangbao", "guanping"];
-      const pick = heroes[Math.floor(Math.random() * heroes.length)];
+      // 从所有已招募 + 注册表里随机选 1 个武将给碎片
+      const recruited = useRecruitStore.getState().recruitedHeroIds;
+      const pool = recruited.length > 0 ? recruited : RECRUIT_HEROES.map((h) => h.id);
+      const pick = pool[Math.floor(Math.random() * pool.length)];
       addHeroFragments(pick, g.randomFragments);
     }
     showToast("购买成功: " + item.name);

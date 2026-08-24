@@ -10,6 +10,7 @@ export const MENU_ITEMS: MenuItem[] = [
   { key: "heroes",    label: "招募",       icon: "Sparkles", enabled: true,  subtitle: "抽取新的武将" },
   { key: "armory",    label: "军械库",     icon: "Boxes",    enabled: true,  subtitle: "兵器谱与商店" },
   { key: "shop",      label: "商店",       icon: "Shop",     enabled: true,  subtitle: "金币购买招募资源" },
+  { key: "leaderboard", label: "排行榜",   icon: "Trophy",   enabled: true,  subtitle: "全服最好波次" },
   { key: "expedition",label: "远征",       icon: "Map",      enabled: false, subtitle: "敬请期待" },
   { key: "settings",  label: "设置",       icon: "Settings", enabled: true,  subtitle: "声音与背景音乐" },
 ];

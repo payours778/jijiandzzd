@@ -1,5 +1,6 @@
-import { Check, Music, Speaker, Volume2, VolumeX } from "lucide-react";
+import { Check, Music, Speaker, User, Volume2, VolumeX } from "lucide-react";
 import { useRef } from "react";
+import { useAppStore } from "../../../../store/useAppStore";
 import { useAudioSettings } from "../../../../audio/useAudioSettings";
 import {
   playSfx,
@@ -9,7 +10,7 @@ import {
   setTrainingBgm,
   toggleMuted,
 } from "../../../../audio/audioSystem";
-import { TRAINING_BGM_OPTIONS } from "../../../../audio/audioConfig";
+import { TRAINING_BGM_OPTIONS, SFX_FILES, type SfxKey } from "../../../../audio/audioConfig";
 
 function SliderRow({
   label,
