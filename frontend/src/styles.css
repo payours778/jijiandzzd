@@ -2326,6 +2326,8 @@ img { max-width: 100%; display: block; }
   position: relative;
   display: grid;
   grid-template-columns: 240px 1fr;
+  /* 行高约束在可用高度内, 防止被左侧菜单内容撑高导致舞台/排行榜溢出视口 */
+  grid-template-rows: minmax(0, 1fr);
   min-height: 0;
 }
 
@@ -2333,6 +2335,8 @@ img { max-width: 100%; display: block; }
   position: relative;
   display: flex;
   flex-direction: column;
+  min-height: 0;
+  overflow-y: auto;
   padding: 16px 12px;
   background: linear-gradient(180deg, rgba(15, 17, 20, 0.92), rgba(10, 12, 16, 0.98));
   border-right: 1px solid rgba(251, 191, 36, 0.12);
@@ -7344,4 +7348,50 @@ body.game-active{position:fixed;inset:0;overflow:hidden;}
   from { background-position: 0 0; }
   /* 每帧偏移 = 一个旗面宽度 (10 帧), 用容器查询单位与元素宽度精确对齐 */
   to { background-position: var(--shift) 0; }
+}
+
+/* ===== 矮屏/小窗口自适应: 压缩舞台元素, 完整展示不裁切 ===== */
+@media (max-height: 600px) {
+  .tg-stage__title { top: 26px; }
+  .tg-stage__title h1 { font-size: 26px; margin: 0; }
+  .tg-stage__title p { margin: 4px 0 0; font-size: 12px; }
+  .tg-stage__user { top: 14px; left: 14px; padding: 6px 10px 6px 6px; gap: 8px; }
+  .tg-stage__avatar-btn { width: 38px; height: 38px; }
+  .tg-stage__user-info strong { font-size: 12px; }
+  .tg-stage__user-info small { font-size: 10px; }
+  .tg-stage__stats { top: 14px; right: 14px; gap: 5px; }
+  .tg-stage__stat { padding: 4px 9px; font-size: 12px; }
+  .tg-stage__modes { top: 42%; margin-top: 0; gap: 10px; }
+  .tg-mode-card { padding: 10px 14px; min-width: 132px; gap: 8px; }
+  .tg-mode-card strong { font-size: 13px; }
+  .tg-mode-card span { font-size: 11px; }
+  .tg-mode-card svg { width: 20px; height: 20px; }
+  .tg-stage__start { top: 52%; padding: 10px 26px; font-size: 15px; gap: 8px; }
+  .tg-stage__leaderboard { bottom: 12px; right: 12px; width: 240px; padding: 10px; }
+  .tg-stage__leaderboard-head { margin-bottom: 6px; padding-bottom: 6px; font-size: 12px; }
+  .tg-stage__lb-row { padding: 4px 2px; font-size: 12px; }
+  .tg-stage__lb-rank { min-width: 26px; }
+  .tg-stage__lb-loading, .tg-stage__lb-empty { padding: 12px 0; }
+  /* 舞台按完整内容展开, 主区域滚动查看, 避免重叠/裁切 */
+  .tg-stage { height: auto !important; min-height: 520px; overflow: visible !important; }
+  .tg-main { overflow-y: auto !important; }
+}
+
+
+/* 窄屏: 用户卡只留头像, 避免与标题重叠 */
+@media (max-width: 520px) {
+  .tg-stage__user-info { display: none; }
+  .tg-stage__user { padding: 6px; }
+}
+
+/* 较矮窗口: 左侧菜单紧凑排版, 避免内部滚动 */
+@media (max-height: 860px) {
+  .tg-leftmenu { padding: 10px 12px; }
+  .tg-leftmenu__title { padding: 2px 8px 10px; }
+  .tg-leftmenu__title-cn { font-size: 18px; line-height: 1.2; }
+  .tg-leftmenu__title-en { font-size: 9px; }
+  .tg-leftmenu__nav { gap: 2px; }
+  .tg-leftmenu__item { padding: 6px 10px 6px 0; }
+  .tg-leftmenu__subtitle { font-size: 10px; line-height: 1.3; }
+  .tg-leftmenu__foot { padding: 4px 4px 0; }
 }
