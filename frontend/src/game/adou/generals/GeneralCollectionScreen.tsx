@@ -187,9 +187,9 @@ export function GeneralCollectionScreen() {
       <div className={`tg-generals__body${selectedHero ? " has-detail" : ""}`}>
         <section className="tg-generals__catalog">
           {grouped.length === 0 ? (
-            <div className="tg-generals__empty">
+            <div className={`tg-generals__empty${recruited.length === 0 ? " is-empty-roster" : ""}`}>
               <Users size={22} />
-              <span>当前筛选下没有武将</span>
+              <span>{recruited.length === 0 ? "尚未招募任何武将，去【招募】抽取你的第一位武将吧" : "当前筛选下没有武将"}</span>
             </div>
           ) : (
             grouped.map((group) => (
