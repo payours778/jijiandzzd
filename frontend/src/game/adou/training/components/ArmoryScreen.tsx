@@ -11,12 +11,10 @@ import {
 } from "../../weapons";
 
 type SeriesFilter = "all" | Extract<WeaponSeriesId, "sword" | "spear" | "blade" | "bow">;
-type AttackFilter = "all" | WeaponDefinition["attackType"];
 type OwnershipFilter = "all" | "owned" | "unowned";
 type QualityKey = "white" | "green" | "purple" | "gold" | "red";
 const ARMORY_SERIES: SeriesFilter[] = ["all", "sword", "spear", "blade", "bow"];
 
-const ATTACK_FILTERS: AttackFilter[] = ["all", "melee", "ranged", "magic", "thrown"];
 
 const QUALITY_META: Record<QualityKey, { label: string; color: string; glow: string }> = {
   white: { label: "白", color: "#d4d4d8", glow: "rgba(212,212,216,.28)" },
@@ -76,7 +74,6 @@ function writeStringList(key: string, values: string[]) {
 export function ArmoryScreen() {
   const coins = useAppStore((s) => s.coins);
   const [series, setSeries] = useState<SeriesFilter>("all");
-  const [attack, setAttack] = useState<AttackFilter>("all");
   const [quality, setQuality] = useState<"all" | QualityKey>("all");
   const [ownership, setOwnership] = useState<OwnershipFilter>("all");
   const [selectedId, setSelectedId] = useState<string | null>(null);
@@ -94,13 +91,12 @@ export function ArmoryScreen() {
   const filtered = useMemo(() => {
     return weapons.filter((w) => {
       if (series !== "all" && w.series !== series) return false;
-      if (attack !== "all" && w.attackType !== attack) return false;
       if (quality !== "all" && qualityOf(w) !== quality) return false;
       if (ownership === "owned" && !ownedIds.includes(w.id)) return false;
       if (ownership === "unowned" && ownedIds.includes(w.id)) return false;
       return true;
     });
-  }, [weapons, series, attack, quality, ownership, ownedIds]);
+  }, [weapons, series, quality, ownership, ownedIds]);
 
   const grouped = useMemo(() => {
     const order: WeaponSeriesId[] = ["sword", "blade", "spear", "bow"];
@@ -175,25 +171,6 @@ export function ArmoryScreen() {
                 }}
               >
                 {key === "all" ? "全部" : seriesName(key)}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        <div className="tg-armory__filter">
-          <span className="tg-armory__filter-label">攻击</span>
-          <div className="tg-armory__segments">
-            {ATTACK_FILTERS.map((key) => (
-              <button
-                type="button"
-                key={key}
-                className={attack === key ? "is-active" : ""}
-                onClick={() => {
-                  playSfx("click");
-                  setAttack(key);
-                }}
-              >
-                {key === "all" ? "全部" : key === "melee" ? "近战" : key === "ranged" ? "远程" : key === "magic" ? "法术" : "投掷"}
               </button>
             ))}
           </div>
