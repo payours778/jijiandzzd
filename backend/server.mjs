@@ -598,15 +598,24 @@ async function handleApi(req, res, pathname) {
 
   // ===== 7: 商店系统 =====
   // 商品目录 (硬编码, 改这里就行)
+  // 资源商店当前仅保留精英招募符, 每日限购 dailyLimit 张
   const SHOP_CATALOG = [
-    { id: "recruit_ticket_1", name: "普通招募券", desc: "1 张普通招募券", price: 50, currency: "coin", grant: { recruitTickets: 1 } },
-    { id: "recruit_ticket_10", name: "普通招募券×10", desc: "10 张普通招募券, 9 折优惠", price: 450, currency: "coin", grant: { recruitTickets: 10 } },
-    { id: "elite_item_1", name: "精英招募符", desc: "1 个精英招募符, 用于精英池", price: 200, currency: "coin", grant: { eliteRecruitItems: 1 } },
-    { id: "legend_scroll_1", name: "巅峰招募卷", desc: "1 个巅峰招募卷, 用于 BOSS 掉落保底", price: 1000, currency: "coin", grant: { legendRecruitScrolls: 1 } },
+    { id: "elite_item_1", name: "精英招募符", desc: "1 个精英招募符, 用于精英池", price: 200, currency: "coin", grant: { eliteRecruitItems: 1 }, dailyLimit: 10 },
   ];
 
   if (pathname === "/api/adou/shop/items" && req.method === "GET") {
-    sendJson(res, 200, { ok: true, items: SHOP_CATALOG });
+    const session = getSessionFromRequest(req);
+    let items = SHOP_CATALOG;
+    if (session && session.accountId) {
+      const today = new Date().toISOString().slice(0, 10);
+      items = SHOP_CATALOG.map((item) => {
+        const row = db
+          .prepare("SELECT COALESCE(SUM(quantity), 0) AS qty FROM adou_shop_purchases WHERE account_id = ? AND item_id = ? AND substr(purchased_at, 1, 10) = ?")
+          .get(session.accountId, item.id, today);
+        return { ...item, todayPurchased: Number(row?.qty || 0) };
+      });
+    }
+    sendJson(res, 200, { ok: true, items });
     return;
   }
 
@@ -631,6 +640,18 @@ async function handleApi(req, res, pathname) {
     const item = SHOP_CATALOG.find((x) => x.id === itemId);
     if (!item) { sendJson(res, 404, { error: "商品不存在" }); return; }
     const totalPrice = item.price * quantity;
+    // 每日限购校验
+    if (item.dailyLimit) {
+      const today = new Date().toISOString().slice(0, 10);
+      const row = db
+        .prepare("SELECT COALESCE(SUM(quantity), 0) AS qty FROM adou_shop_purchases WHERE account_id = ? AND item_id = ? AND substr(purchased_at, 1, 10) = ?")
+        .get(session.accountId, itemId, today);
+      const todayQty = Number(row?.qty || 0);
+      if (todayQty + quantity > item.dailyLimit) {
+        sendJson(res, 400, { error: "今日限购已用尽", limit: item.dailyLimit, today: todayQty });
+        return;
+      }
+    }
     // 1) 扣金币
     const accRow = db.prepare("SELECT coins FROM accounts WHERE id = ?").get(session.accountId);
     if (!accRow) { sendJson(res, 404, { error: "账户不存在" }); return; }

@@ -8173,3 +8173,28 @@ body.game-active{position:fixed;inset:0;overflow:hidden;}
   background: rgba(167, 139, 250, 0.16);
   transform: translateY(-1px);
 }
+/* 资源商店 - 每日限购 */
+.tg-shop__limit {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+  padding: 4px 8px;
+  border-radius: 8px;
+  background: rgba(251, 191, 36, 0.1);
+  border: 1px solid rgba(251, 191, 36, 0.28);
+  color: #94a3b8;
+  font-size: 11px;
+  font-weight: 600;
+}
+.tg-shop__limit strong {
+  color: #fbbf24;
+  font-size: 12px;
+}
+.tg-shop__limit.is-sold {
+  background: rgba(248, 113, 113, 0.1);
+  border-color: rgba(248, 113, 113, 0.32);
+}
+.tg-shop__limit.is-sold strong {
+  color: #f87171;
+}

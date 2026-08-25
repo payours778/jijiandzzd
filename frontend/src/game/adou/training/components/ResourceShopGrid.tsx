@@ -2,6 +2,7 @@
  * 军营商店 - 资源商品网格 (从 ShopScreen 提取, 供军械库商店页签复用)
  * 消耗金币购买招募券/精英符/巅峰卷
  * 后端接口: /api/adou/shop/{items,my,buy}
+ * 精英招募符每日限购 dailyLimit 张 (后端校验, 前端展示余量)
  */
 import { useEffect, useState, type ReactElement } from "react";
 import { Coins, Loader2, ShoppingBag, Sparkles, Ticket } from "lucide-react";
@@ -17,6 +18,8 @@ interface ShopItem {
   price: number;
   currency: string;
   grant: Record<string, number>;
+  dailyLimit?: number;
+  todayPurchased?: number;
 }
 
 const ICON_FOR_GRANT: Record<string, React.ReactElement> = {
@@ -75,6 +78,10 @@ export function ResourceShopGrid() {
     return () => { cancelled = true; };
   }, []);
 
+  const refreshItems = () => {
+    fetchItems().then((list) => setItems(list));
+  };
+
   const handleBuy = async (item: ShopItem) => {
     if (!user) {
       showToast("请先登录");
@@ -89,6 +96,7 @@ export function ResourceShopGrid() {
     setBuyingId(item.id);
     playSfx("click");
     const result = await postBuy(item.id, 1);
+    refreshItems();
     if (!result.ok) {
       showToast(result.error || "购买失败");
       playSfx("click");
@@ -121,13 +129,21 @@ export function ResourceShopGrid() {
       {items.map((item) => {
         const grantKey = Object.keys(item.grant || {})[0] || "";
         const icon = ICON_FOR_GRANT[grantKey] || <ShoppingBag size={20} />;
-        const afford = coins >= item.price;
+        const remaining = item.dailyLimit ? Math.max(0, item.dailyLimit - (item.todayPurchased ?? 0)) : Infinity;
+        const soldOut = remaining <= 0;
+        const afford = coins >= item.price && !soldOut;
         const isBuying = buyingId === item.id;
         return (
           <div key={item.id} className={"tg-shop__card " + (afford ? "" : "is-disabled")}>
             <div className="tg-shop__card-icon">{icon}</div>
             <div className="tg-shop__card-name">{item.name}</div>
             <div className="tg-shop__card-desc">{item.desc}</div>
+            {item.dailyLimit ? (
+              <div className={"tg-shop__limit" + (soldOut ? " is-sold" : "")}>
+                <span>今日限购</span>
+                <strong>{soldOut ? 0 : remaining}/{item.dailyLimit}</strong>
+              </div>
+            ) : null}
             <div className="tg-shop__card-price">
               <Coins size={14} color="#fbbf24" />
               <span>{item.price}</span>
@@ -137,7 +153,15 @@ export function ResourceShopGrid() {
               onClick={() => handleBuy(item)}
               disabled={!afford || isBuying}
             >
-              {isBuying ? <Loader2 className="tg-shop__spin" size={14} /> : afford ? "购买" : "金币不足"}
+              {isBuying ? (
+                <Loader2 className="tg-shop__spin" size={14} />
+              ) : soldOut ? (
+                "今日已购满"
+              ) : afford ? (
+                "购买"
+              ) : (
+                "金币不足"
+              )}
             </button>
           </div>
         );
