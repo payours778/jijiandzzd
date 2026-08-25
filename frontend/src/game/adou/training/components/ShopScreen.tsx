@@ -21,11 +21,8 @@ import { ResourceShopGrid } from "./ResourceShopGrid";
 type QualityKey = "white" | "green" | "purple" | "gold" | "red";
 type ModuleKey = "resources" | WeaponSeriesId;
 
-/** 武器模块展示顺序（剑刀枪弓为主力，其余体系排后） */
-const SERIES_ORDER: WeaponSeriesId[] = [
-  "sword", "blade", "spear", "bow",
-  "dagger", "halberd", "hammer", "fan", "tome", "throwing",
-];
+/** 武器模块展示顺序：游戏当前仅实装刀剑弓枪四系 */
+const SERIES_ORDER: WeaponSeriesId[] = ["sword", "blade", "spear", "bow"];
 
 const ATTACK_LABEL: Record<string, string> = {
   melee: "近战",
@@ -123,7 +120,7 @@ export function ShopScreen() {
   const buyable = useMemo(
     () =>
       weapons
-        .filter((w) => isShopBuyable(w, weapons))
+        .filter((w) => SERIES_ORDER.includes(w.series) && isShopBuyable(w, weapons))
         .slice()
         .sort((a, b) => QUALITY_ORDER.indexOf(qualityOf(a)) - QUALITY_ORDER.indexOf(qualityOf(b))),
     [weapons],
