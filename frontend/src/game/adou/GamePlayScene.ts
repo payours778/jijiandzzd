@@ -3041,6 +3041,12 @@ private updateCoinText() {
       const waves = Math.max(0, Math.floor((durationMs - 260) / waveInterval));
       for (let wave = 1; wave <= waves; wave += 1) {
         this.time.delayedCall(260 + wave * waveInterval, () => {
+          // 每一波箭雨都造成伤害 (修复: 之前只有第一段有伤害)
+          this.zombies.forEach((zombie) => {
+            if (!zombie.dead) {
+              zombie.takeDamage(damage, false, source);
+            }
+          });
           for (let row = 0; row < Config.rows; row += 1) {
             this.rainArrows(row);
           }
