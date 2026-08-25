@@ -393,8 +393,8 @@ export function HeroCollectionScreen({
 
   const recruitHero = useRecruitStore((s) => s.recruitHero);
   const synthesizeHero = useRecruitStore((s) => s.synthesizeHero);
-  const heroFragments = useRecruitStore((s) => s.heroFragments);
-  const addHeroFragments = useRecruitStore((s) => s.addHeroFragments);
+  const fragments = useRecruitStore((s) => s.fragments);
+  const addFragments = useRecruitStore((s) => s.addFragments);
   const spendRecruitTicket = useRecruitStore((s) => s.spendRecruitTicket);
   const recordDraw = useRecruitStore((s) => s.recordDraw);
 
@@ -405,7 +405,7 @@ export function HeroCollectionScreen({
   const activeStats = poolStats[activePool.id];
   const activeRules = RECRUIT_POOL_RULES[activePool.id];
   const recruitedHeroes = RECRUIT_HEROES.filter((hero) => recruitedIds.includes(hero.id));
-  const totalFragments = RECRUIT_HEROES.reduce((sum, hero) => sum + (heroFragments[hero.id] ?? 0), 0);
+  const totalFragments = fragments;
   const shownOffer = (revealing || drawResult) && !drawing ? (pendingResult ?? drawResult) : null;
   const shownRarity = shownOffer?.hero.rarity ?? "rare";
   const shownRarityStyle = shownOffer ? rarityStyle(shownOffer.hero.rarity) : undefined;
@@ -451,7 +451,7 @@ export function HeroCollectionScreen({
       setTab("owned");
     } else {
       playSfx("click");
-      useAppStore.getState().showToast("专属碎片不足，无法合成");
+      useAppStore.getState().showToast("通用碎片不足，无法合成");
     }
   };
 
@@ -494,7 +494,7 @@ export function HeroCollectionScreen({
       if (isNew) {
         recruitHero(hero.id);
       } else {
-        addHeroFragments(hero.id, fragmentReward);
+        addFragments(fragmentReward);
       }
       recordDraw(activePool.id, hero.id, hero.rarity, isNew, fragmentReward);
       setPendingResult({ hero, isNew, fragmentReward });
@@ -551,7 +551,7 @@ export function HeroCollectionScreen({
         recruitHero(hero.id);
         knownRecruited.add(hero.id);
       } else {
-        addHeroFragments(hero.id, fragmentReward);
+        addFragments(fragmentReward);
       }
       recordDraw(activePool.id, hero.id, hero.rarity, isNew, fragmentReward);
       results.push({ hero, isNew, fragmentReward });
@@ -754,7 +754,7 @@ export function HeroCollectionScreen({
                       playSfx("click");
                       setTab("fragments");
                     }}
-                    title="查看专属碎片"
+                    title="查看武将碎片"
                   >
                     <Gem size={15} />
                     <span>专属碎片</span>
@@ -869,16 +869,21 @@ export function HeroCollectionScreen({
           ) : tab === "fragments" ? (
             <section className="tg-frag">
               <div className="tg-frag__head">
-                <span>专属碎片</span>
-                <p>每位武将拥有独立碎片。集齐碎片可合成入营；已入营武将的碎片用于升星（每星 {STAR_UP_FRAGMENT_COST} 片）。</p>
+                <span>武将碎片</span>
+                <p>碎片为统一资源，不区分武将。通用碎片可合成任意武将入营；已入营武将消耗碎片升星（每星 {STAR_UP_FRAGMENT_COST} 片）。</p>
+              </div>
+              <div className="tg-frag__summary">
+                <Gem size={16} color="#fbbf24" />
+                <span>当前持有</span>
+                <strong>{fragments}</strong>
+                <em>片通用碎片</em>
               </div>
               <div className="tg-frag__grid">
                 {RECRUIT_HEROES.map((hero) => {
                   const owned = recruitedIds.includes(hero.id);
-                  const count = heroFragments[hero.id] ?? 0;
                   const cost = FRAGMENT_TO_SYNTHESIZE[hero.rarity];
-                  const canSynthesize = !owned && count >= cost;
-                  const pct = owned ? 100 : Math.min(100, Math.round((count / cost) * 100));
+                  const canSynthesize = !owned && fragments >= cost;
+                  const pct = owned ? 100 : Math.min(100, Math.round((fragments / cost) * 100));
                   return (
                     <div
                       key={hero.id}
@@ -896,8 +901,12 @@ export function HeroCollectionScreen({
                       </div>
                       <div className="tg-frag__count">
                         <Gem size={13} color="#fbbf24" />
-                        <strong>{count}</strong>
-                        <span>/ {cost}</span>
+                        {owned ? <strong>已入营</strong> : (
+                          <>
+                            <strong>{fragments}</strong>
+                            <span>/ {cost}</span>
+                          </>
+                        )}
                       </div>
                       <button
                         type="button"

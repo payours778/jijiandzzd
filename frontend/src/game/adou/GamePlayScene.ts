@@ -10,6 +10,7 @@ import {
   SoldierStats,
   findGeneral,
   type CardType,
+  type FragmentPair,
   type GeneralKey,
 } from "./config";
 import { Unit } from "./Unit";
@@ -38,18 +39,10 @@ import {
 } from "./training/heroes";
 import { useTrainingGroundStore } from "./training/store";
 import { useRecruitStore } from "./recruit/store";
+import { RECRUIT_HEROES } from "./recruit/registry";
+import { useGeneralStore } from "./generals/store";
 import { useAppStore } from "../../store/useAppStore";
 
-// 1E: 中文武将名 -> 招募系统 heroId 映射
-const HERO_NAME_TO_ID: Record<string, string> = {
-  刘备: "liubei", 赵云: "zhaoyun", 黄忠: "huangzhong",
-  关羽: "guanyu", 张飞: "zhangfei", 黄祖: "huangzu",
-  张苞: "zhangbao", 关平: "guanping", 马超: "machao",
-  魏延: "weiyan",
-};
-function heroIdByName(name: string): string {
-  return HERO_NAME_TO_ID[name] ?? name;
-}
 import {
   listWeapons,
   getWeapon,
@@ -241,7 +234,7 @@ export class GamePlayScene extends Phaser.Scene {
       { length: Config.rows },
       () => new Array<Unit | null>(Config.cols).fill(null),
     );
-    this.fragmentPool = { ...FragmentPool };
+    this.fragmentPool = this.testMode ? { ...FragmentPool } : this.buildFragmentPool();
 
     if (this.testMode) {
       this.createTestBoard();
@@ -285,7 +278,7 @@ export class GamePlayScene extends Phaser.Scene {
       () => this.makeHandCard(this.randomCard()),
     );
     this.refreshCost = Config.refreshStartCost;
-    this.fragmentPool = { ...FragmentPool };
+    this.fragmentPool = this.buildFragmentPool();
     this.renderHand();
     this.updateMantouText();
     this.messageText.setText("点击抽卡获取文字卡牌，再点击格子放置");
@@ -1906,6 +1899,35 @@ export class GamePlayScene extends Phaser.Scene {
     this.tryDropFragment(zombie, isBoss);
   }
 
+  // 招募系统接入: 已招募且已上阵的武将名
+  private deployedGeneralNames(): string[] {
+    const recruited = useRecruitStore.getState().recruitedHeroIds;
+    const instances = useGeneralStore.getState().instances;
+    return RECRUIT_HEROES
+      .filter((h) => recruited.includes(h.id) && instances[h.id]?.status === "deployed")
+      .map((h) => h.name);
+  }
+
+  // 招募系统接入: 按已上阵武将构建动态碎片池 (每个字 2 片)
+  private buildFragmentPool(): Record<string, number> {
+    const pool: Record<string, number> = {};
+    for (const name of this.deployedGeneralNames()) {
+      const pieces = GeneralPieces[name];
+      if (pieces) {
+        pool[pieces[0]] = (pool[pieces[0]] ?? 0) + 2;
+        pool[pieces[1]] = (pool[pieces[1]] ?? 0) + 2;
+      }
+    }
+    return pool;
+  }
+
+  // 招募系统接入: 已上阵武将对应的碎片对 (测试模式保留全部)
+  private deployedFragmentPairs(): FragmentPair[] {
+    if (this.testMode) return FragmentPairs;
+    const names = new Set(this.deployedGeneralNames());
+    return FragmentPairs.filter((p) => names.has(p.general));
+  }
+
   // 1E: 武将碎片掉落表
   private tryDropFragment(zombie: Zombie, isBoss: boolean) {
     if (!this.fragDropFx) return;
@@ -1916,15 +1938,14 @@ export class GamePlayScene extends Phaser.Scene {
     else if (isCone) { chance = 0.03; count = 1; }
     else { chance = 0.01; count = 1; }
     if (Math.random() > chance) return;
-    // 随机选一个 hero (基于 FragmentPairs)
-    const pairs = FragmentPairs;
+    // 只从已上阵武将池掉落武将碎片，无上阵武将则不掉落
+    const pairs = this.deployedFragmentPairs();
+    if (pairs.length === 0) return;
     const pair = pairs[Math.floor(Math.random() * pairs.length)];
     // 选其中一个字作为显示 glyph
     const glyph = Math.random() < 0.5 ? pair.first : pair.second;
-    // 存 heroId
-    const heroId = heroIdByName(pair.general);
-    // 入库 addHeroFragments(heroId, count)
-    useRecruitStore.getState().addHeroFragments(heroId, count);
+    // 统一碎片入库 (不区分武将)
+    useRecruitStore.getState().addFragments(count);
     // 视觉: 紫色碎片盒
     for (let i = 0; i < count; i += 1) {
       const g = i === 0 ? glyph : (glyph === pair.first ? pair.second : pair.first);

@@ -29,13 +29,13 @@ function rarityStyle(heroId: string) {
 
 export function GeneralCollectionScreen() {
   const recruitedIds = useRecruitStore((s) => s.recruitedHeroIds);
-  const heroFragments = useRecruitStore((s) => s.heroFragments);
+  const fragments = useRecruitStore((s) => s.fragments);
   const instances = useGeneralStore((s) => s.instances);
   const ensureInstance = useGeneralStore((s) => s.ensureInstance);
   const setStatus = useGeneralStore((s) => s.setStatus);
   const equipWeapon = useGeneralStore((s) => s.equipWeapon);
   const setStar = useGeneralStore((s) => s.setStar);
-  const spendHeroFragments = useRecruitStore((s) => s.spendHeroFragments);
+  const spendFragments = useRecruitStore((s) => s.spendFragments);
 
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [showDetail, setShowDetail] = useState(false);
@@ -48,6 +48,11 @@ export function GeneralCollectionScreen() {
   const recruited = useMemo(
     () => RECRUIT_HEROES.filter((h) => recruitedIds.includes(h.id)),
     [recruitedIds],
+  );
+
+  const deployedCount = useMemo(
+    () => recruited.filter((h) => instances[h.id]?.status === "deployed").length,
+    [recruited, instances],
   );
 
   const selected = useMemo(() => {
@@ -77,7 +82,7 @@ export function GeneralCollectionScreen() {
   const handleStarUp = (inst: GeneralInstance | undefined) => {
     if (!inst) return;
     if (inst.star >= 5) return;
-    if (!spendHeroFragments(inst.heroId, STAR_UP_FRAGMENT_COST)) {
+    if (!spendFragments(STAR_UP_FRAGMENT_COST)) {
       playSfx("click");
       return;
     }
@@ -111,7 +116,7 @@ export function GeneralCollectionScreen() {
           ) : (
             recruited.map((hero) => {
               const inst = instances[hero.id];
-              const frags = heroFragments[hero.id] ?? 0;
+              const frags = fragments;
               return (
                 <div
                   key={hero.id}
@@ -160,7 +165,8 @@ export function GeneralCollectionScreen() {
             onToggleDeploy={() => handleToggleDeploy(selected.inst)}
             onStarUp={() => handleStarUp(selected.inst)}
             onEquipMain={() => handleEquipMain(selected.inst)}
-            recruitFragments={heroFragments[selected.hero.id] ?? 0}
+            recruitFragments={fragments}
+            deployedCount={deployedCount}
             onShowDetail={() => setShowDetail(true)}
           />
         )}
@@ -179,13 +185,14 @@ export function GeneralCollectionScreen() {
 interface DetailProps {
   inst: GeneralInstance;
   recruitFragments: number;
+  deployedCount: number;
   onToggleDeploy: () => void;
   onStarUp: () => void;
   onEquipMain: () => void;
   onShowDetail: () => void;
 }
 
-function GeneralDetail({ inst, recruitFragments, onToggleDeploy, onStarUp, onEquipMain, onShowDetail }: DetailProps) {
+function GeneralDetail({ inst, recruitFragments, deployedCount, onToggleDeploy, onStarUp, onEquipMain, onShowDetail }: DetailProps) {
   const hero = RECRUIT_HEROES.find((h) => h.id === inst.heroId);
   if (!hero) return null;
   const cfg = GeneralConfig[hero.name as keyof typeof GeneralConfig];
@@ -233,7 +240,7 @@ function GeneralDetail({ inst, recruitFragments, onToggleDeploy, onStarUp, onEqu
           <strong>{baseDmg + starBonusDmg}</strong>
         </div>
         <div className="tg-stat">
-          <span className="tg-stat__label">专属碎片</span>
+          <span className="tg-stat__label">通用碎片</span>
           <strong>{recruitFragments}</strong>
         </div>
         <div className="tg-stat">
@@ -268,7 +275,7 @@ function GeneralDetail({ inst, recruitFragments, onToggleDeploy, onStarUp, onEqu
       </div>
 
       <div className="tg-general-detail__pool">
-        <Shield size={14} /> 专属碎片: {recruitFragments} · 升星每星 {STAR_UP_FRAGMENT_COST} 片 | 上阵武将总数: 0
+        <Shield size={14} /> 通用碎片: {recruitFragments} · 升星每星 {STAR_UP_FRAGMENT_COST} 片 | 上阵武将总数: {deployedCount}
       </div>
       <div className="tg-general-detail__more">
         <button type="button" onClick={onShowDetail}>

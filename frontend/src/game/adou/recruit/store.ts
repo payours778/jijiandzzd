@@ -26,7 +26,7 @@ import {
   readDemoTaskCount,
   readDrawHistory,
   readEliteRecruitItems,
-  readHeroFragments,
+  readFragments,
   readLegendRecruitScrolls,
   readPoolStats,
   readRecruitedHeroIds,
@@ -35,7 +35,7 @@ import {
   writeDemoTaskCount,
   writeDrawHistory,
   writeEliteRecruitItems,
-  writeHeroFragments,
+  writeFragments,
   writeLegendRecruitScrolls,
   writePoolStats,
   writeRecruitedHeroIds,
@@ -49,7 +49,7 @@ import { createDrawHistoryEntry } from "./drawEngine";
 export interface RecruitState {
   // ===== state =====
   recruitedHeroIds: string[];
-  heroFragments: Record<string, number>;
+  fragments: number;
   recruitTickets: number;
   eliteRecruitItems: number;
   legendRecruitScrolls: number;
@@ -64,8 +64,8 @@ export interface RecruitState {
 
   // ===== actions =====
   recruitHero: (id: string) => void;
-  addHeroFragments: (id: string, count: number) => void;
-  spendHeroFragments: (id: string, count: number) => boolean;
+  addFragments: (count: number) => void;
+  spendFragments: (count: number) => boolean;
   synthesizeHero: (id: string) => boolean;
   spendRecruitTicket: (cost: number) => void;
   addRecruitTickets: (count: number) => void;
@@ -139,7 +139,7 @@ function scheduleBackendRecruitSync(getState: () => RecruitState): void {
     // 只同步业务字段, 排除内部 _isLoading / _loadFromBackend
     const payload: Partial<RecruitState> = {
       recruitedHeroIds: s.recruitedHeroIds,
-      heroFragments: s.heroFragments,
+      fragments: s.fragments,
       recruitTickets: s.recruitTickets,
       eliteRecruitItems: s.eliteRecruitItems,
       legendRecruitScrolls: s.legendRecruitScrolls,
@@ -167,7 +167,7 @@ export const useRecruitStore = create<RecruitState>()(
 
       return {
         recruitedHeroIds: readRecruitedHeroIds(),
-        heroFragments: readHeroFragments(),
+        fragments: readFragments(),
         recruitTickets: readRecruitTickets(),
         eliteRecruitItems: readEliteRecruitItems(),
         legendRecruitScrolls: readLegendRecruitScrolls(),
@@ -189,7 +189,11 @@ export const useRecruitStore = create<RecruitState>()(
             recruitedHeroIds: Array.isArray(data.recruitedHeroIds)
               ? (data.recruitedHeroIds as string[])
               : s.recruitedHeroIds,
-            heroFragments: (data.heroFragments as Record<string, number>) || s.heroFragments,
+            fragments: typeof data.fragments === "number"
+              ? data.fragments
+              : typeof data.fragments === "object" && data.fragments !== null
+                ? Object.values(data.fragments as Record<string, number>).reduce((a, b) => a + (typeof b === "number" ? b : 0), 0)
+                : s.fragments,
             recruitTickets:
               typeof data.recruitTickets === "number" ? data.recruitTickets : s.recruitTickets,
             eliteRecruitItems:
@@ -218,21 +222,19 @@ export const useRecruitStore = create<RecruitState>()(
             return { recruitedHeroIds: next };
           }),
 
-        addHeroFragments: (id, count) =>
+        addFragments: (count) =>
           wrappedSet((state) => {
-            const next = { ...state.heroFragments };
-            next[id] = (next[id] ?? 0) + count;
-            writeHeroFragments(next);
-            return { heroFragments: next };
+            const next = state.fragments + Math.max(0, Math.floor(count));
+            writeFragments(next);
+            return { fragments: next };
           }),
 
-        spendHeroFragments: (id, count) => {
-          const cur = get().heroFragments[id] ?? 0;
+        spendFragments: (count) => {
+          const cur = get().fragments;
           if (count <= 0 || cur < count) return false;
-          const next = { ...get().heroFragments };
-          next[id] = cur - count;
-          writeHeroFragments(next);
-          wrappedSet({ heroFragments: next });
+          const next = cur - Math.floor(count);
+          writeFragments(next);
+          wrappedSet({ fragments: next });
           return true;
         },
 
@@ -242,8 +244,8 @@ export const useRecruitStore = create<RecruitState>()(
           const hero = RECRUIT_HEROES.find((h) => h.id === id);
           if (!hero) return false;
           const cost = FRAGMENT_TO_SYNTHESIZE[hero.rarity];
-          if ((state.heroFragments[id] ?? 0) < cost) return false;
-          if (!get().spendHeroFragments(id, cost)) return false;
+          if (state.fragments < cost) return false;
+          if (!get().spendFragments(cost)) return false;
           const next = [...state.recruitedHeroIds, id];
           writeRecruitedHeroIds(next);
           wrappedSet({ recruitedHeroIds: next });
@@ -341,8 +343,8 @@ export const useRecruitStore = create<RecruitState>()(
             legend: { total: 0, epicCounter: 0, legendCounter: 0, rareCount: 0, epicCount: 0, legendCount: 0 },
             targeted: { total: 0, epicCounter: 0, legendCounter: 0, rareCount: 0, epicCount: 0, legendCount: 0 },
           };
-          writeRecruitedHeroIds(["liubei", "guanyu", "zhangfei"]);
-          writeHeroFragments({});
+          writeRecruitedHeroIds([]);
+          writeFragments(0);
           writeRecruitTickets(STARTING_DEMO_TICKETS);
           writeEliteRecruitItems(3);
           writeLegendRecruitScrolls(2);
@@ -351,8 +353,8 @@ export const useRecruitStore = create<RecruitState>()(
           writeDrawHistory([]);
           writeDemoTaskCount(0);
           wrappedSet({
-            recruitedHeroIds: ["liubei", "guanyu", "zhangfei"],
-            heroFragments: {},
+            recruitedHeroIds: [],
+            fragments: 0,
             recruitTickets: STARTING_DEMO_TICKETS,
             eliteRecruitItems: 3,
             legendRecruitScrolls: 2,
@@ -369,7 +371,7 @@ export const useRecruitStore = create<RecruitState>()(
       version: 1,
       partialize: (state) => ({
         recruitedHeroIds: state.recruitedHeroIds,
-        heroFragments: state.heroFragments,
+        fragments: state.fragments,
         recruitTickets: state.recruitTickets,
         eliteRecruitItems: state.eliteRecruitItems,
         legendRecruitScrolls: state.legendRecruitScrolls,

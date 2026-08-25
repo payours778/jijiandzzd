@@ -8059,6 +8059,27 @@ body.game-active{position:fixed;inset:0;overflow:hidden;}
   color: #94a3b8;
   line-height: 1.6;
 }
+.tg-frag__summary {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 12px 14px;
+  border: 1px solid rgba(251, 191, 36, 0.35);
+  border-radius: 10px;
+  background: rgba(251, 191, 36, 0.08);
+  color: #e2e8f0;
+  font-size: 13px;
+  font-weight: 700;
+}
+.tg-frag__summary strong {
+  color: #fbbf24;
+  font-size: 20px;
+}
+.tg-frag__summary em {
+  font-style: normal;
+  color: #94a3b8;
+  font-weight: 600;
+}
 .tg-frag__grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));

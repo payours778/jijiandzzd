@@ -6,9 +6,9 @@ export {
   HERO_RARITY_ORDER,
   RECRUIT_HEROES,
   DUPLICATE_FRAGMENT_REWARD,
-  readHeroFragments,
+  readFragments,
   readRecruitedHeroIds,
-  writeHeroFragments,
+  writeFragments,
   writeRecruitedHeroIds,
 } from "./heroes";
 export type {

@@ -123,6 +123,45 @@ db.exec(`
   )`
 );
 
+// 6B: 招募状态迁移 (统一碎片 + 取消初始赠送武将)
+const LEGACY_DEFAULT_RECRUITED_IDS = ["liubei", "guanyu", "zhangfei"];
+(function migrateRecruitState() {
+  try {
+    const rows = db.prepare("SELECT account_id, data FROM adou_recruit_state").all();
+    for (const row of rows) {
+      let data = null;
+      try { data = JSON.parse(row.data); } catch { /* ignore */ }
+      if (!data || typeof data !== "object") continue;
+      let changed = false;
+      // 旧格式: heroFragments 对象 -> 累加为统一 fragments
+      if (data.heroFragments && typeof data.heroFragments === "object") {
+        let sum = 0;
+        for (const value of Object.values(data.heroFragments)) {
+          const n = Number(value);
+          if (Number.isFinite(n) && n > 0) sum += Math.floor(n);
+        }
+        data.fragments = (typeof data.fragments === "number" && Number.isFinite(data.fragments) ? data.fragments : 0) + sum;
+        delete data.heroFragments;
+        changed = true;
+      }
+      // 清除旧版初始默认赠送的刘备/关羽/张飞
+      if (Array.isArray(data.recruitedHeroIds)) {
+        const filtered = data.recruitedHeroIds.filter((id) => !LEGACY_DEFAULT_RECRUITED_IDS.includes(id));
+        if (filtered.length !== data.recruitedHeroIds.length) {
+          data.recruitedHeroIds = filtered;
+          changed = true;
+        }
+      }
+      if (changed) {
+        db.prepare("UPDATE adou_recruit_state SET data = ?, updated_at = ? WHERE account_id = ?")
+          .run(JSON.stringify(data), new Date().toISOString(), row.account_id);
+      }
+    }
+  } catch (err) {
+    console.warn("招募状态迁移失败:", err && err.message ? err.message : err);
+  }
+})();
+
 const mimeTypes = {
   ".html": "text/html; charset=utf-8",
   ".css": "text/css; charset=utf-8",

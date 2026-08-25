@@ -4,7 +4,7 @@
  * 所有招募相关的 localStorage 读写集中在这里。
  * Key 列表保持不变，向后兼容。
  */
-import { DEFAULT_RECRUITED_IDS, RECRUIT_HEROES } from "./registry";
+import { DEFAULT_RECRUITED_IDS, LEGACY_DEFAULT_RECRUITED_IDS, RECRUIT_HEROES } from "./registry";
 import { BOSS_DROP_GUARANTEE, createDefaultPoolStats } from "./pity";
 import type { DrawHistoryEntry, PoolStats } from "./types";
 
@@ -48,10 +48,17 @@ export function readRecruitedHeroIds(): string[] {
     if (!raw) return DEFAULT_RECRUITED_IDS.slice();
     const parsed = JSON.parse(raw);
     if (!Array.isArray(parsed)) return DEFAULT_RECRUITED_IDS.slice();
-    return parsed.filter(
+    const valid = parsed.filter(
       (v): v is string =>
-        typeof v === "string" && RECRUIT_HEROES.some((h) => h.id === v),
+        typeof v === "string" &&
+        RECRUIT_HEROES.some((h) => h.id === v) &&
+        !LEGACY_DEFAULT_RECRUITED_IDS.includes(v),
     );
+    // 旧版本默认赠送刘备/关羽/张飞，现已取消初始武将，迁移清空
+    if (valid.length !== parsed.length) {
+      writeRecruitedHeroIds(valid);
+    }
+    return valid;
   } catch {
     return DEFAULT_RECRUITED_IDS.slice();
   }
@@ -65,29 +72,35 @@ export function writeRecruitedHeroIds(ids: string[]) {
   }
 }
 
-// === 武将碎片 (heroFragments: heroId -> count) ===
-export function readHeroFragments(): Record<string, number> {
+// === 武将碎片 (统一碎片池: 单个数字, 任何武将通用) ===
+export function readFragments(): number {
   try {
     const raw = localStorage.getItem(HERO_FRAGMENT_STORAGE_KEY);
-    if (!raw) return {};
-    const parsed = JSON.parse(raw) as Record<string, unknown>;
-    if (!parsed || typeof parsed !== "object") return {};
-    const result: Record<string, number> = {};
-    for (const hero of RECRUIT_HEROES) {
-      const value = parsed[hero.id];
-      if (typeof value === "number" && Number.isFinite(value) && value > 0) {
-        result[hero.id] = Math.floor(value);
-      }
+    if (!raw) return 0;
+    const parsed = JSON.parse(raw);
+    if (typeof parsed === "number") {
+      return Number.isFinite(parsed) ? Math.max(0, Math.floor(parsed)) : 0;
     }
-    return result;
+    // 旧格式: heroId -> count, 累加为统一碎片
+    if (parsed && typeof parsed === "object") {
+      let sum = 0;
+      for (const hero of RECRUIT_HEROES) {
+        const value = (parsed as Record<string, unknown>)[hero.id];
+        if (typeof value === "number" && Number.isFinite(value) && value > 0) {
+          sum += Math.floor(value);
+        }
+      }
+      return sum;
+    }
+    return 0;
   } catch {
-    return {};
+    return 0;
   }
 }
 
-export function writeHeroFragments(fragments: Record<string, number>) {
+export function writeFragments(count: number) {
   try {
-    localStorage.setItem(HERO_FRAGMENT_STORAGE_KEY, JSON.stringify(fragments));
+    localStorage.setItem(HERO_FRAGMENT_STORAGE_KEY, String(Math.max(0, Math.floor(count))));
   } catch {
     /* ignore */
   }

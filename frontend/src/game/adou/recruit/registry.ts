@@ -27,7 +27,10 @@ export const RECRUIT_HEROES: RecruitHero[] = [
   { id: "huangzhong", name: "黄忠", title: "老当益壮", rarity: "legendary", fragments: ["黄", "忠"], role: "烈弓", bio: "定军山斩夏侯渊，烈弓开处无虚发。" },
 ];
 
-export const DEFAULT_RECRUITED_IDS = ["liubei", "guanyu", "zhangfei"];
+export const DEFAULT_RECRUITED_IDS: string[] = [];
+
+/** 旧版本初始默认赠送的武将（现已取消，仅用于迁移） */
+export const LEGACY_DEFAULT_RECRUITED_IDS: string[] = ["liubei", "guanyu", "zhangfei"];
 
 export const DUPLICATE_FRAGMENT_REWARD: Record<HeroRarity, number> = {
   rare: 5,
