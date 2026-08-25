@@ -27,7 +27,6 @@ import {
   RECRUIT_HEROES,
   isEpicPityReady,
   isLegendPityReady,
-  STAR_UP_FRAGMENT_COST,
   type HeroRarity,
   type RecruitHero,
 } from "../heroes";
@@ -870,7 +869,7 @@ export function HeroCollectionScreen({
             <section className="tg-frag">
               <div className="tg-frag__head">
                 <span>武将碎片</span>
-                <p>碎片为统一资源，不区分武将。通用碎片可合成任意武将入营；已入营武将消耗碎片升星（每星 {STAR_UP_FRAGMENT_COST} 片）。</p>
+                <p>碎片为统一资源，不区分武将。通用碎片可合成任意武将入营；已入营武将可在【我的武将】消耗碎片升星，费用按稀有度与星级递增。</p>
               </div>
               <div className="tg-frag__summary">
                 <Gem size={16} color="#fbbf24" />

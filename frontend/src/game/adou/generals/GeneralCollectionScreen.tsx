@@ -11,7 +11,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { Shield, Star, Sword, Trophy, Users, Wrench } from "lucide-react";
 import { useRecruitStore } from "../recruit/store";
-import { RECRUIT_HEROES, HERO_RARITY_META, STAR_UP_FRAGMENT_COST } from "../recruit/registry";
+import { RECRUIT_HEROES, HERO_RARITY_META, starUpFragmentCost } from "../recruit/registry";
 import { GeneralConfig } from "./registry";
 import { useGeneralStore, type GeneralInstance } from "./store";
 import { playSfx } from "../../../audio/audioSystem";
@@ -82,7 +82,9 @@ export function GeneralCollectionScreen() {
   const handleStarUp = (inst: GeneralInstance | undefined) => {
     if (!inst) return;
     if (inst.star >= 5) return;
-    if (!spendFragments(STAR_UP_FRAGMENT_COST)) {
+    const hero = RECRUIT_HEROES.find((h) => h.id === inst.heroId);
+    if (!hero) return;
+    if (!spendFragments(starUpFragmentCost(hero.rarity, inst.star))) {
       playSfx("click");
       return;
     }
@@ -200,7 +202,7 @@ function GeneralDetail({ inst, recruitFragments, deployedCount, onToggleDeploy, 
   const baseDmg = cfg?.damage ?? 10;
   const starBonusDmg = Math.round(baseDmg * inst.star * STAR_DAMAGE_BONUS);
   const starBonusHp = Math.round(baseHp * inst.star * STAR_HP_BONUS);
-  const canStarUp = inst.star < 5 && recruitFragments >= STAR_UP_FRAGMENT_COST;
+  const canStarUp = inst.star < 5 && recruitFragments >= starUpFragmentCost(hero.rarity, inst.star);
 
   return (
     <div className="tg-general-detail" style={rarityStyle(inst.heroId)}>
@@ -261,7 +263,7 @@ function GeneralDetail({ inst, recruitFragments, deployedCount, onToggleDeploy, 
           onClick={onStarUp}
           disabled={!canStarUp}
         >
-          <Star size={14} /> 升星 · {STAR_UP_FRAGMENT_COST}片
+          <Star size={14} /> 升星 · {starUpFragmentCost(hero.rarity, inst.star)}片
         </button>
         <button className="tg-btn" onClick={onEquipMain}>
           <Sword size={14} /> {inst.equippedWeapons.main ? "卸主武" : "装主武"}
@@ -275,7 +277,7 @@ function GeneralDetail({ inst, recruitFragments, deployedCount, onToggleDeploy, 
       </div>
 
       <div className="tg-general-detail__pool">
-        <Shield size={14} /> 通用碎片: {recruitFragments} · 升星每星 {STAR_UP_FRAGMENT_COST} 片 | 上阵武将总数: {deployedCount}
+        <Shield size={14} /> 通用碎片: {recruitFragments} · 升星费用按稀有度与星级递增 | 上阵武将总数: {deployedCount}
       </div>
       <div className="tg-general-detail__more">
         <button type="button" onClick={onShowDetail}>

@@ -38,12 +38,16 @@ export const DUPLICATE_FRAGMENT_REWARD: Record<HeroRarity, number> = {
   legendary: 50,
 };
 
-/** 合成该武将所需的专属碎片数（按稀有度） */
+/** 合成该武将所需的碎片数（按稀有度） */
 export const FRAGMENT_TO_SYNTHESIZE: Record<HeroRarity, number> = {
-  rare: 10,
-  epic: 25,
-  legendary: 50,
+  rare: 100,
+  epic: 800,
+  legendary: 2000,
 };
 
-/** 武将升 1 星消耗的专属碎片数 */
-export const STAR_UP_FRAGMENT_COST = 4;
+/** 升星消耗碎片: 按稀有度与当前星级计算 (star 为升级前星级 0-4) */
+export function starUpFragmentCost(rarity: HeroRarity, star: number): number {
+  if (rarity === "rare") return 50 * (star + 1);
+  if (rarity === "epic") return 100 * (star + 1);
+  return 100 + 300 * star;
+}

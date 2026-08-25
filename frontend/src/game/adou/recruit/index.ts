@@ -12,7 +12,7 @@ export {
   DEFAULT_RECRUITED_IDS,
   DUPLICATE_FRAGMENT_REWARD,
   FRAGMENT_TO_SYNTHESIZE,
-  STAR_UP_FRAGMENT_COST,
+  starUpFragmentCost,
 } from "./registry";
 export { RECRUIT_POOL_RULES } from "./pool";
 export {
