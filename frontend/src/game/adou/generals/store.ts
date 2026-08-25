@@ -92,7 +92,15 @@ async function fetchBackendInstances(): Promise<Record<string, GeneralInstance> 
     });
     if (!res.ok) return null;
     const data = await res.json();
-    return data && data.instances ? data.instances : null;
+    const list = data && data.instances ? data.instances : null;
+    if (!Array.isArray(list)) return list as Record<string, GeneralInstance> | null;
+    const map: Record<string, GeneralInstance> = {};
+    for (const item of list) {
+      if (item && typeof item.heroId === "string") {
+        map[item.heroId] = item as GeneralInstance;
+      }
+    }
+    return map;
   } catch {
     return null;
   }
