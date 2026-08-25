@@ -17,7 +17,7 @@
  */
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
-import { DUPLICATE_FRAGMENT_REWARD, RECRUIT_HEROES } from "./registry";
+import { DUPLICATE_FRAGMENT_REWARD, FRAGMENT_TO_SYNTHESIZE, RECRUIT_HEROES } from "./registry";
 import {
   DEMO_TASK_LIMIT,
   DEMO_TICKET_GRANT,
@@ -65,6 +65,8 @@ export interface RecruitState {
   // ===== actions =====
   recruitHero: (id: string) => void;
   addHeroFragments: (id: string, count: number) => void;
+  spendHeroFragments: (id: string, count: number) => boolean;
+  synthesizeHero: (id: string) => boolean;
   spendRecruitTicket: (cost: number) => void;
   addRecruitTickets: (count: number) => void;
   spendEliteRecruitItems: (count: number) => void;
@@ -223,6 +225,30 @@ export const useRecruitStore = create<RecruitState>()(
             writeHeroFragments(next);
             return { heroFragments: next };
           }),
+
+        spendHeroFragments: (id, count) => {
+          const cur = get().heroFragments[id] ?? 0;
+          if (count <= 0 || cur < count) return false;
+          const next = { ...get().heroFragments };
+          next[id] = cur - count;
+          writeHeroFragments(next);
+          wrappedSet({ heroFragments: next });
+          return true;
+        },
+
+        synthesizeHero: (id) => {
+          const state = get();
+          if (state.recruitedHeroIds.includes(id)) return false;
+          const hero = RECRUIT_HEROES.find((h) => h.id === id);
+          if (!hero) return false;
+          const cost = FRAGMENT_TO_SYNTHESIZE[hero.rarity];
+          if ((state.heroFragments[id] ?? 0) < cost) return false;
+          if (!get().spendHeroFragments(id, cost)) return false;
+          const next = [...state.recruitedHeroIds, id];
+          writeRecruitedHeroIds(next);
+          wrappedSet({ recruitedHeroIds: next });
+          return true;
+        },
 
         spendRecruitTicket: (cost) =>
           wrappedSet((state) => {

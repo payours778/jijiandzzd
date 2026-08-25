@@ -19,6 +19,7 @@ import { useRecruitStore } from "../../recruit/store";
 import { useAppStore } from "../../../../store/useAppStore";
 import {
   DUPLICATE_FRAGMENT_REWARD,
+  FRAGMENT_TO_SYNTHESIZE,
   HERO_RARITY_META,
   HERO_RARITY_ORDER,
   advancePoolStats,
@@ -26,12 +27,13 @@ import {
   RECRUIT_HEROES,
   isEpicPityReady,
   isLegendPityReady,
+  STAR_UP_FRAGMENT_COST,
   type HeroRarity,
   type RecruitHero,
 } from "../heroes";
 import { rollHero as drawHero, type RollPoolContext } from "../../recruit/drawEngine";
 
-type CollectionTab = "recruit" | "owned" | "archive";
+type CollectionTab = "recruit" | "fragments" | "owned" | "archive";
 
 interface DrawResult {
   hero: RecruitHero;
@@ -390,6 +392,7 @@ export function HeroCollectionScreen({
   const drawHistory = useRecruitStore((s) => s.drawHistory);
 
   const recruitHero = useRecruitStore((s) => s.recruitHero);
+  const synthesizeHero = useRecruitStore((s) => s.synthesizeHero);
   const heroFragments = useRecruitStore((s) => s.heroFragments);
   const addHeroFragments = useRecruitStore((s) => s.addHeroFragments);
   const spendRecruitTicket = useRecruitStore((s) => s.spendRecruitTicket);
@@ -438,6 +441,18 @@ export function HeroCollectionScreen({
   const selectHero = (id: string) => {
     playSfx("click");
     setSelectedId(id);
+  };
+
+  const handleSynthesize = (hero: RecruitHero) => {
+    const ok = synthesizeHero(hero.id);
+    if (ok) {
+      playSfx("synthesize");
+      useAppStore.getState().showToast(`${hero.name} 合成成功，已入营`);
+      setTab("owned");
+    } else {
+      playSfx("click");
+      useAppStore.getState().showToast("专属碎片不足，无法合成");
+    }
   };
 
   useEffect(() => {
@@ -637,6 +652,17 @@ export function HeroCollectionScreen({
           </button>
           <button
             type="button"
+            className={tab === "fragments" ? "is-active" : ""}
+            onClick={() => {
+              playSfx("click");
+              setTab("fragments");
+            }}
+          >
+            <Gem size={15} />
+            碎片
+          </button>
+          <button
+            type="button"
             className={tab === "owned" ? "is-active" : ""}
             onClick={() => {
               playSfx("click");
@@ -721,11 +747,19 @@ export function HeroCollectionScreen({
                   </div>
                 )}
                 <div className="tg-gacha__top">
-                  <div className="tg-gacha__frag">
+                  <button
+                    type="button"
+                    className="tg-gacha__frag tg-gacha__frag-btn"
+                    onClick={() => {
+                      playSfx("click");
+                      setTab("fragments");
+                    }}
+                    title="查看专属碎片"
+                  >
                     <Gem size={15} />
-                    <span>武将碎片</span>
+                    <span>专属碎片</span>
                     <strong>{totalFragments}</strong>
-                  </div>
+                  </button>
                   <div className="tg-gacha__ticket">
                     {activeRules.resource === "gold" ? <Coins size={15} /> : <Ticket size={15} />}
                     <span>{activeResourceLabel}</span>
@@ -830,6 +864,60 @@ export function HeroCollectionScreen({
 
               </>
             )
+
+
+          ) : tab === "fragments" ? (
+            <section className="tg-frag">
+              <div className="tg-frag__head">
+                <span>专属碎片</span>
+                <p>每位武将拥有独立碎片。集齐碎片可合成入营；已入营武将的碎片用于升星（每星 {STAR_UP_FRAGMENT_COST} 片）。</p>
+              </div>
+              <div className="tg-frag__grid">
+                {RECRUIT_HEROES.map((hero) => {
+                  const owned = recruitedIds.includes(hero.id);
+                  const count = heroFragments[hero.id] ?? 0;
+                  const cost = FRAGMENT_TO_SYNTHESIZE[hero.rarity];
+                  const canSynthesize = !owned && count >= cost;
+                  const pct = owned ? 100 : Math.min(100, Math.round((count / cost) * 100));
+                  return (
+                    <div
+                      key={hero.id}
+                      className={`tg-frag__card${owned ? " is-owned" : ""}${canSynthesize ? " is-ready" : ""}`}
+                      style={rarityStyle(hero.rarity)}
+                    >
+                      <div className="tg-frag__top">
+                        <span className="tg-frag__glyph">{hero.name[0]}</span>
+                        <span className="tg-frag__rarity">{HERO_RARITY_META[hero.rarity].label}</span>
+                      </div>
+                      <div className="tg-frag__name">{hero.name}</div>
+                      <div className="tg-frag__sub">{owned ? hero.title : `合成需 ${cost} 片`}</div>
+                      <div className="tg-frag__meter">
+                        <span style={{ width: `${pct}%` }} />
+                      </div>
+                      <div className="tg-frag__count">
+                        <Gem size={13} color="#fbbf24" />
+                        <strong>{count}</strong>
+                        <span>/ {cost}</span>
+                      </div>
+                      <button
+                        type="button"
+                        className="tg-frag__btn"
+                        disabled={!owned && !canSynthesize}
+                        onClick={() => handleSynthesize(hero)}
+                      >
+                        {owned ? (
+                          <><Check size={13} />已入营</>
+                        ) : canSynthesize ? (
+                          <><Sparkles size={13} />合成</>
+                        ) : (
+                          <><Lock size={13} />碎片不足</>
+                        )}
+                      </button>
+                    </div>
+                  );
+                })}
+              </div>
+            </section>
           ) : tab === "archive" ? (
             <section className="tg-collection__archive">
               <div className="tg-collection__archive-summary">

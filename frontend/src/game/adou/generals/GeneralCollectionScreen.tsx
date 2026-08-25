@@ -11,14 +11,13 @@
 import { useEffect, useMemo, useState } from "react";
 import { Shield, Star, Sword, Trophy, Users, Wrench } from "lucide-react";
 import { useRecruitStore } from "../recruit/store";
-import { RECRUIT_HEROES, HERO_RARITY_META } from "../recruit/registry";
+import { RECRUIT_HEROES, HERO_RARITY_META, STAR_UP_FRAGMENT_COST } from "../recruit/registry";
 import { GeneralConfig } from "./registry";
 import { useGeneralStore, type GeneralInstance } from "./store";
 import { playSfx } from "../../../audio/audioSystem";
 import { Info } from "lucide-react";
 import { GeneralDetailPanel } from "./GeneralDetailPanel";
 
-const STAR_PER_LEVEL = 4; // 升 1 星消耗 4 碎片 (设计默认值, 控制台可改)
 const STAR_DAMAGE_BONUS = 0.1; // 每星 +10% 攻击
 const STAR_HP_BONUS = 0.25; // 每星 +25% 血量
 
@@ -36,7 +35,7 @@ export function GeneralCollectionScreen() {
   const setStatus = useGeneralStore((s) => s.setStatus);
   const equipWeapon = useGeneralStore((s) => s.equipWeapon);
   const setStar = useGeneralStore((s) => s.setStar);
-  const consumeFragment = useGeneralStore((s) => s.consumeFragment);
+  const spendHeroFragments = useRecruitStore((s) => s.spendHeroFragments);
 
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [showDetail, setShowDetail] = useState(false);
@@ -78,7 +77,7 @@ export function GeneralCollectionScreen() {
   const handleStarUp = (inst: GeneralInstance | undefined) => {
     if (!inst) return;
     if (inst.star >= 5) return;
-    if (!consumeFragment(inst.heroId)) {
+    if (!spendHeroFragments(inst.heroId, STAR_UP_FRAGMENT_COST)) {
       playSfx("click");
       return;
     }
@@ -112,7 +111,7 @@ export function GeneralCollectionScreen() {
           ) : (
             recruited.map((hero) => {
               const inst = instances[hero.id];
-              const frags = inst?.fragments ?? 0;
+              const frags = heroFragments[hero.id] ?? 0;
               return (
                 <div
                   key={hero.id}
@@ -194,7 +193,7 @@ function GeneralDetail({ inst, recruitFragments, onToggleDeploy, onStarUp, onEqu
   const baseDmg = cfg?.damage ?? 10;
   const starBonusDmg = Math.round(baseDmg * inst.star * STAR_DAMAGE_BONUS);
   const starBonusHp = Math.round(baseHp * inst.star * STAR_HP_BONUS);
-  const canStarUp = inst.star < 5 && inst.fragments >= 1;
+  const canStarUp = inst.star < 5 && recruitFragments >= STAR_UP_FRAGMENT_COST;
 
   return (
     <div className="tg-general-detail" style={rarityStyle(inst.heroId)}>
@@ -234,8 +233,8 @@ function GeneralDetail({ inst, recruitFragments, onToggleDeploy, onStarUp, onEqu
           <strong>{baseDmg + starBonusDmg}</strong>
         </div>
         <div className="tg-stat">
-          <span className="tg-stat__label">碎片</span>
-          <strong>{inst.fragments}</strong>
+          <span className="tg-stat__label">专属碎片</span>
+          <strong>{recruitFragments}</strong>
         </div>
         <div className="tg-stat">
           <span className="tg-stat__label">累计击杀</span>
@@ -255,7 +254,7 @@ function GeneralDetail({ inst, recruitFragments, onToggleDeploy, onStarUp, onEqu
           onClick={onStarUp}
           disabled={!canStarUp}
         >
-          <Star size={14} /> 升星
+          <Star size={14} /> 升星 · {STAR_UP_FRAGMENT_COST}片
         </button>
         <button className="tg-btn" onClick={onEquipMain}>
           <Sword size={14} /> {inst.equippedWeapons.main ? "卸主武" : "装主武"}
@@ -269,7 +268,7 @@ function GeneralDetail({ inst, recruitFragments, onToggleDeploy, onStarUp, onEqu
       </div>
 
       <div className="tg-general-detail__pool">
-        <Shield size={14} /> 招募重复获得碎片: {recruitFragments} | 上阵武将总数: 0
+        <Shield size={14} /> 专属碎片: {recruitFragments} · 升星每星 {STAR_UP_FRAGMENT_COST} 片 | 上阵武将总数: 0
       </div>
       <div className="tg-general-detail__more">
         <button type="button" onClick={onShowDetail}>

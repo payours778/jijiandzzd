@@ -13,6 +13,8 @@ export {
   HERO_RARITY_ORDER,
   DEFAULT_RECRUITED_IDS,
   DUPLICATE_FRAGMENT_REWARD,
+  FRAGMENT_TO_SYNTHESIZE,
+  STAR_UP_FRAGMENT_COST,
 } from "../recruit/registry";
 export { RECRUIT_POOL_RULES } from "../recruit/pool";
 export {
