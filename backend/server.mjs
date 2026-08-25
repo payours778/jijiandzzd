@@ -603,7 +603,6 @@ async function handleApi(req, res, pathname) {
     { id: "recruit_ticket_10", name: "普通招募券×10", desc: "10 张普通招募券, 9 折优惠", price: 450, currency: "coin", grant: { recruitTickets: 10 } },
     { id: "elite_item_1", name: "精英招募符", desc: "1 个精英招募符, 用于精英池", price: 200, currency: "coin", grant: { eliteRecruitItems: 1 } },
     { id: "legend_scroll_1", name: "巅峰招募卷", desc: "1 个巅峰招募卷, 用于 BOSS 掉落保底", price: 1000, currency: "coin", grant: { legendRecruitScrolls: 1 } },
-    { id: "fragment_box_5", name: "随机碎片盒", desc: "随机 1 个武将的 5 个碎片", price: 300, currency: "coin", grant: { randomFragments: 5 } },
   ];
 
   if (pathname === "/api/adou/shop/items" && req.method === "GET") {

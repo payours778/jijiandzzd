@@ -1,6 +1,6 @@
 /**
  * 军营商店 - 资源商品网格 (从 ShopScreen 提取, 供军械库商店页签复用)
- * 消耗金币购买招募券/精英符/巅峰卷/随机碎片盒
+ * 消耗金币购买招募券/精英符/巅峰卷
  * 后端接口: /api/adou/shop/{items,my,buy}
  */
 import { useEffect, useState, type ReactElement } from "react";
@@ -9,7 +9,6 @@ import { useAppStore } from "../../../../store/useAppStore";
 import { useRecruitStore } from "../../recruit/store";
 import { playSfx } from "../../../../audio/audioSystem";
 import { postAchievementEvent } from "../../achievements/client";
-import { RECRUIT_HEROES } from "../../recruit/registry";
 
 interface ShopItem {
   id: string;
@@ -24,7 +23,6 @@ const ICON_FOR_GRANT: Record<string, React.ReactElement> = {
   recruitTickets: <Ticket size={20} />,
   eliteRecruitItems: <Sparkles size={20} />,
   legendRecruitScrolls: <Sparkles size={20} color="#fbbf24" />,
-  randomFragments: <Sparkles size={20} color="#c084fc" />,
 };
 
 function getAuthToken(): string | null {
@@ -62,7 +60,6 @@ export function ResourceShopGrid() {
   const addRecruitTickets = useRecruitStore((s) => s.addRecruitTickets);
   const addEliteRecruitItems = useRecruitStore((s) => s.addEliteRecruitItems);
   const addLegendRecruitScrolls = useRecruitStore((s) => s.addLegendRecruitScrolls);
-  const addHeroFragments = useRecruitStore((s) => s.addHeroFragments);
   const [items, setItems] = useState<ShopItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [buyingId, setBuyingId] = useState<string | null>(null);
@@ -104,12 +101,7 @@ export function ResourceShopGrid() {
     if (g.recruitTickets) addRecruitTickets(g.recruitTickets);
     if (g.eliteRecruitItems) addEliteRecruitItems(g.eliteRecruitItems);
     if (g.legendRecruitScrolls) addLegendRecruitScrolls(g.legendRecruitScrolls);
-    if (g.randomFragments) {
-      const recruited = useRecruitStore.getState().recruitedHeroIds;
-      const pool = recruited.length > 0 ? recruited : RECRUIT_HEROES.map((h) => h.id);
-      const pick = pool[Math.floor(Math.random() * pool.length)];
-      addHeroFragments(pick, g.randomFragments);
-    }
+
     showToast("购买成功: " + item.name);
     playSfx("upgrade");
     setBuyingId(null);
