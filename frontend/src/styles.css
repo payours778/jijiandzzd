@@ -7723,3 +7723,47 @@ body.game-active{position:fixed;inset:0;overflow:hidden;}
   flex-direction: column;
   gap: 12px;
 }
+/* === 武器模块内分类筛选 === */
+.tg-shop__series-filter {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding: 2px 2px 4px;
+  scrollbar-width: thin;
+}
+.tg-shop__series-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+  padding: 6px 12px;
+  border: 1px solid #2a2f37;
+  border-radius: 8px;
+  background: #15171b;
+  color: #e5e7eb;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: border-color 0.18s, background 0.18s, color 0.18s;
+}
+.tg-shop__series-chip:hover {
+  border-color: #fbbf24;
+  color: #fbbf24;
+}
+.tg-shop__series-chip.is-active {
+  border-color: #fbbf24;
+  background: linear-gradient(180deg, rgba(251, 191, 36, 0.22), rgba(251, 191, 36, 0.1));
+  color: #fbbf24;
+}
+.tg-shop__series-count {
+  padding: 1px 7px;
+  border-radius: 999px;
+  background: rgba(148, 163, 184, 0.18);
+  color: #94a3b8;
+  font-size: 11px;
+  font-weight: 700;
+}
+.tg-shop__series-chip.is-active .tg-shop__series-count {
+  background: rgba(251, 191, 36, 0.22);
+  color: #fbbf24;
+}

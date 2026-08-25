@@ -1,7 +1,7 @@
 /**
  * 军营 - 商店 (独立页签)
  * 合并资源商店(招募券/精英符/巅峰卷/碎片盒) 与 武器商店(可购买武器)
- * 分模块购买：顶部模块页签切换，资源 / 各武器体系各成一模块
+ * 分模块购买：资源 / 武器各成一模块；武器模块内再按刀剑弓枪分类筛选
  */
 import { useMemo, useState } from "react";
 import { Check, Coins, Gem, Layers, ShoppingBag, Sparkles, Swords } from "lucide-react";
@@ -19,9 +19,10 @@ import {
 import { ResourceShopGrid } from "./ResourceShopGrid";
 
 type QualityKey = "white" | "green" | "purple" | "gold" | "red";
-type ModuleKey = "resources" | WeaponSeriesId;
+type ModuleKey = "resources" | "weapons";
+type SeriesFilter = "all" | WeaponSeriesId;
 
-/** 武器模块展示顺序：游戏当前仅实装刀剑弓枪四系 */
+/** 武器展示顺序：游戏当前仅实装刀剑弓枪四系 */
 const SERIES_ORDER: WeaponSeriesId[] = ["sword", "blade", "spear", "bow"];
 
 const ATTACK_LABEL: Record<string, string> = {
@@ -100,21 +101,12 @@ function writeStringList(key: string, values: string[]) {
   }
 }
 
-interface ShopModule {
-  key: ModuleKey;
-  label: string;
-  glyph: string;
-  desc: string;
-  attackLabel?: string;
-  series?: WeaponSeries;
-  items: WeaponDefinition[];
-}
-
 export function ShopScreen() {
   const coins = useAppStore((s) => s.coins);
   const [ownedIds, setOwnedIds] = useState<string[]>(() => readStringList(OWNED_KEY, []));
   const [equippedId, setEquippedId] = useState<string | null>(() => readEquipped());
   const [activeKey, setActiveKey] = useState<ModuleKey>("resources");
+  const [seriesFilter, setSeriesFilter] = useState<SeriesFilter>("all");
 
   const weapons = useMemo(() => listWeapons() as WeaponDefinition[], []);
   const buyable = useMemo(
@@ -126,36 +118,26 @@ export function ShopScreen() {
     [weapons],
   );
 
-  /** 构建模块列表：资源 + 各武器体系（仅保留有可购商品的模块） */
-  const modules = useMemo<ShopModule[]>(() => {
-    const seriesMeta = listSeries();
-    const modules: ShopModule[] = [
-      {
-        key: "resources",
-        label: "资源",
-        glyph: "资",
-        desc: "招募券、招募符、巅峰卷、碎片盒等养成资源",
-        items: [],
-      },
-    ];
-    SERIES_ORDER.forEach((id) => {
-      const meta = seriesMeta.find((s) => s.id === id);
-      const items = buyable.filter((w) => w.series === id);
-      if (!meta || items.length === 0) return;
-      modules.push({
-        key: id,
-        label: meta.name,
-        glyph: meta.glyph,
-        desc: meta.description,
-        attackLabel: ATTACK_LABEL[meta.attackType],
-        series: meta,
-        items,
-      });
-    });
-    return modules;
-  }, [buyable]);
+  const activeModule = activeKey;
 
-  const activeModule = modules.find((m) => m.key === activeKey) ?? modules[0];
+  const filteredWeapons = useMemo(
+    () =>
+      seriesFilter === "all"
+        ? buyable
+        : buyable.filter((w) => w.series === seriesFilter),
+    [buyable, seriesFilter],
+  );
+
+  const seriesChips = useMemo(
+    () =>
+      SERIES_ORDER.map((id) => ({
+        id,
+        name: getSeries(id).name,
+        glyph: getSeries(id).glyph,
+        count: buyable.filter((w) => w.series === id).length,
+      })).filter((c) => c.count > 0),
+    [buyable],
+  );
 
   const buyWeapon = (weapon: WeaponDefinition) => {
     const price = priceOf(weapon);
@@ -184,103 +166,134 @@ export function ShopScreen() {
         </div>
       </header>
 
-      {/* 模块页签栏：资源 + 各武器体系 */}
+      {/* 模块页签栏：资源 / 武器 */}
       <nav className="tg-shop__modules" aria-label="商店模块">
         <div className="tg-shop__modules-label">
           <Layers size={14} color="#fbbf24" />
           <span>模块</span>
         </div>
         <div className="tg-shop__module-tabs">
-          {modules.map((mod) => {
-            const isActive = mod.key === activeModule.key;
-            const ownedCount = mod.items.filter((w) => ownedIds.includes(w.id)).length;
-            return (
-              <button
-                key={mod.key}
-                type="button"
-                className={"tg-shop__module-tab" + (isActive ? " is-active" : "")}
-                onClick={() => {
-                  playSfx("click");
-                  setActiveKey(mod.key);
-                }}
-              >
-                <span className="tg-shop__module-glyph">{mod.glyph}</span>
-                <span className="tg-shop__module-name">{mod.label}</span>
-                {mod.key !== "resources" && (
-                  <span className="tg-shop__module-count">
-                    {ownedCount}/{mod.items.length}
-                  </span>
-                )}
-              </button>
-            );
-          })}
+          <button
+            type="button"
+            className={"tg-shop__module-tab" + (activeModule === "resources" ? " is-active" : "")}
+            onClick={() => {
+              playSfx("click");
+              setActiveKey("resources");
+            }}
+          >
+            <span className="tg-shop__module-glyph">资</span>
+            <span className="tg-shop__module-name">资源</span>
+          </button>
+          <button
+            type="button"
+            className={"tg-shop__module-tab" + (activeModule === "weapons" ? " is-active" : "")}
+            onClick={() => {
+              playSfx("click");
+              setActiveKey("weapons");
+            }}
+          >
+            <span className="tg-shop__module-glyph">武</span>
+            <span className="tg-shop__module-name">武器</span>
+            <span className="tg-shop__module-count">
+              {buyable.filter((w) => ownedIds.includes(w.id)).length}/{buyable.length}
+            </span>
+          </button>
         </div>
       </nav>
 
       {/* 当前模块内容 */}
-      <section className="tg-shop__module-panel" key={activeModule.key}>
-        <div className="tg-shop__section-title">
-          {activeModule.key === "resources" ? (
-            <Sparkles size={16} color="#a5b4fc" />
-          ) : (
-            <Swords size={16} color="#fbbf24" />
-          )}
-          {activeModule.label}
-          <span>
-            {activeModule.attackLabel ? activeModule.attackLabel + " · " : ""}
-            {activeModule.desc}
-          </span>
-        </div>
-
-        {activeModule.key === "resources" ? (
-          <ResourceShopGrid />
+      <section className="tg-shop__module-panel">
+        {activeModule === "resources" ? (
+          <>
+            <div className="tg-shop__section-title">
+              <Sparkles size={16} color="#a5b4fc" />
+              资源
+              <span>招募券、招募符、巅峰卷、碎片盒等养成资源</span>
+            </div>
+            <ResourceShopGrid />
+          </>
         ) : (
-          <div className="tg-shop__grid">
-            {activeModule.items.map((weapon) => {
-              const q = qualityOf(weapon);
-              const owned = ownedIds.includes(weapon.id);
-              const equipped = equippedId === weapon.id;
-              const price = priceOf(weapon);
-              const afford = coins >= price;
-              return (
-                <div
-                  key={weapon.id}
-                  className={"tg-shop__card" + (owned ? " is-owned" : afford ? "" : " is-disabled")}
-                  style={{ "--q": QUALITY_META[q].color, "--q-glow": QUALITY_META[q].glow } as React.CSSProperties}
+          <>
+            <div className="tg-shop__section-title">
+              <Swords size={16} color="#fbbf24" />
+              武器
+              <span>刀剑弓枪兵器，按分类筛选购买</span>
+            </div>
+            {/* 分类筛选：全部 / 剑 / 刀 / 枪 / 弓 */}
+            <div className="tg-shop__series-filter">
+              <button
+                type="button"
+                className={"tg-shop__series-chip" + (seriesFilter === "all" ? " is-active" : "")}
+                onClick={() => {
+                  playSfx("click");
+                  setSeriesFilter("all");
+                }}
+              >
+                <span className="tg-shop__module-glyph">全</span>
+                <span>全部</span>
+                <span className="tg-shop__series-count">{buyable.length}</span>
+              </button>
+              {seriesChips.map((chip) => (
+                <button
+                  key={chip.id}
+                  type="button"
+                  className={"tg-shop__series-chip" + (seriesFilter === chip.id ? " is-active" : "")}
+                  onClick={() => {
+                    playSfx("click");
+                    setSeriesFilter(chip.id);
+                  }}
                 >
-                  <div className="tg-shop__card-icon tg-shop__card-icon--weapon">
-                    <img src={weaponIconPath(weapon)} alt={weapon.name} />
-                  </div>
-                  <div className="tg-shop__card-name">{weapon.name}</div>
-                  <div className="tg-shop__card-desc">
-                    {getSeries(weapon.series as WeaponSeriesId).name} · {QUALITY_META[q].label}色 · 伤 {Math.round(weapon.stats.damage)}
-                  </div>
-                  {!owned && (
-                    <div className="tg-shop__card-price">
-                      <Coins size={14} color="#fbbf24" />
-                      <span>{price}</span>
+                  <span className="tg-shop__module-glyph">{chip.glyph}</span>
+                  <span>{chip.name}</span>
+                  <span className="tg-shop__series-count">{chip.count}</span>
+                </button>
+              ))}
+            </div>
+            <div className="tg-shop__grid">
+              {filteredWeapons.map((weapon) => {
+                const q = qualityOf(weapon);
+                const owned = ownedIds.includes(weapon.id);
+                const equipped = equippedId === weapon.id;
+                const price = priceOf(weapon);
+                const afford = coins >= price;
+                return (
+                  <div
+                    key={weapon.id}
+                    className={"tg-shop__card" + (owned ? " is-owned" : afford ? "" : " is-disabled")}
+                    style={{ "--q": QUALITY_META[q].color, "--q-glow": QUALITY_META[q].glow } as React.CSSProperties}
+                  >
+                    <div className="tg-shop__card-icon tg-shop__card-icon--weapon">
+                      <img src={weaponIconPath(weapon)} alt={weapon.name} />
                     </div>
-                  )}
-                  {owned ? (
-                    <button className="tg-shop__card-buy is-owned" disabled>
-                      {equipped ? <><Gem size={13} />已装备</> : <><Check size={13} />已拥有</>}
-                    </button>
-                  ) : (
-                    <button
-                      className="tg-shop__card-buy"
-                      onClick={() => buyWeapon(weapon)}
-                      disabled={!afford}
-                    >
-                      {afford ? <><Coins size={13} />购买</> : "金币不足"}
-                    </button>
-                  )}
-                </div>
-              );
-            })}
-          </div>
-        )}
-        {activeModule.key !== "resources" && activeModule.items.length === 0 && (
-          <div className="tg-shop__empty">该模块暂无武器可购买</div>
+                    <div className="tg-shop__card-name">{weapon.name}</div>
+                    <div className="tg-shop__card-desc">
+                      {getSeries(weapon.series as WeaponSeriesId).name} · {QUALITY_META[q].label}色 · 伤 {Math.round(weapon.stats.damage)}
+                    </div>
+                    {!owned && (
+                      <div className="tg-shop__card-price">
+                        <Coins size={14} color="#fbbf24" />
+                        <span>{price}</span>
+                      </div>
+                    )}
+                    {owned ? (
+                      <button className="tg-shop__card-buy is-owned" disabled>
+                        {equipped ? <><Gem size={13} />已装备</> : <><Check size={13} />已拥有</>}
+                      </button>
+                    ) : (
+                      <button
+                        className="tg-shop__card-buy"
+                        onClick={() => buyWeapon(weapon)}
+                        disabled={!afford}
+                      >
+                        {afford ? <><Coins size={13} />购买</> : "金币不足"}
+                      </button>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+            {filteredWeapons.length === 0 && <div className="tg-shop__empty">该分类暂无武器可购买</div>}
+          </>
         )}
       </section>
 
