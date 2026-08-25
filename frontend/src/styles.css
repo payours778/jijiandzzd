@@ -7644,3 +7644,82 @@ body.game-active{position:fixed;inset:0;overflow:hidden;}
     height: 6px;
   }
 }
+/* === 商店分模块购买 === */
+.tg-shop__modules {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 4px;
+  border-bottom: 1px solid #334155;
+}
+.tg-shop__modules-label {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  flex-shrink: 0;
+  font-size: 12px;
+  font-weight: 700;
+  color: #94a3b8;
+}
+.tg-shop__module-tabs {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding: 2px 2px 4px;
+  scrollbar-width: thin;
+}
+.tg-shop__module-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+  padding: 7px 12px;
+  border: 1px solid #2a2f37;
+  border-radius: 8px;
+  background: #15171b;
+  color: #e5e7eb;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: border-color 0.18s, background 0.18s, color 0.18s;
+}
+.tg-shop__module-tab:hover {
+  border-color: #fbbf24;
+  color: #fbbf24;
+}
+.tg-shop__module-tab.is-active {
+  border-color: #fbbf24;
+  background: linear-gradient(180deg, rgba(251, 191, 36, 0.22), rgba(251, 191, 36, 0.1));
+  color: #fbbf24;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.12);
+}
+.tg-shop__module-glyph {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 6px;
+  background: rgba(251, 191, 36, 0.14);
+  color: #fbbf24;
+  font-size: 13px;
+  font-weight: 800;
+}
+.tg-shop__module-tab.is-active .tg-shop__module-glyph {
+  background: #fbbf24;
+  color: #0f172a;
+}
+.tg-shop__module-name { white-space: nowrap; }
+.tg-shop__module-count {
+  padding: 1px 7px;
+  border-radius: 999px;
+  background: rgba(74, 222, 128, 0.16);
+  color: #4ade80;
+  font-size: 11px;
+  font-weight: 700;
+}
+.tg-shop__module-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}

@@ -1,21 +1,38 @@
 /**
  * 军营 - 商店 (独立页签)
  * 合并资源商店(招募券/精英符/巅峰卷/碎片盒) 与 武器商店(可购买武器)
+ * 分模块购买：顶部模块页签切换，资源 / 各武器体系各成一模块
  */
 import { useMemo, useState } from "react";
-import { Check, Coins, Gem, ShoppingBag, Sparkles, Swords } from "lucide-react";
+import { Check, Coins, Gem, Layers, ShoppingBag, Sparkles, Swords } from "lucide-react";
 import { useAppStore } from "../../../../store/useAppStore";
 import { playSfx } from "../../../../audio/audioSystem";
 import {
   getSeries,
+  listSeries,
   listWeapons,
   weaponIconPath,
   type WeaponDefinition,
+  type WeaponSeries,
   type WeaponSeriesId,
 } from "../../weapons";
 import { ResourceShopGrid } from "./ResourceShopGrid";
 
 type QualityKey = "white" | "green" | "purple" | "gold" | "red";
+type ModuleKey = "resources" | WeaponSeriesId;
+
+/** 武器模块展示顺序（剑刀枪弓为主力，其余体系排后） */
+const SERIES_ORDER: WeaponSeriesId[] = [
+  "sword", "blade", "spear", "bow",
+  "dagger", "halberd", "hammer", "fan", "tome", "throwing",
+];
+
+const ATTACK_LABEL: Record<string, string> = {
+  melee: "近战",
+  ranged: "远程",
+  magic: "法术",
+  thrown: "投掷",
+};
 
 const QUALITY_META: Record<QualityKey, { label: string; color: string; glow: string }> = {
   white: { label: "白", color: "#d4d4d8", glow: "rgba(212,212,216,.28)" },
@@ -86,10 +103,21 @@ function writeStringList(key: string, values: string[]) {
   }
 }
 
+interface ShopModule {
+  key: ModuleKey;
+  label: string;
+  glyph: string;
+  desc: string;
+  attackLabel?: string;
+  series?: WeaponSeries;
+  items: WeaponDefinition[];
+}
+
 export function ShopScreen() {
   const coins = useAppStore((s) => s.coins);
   const [ownedIds, setOwnedIds] = useState<string[]>(() => readStringList(OWNED_KEY, []));
   const [equippedId, setEquippedId] = useState<string | null>(() => readEquipped());
+  const [activeKey, setActiveKey] = useState<ModuleKey>("resources");
 
   const weapons = useMemo(() => listWeapons() as WeaponDefinition[], []);
   const buyable = useMemo(
@@ -100,6 +128,37 @@ export function ShopScreen() {
         .sort((a, b) => QUALITY_ORDER.indexOf(qualityOf(a)) - QUALITY_ORDER.indexOf(qualityOf(b))),
     [weapons],
   );
+
+  /** 构建模块列表：资源 + 各武器体系（仅保留有可购商品的模块） */
+  const modules = useMemo<ShopModule[]>(() => {
+    const seriesMeta = listSeries();
+    const modules: ShopModule[] = [
+      {
+        key: "resources",
+        label: "资源",
+        glyph: "资",
+        desc: "招募券、招募符、巅峰卷、碎片盒等养成资源",
+        items: [],
+      },
+    ];
+    SERIES_ORDER.forEach((id) => {
+      const meta = seriesMeta.find((s) => s.id === id);
+      const items = buyable.filter((w) => w.series === id);
+      if (!meta || items.length === 0) return;
+      modules.push({
+        key: id,
+        label: meta.name,
+        glyph: meta.glyph,
+        desc: meta.description,
+        attackLabel: ATTACK_LABEL[meta.attackType],
+        series: meta,
+        items,
+      });
+    });
+    return modules;
+  }, [buyable]);
+
+  const activeModule = modules.find((m) => m.key === activeKey) ?? modules[0];
 
   const buyWeapon = (weapon: WeaponDefinition) => {
     const price = priceOf(weapon);
@@ -128,63 +187,104 @@ export function ShopScreen() {
         </div>
       </header>
 
-      <section className="tg-shop__section">
-        <div className="tg-shop__section-title">
-          <Sparkles size={16} color="#a5b4fc" />
-          资源商店
-          <span>金币购买招募资源</span>
+      {/* 模块页签栏：资源 + 各武器体系 */}
+      <nav className="tg-shop__modules" aria-label="商店模块">
+        <div className="tg-shop__modules-label">
+          <Layers size={14} color="#fbbf24" />
+          <span>模块</span>
         </div>
-        <ResourceShopGrid />
-      </section>
-
-      <section className="tg-shop__section">
-        <div className="tg-shop__section-title">
-          <Swords size={16} color="#fbbf24" />
-          武器商店
-          <span>金币购买兵器</span>
-        </div>
-        <div className="tg-shop__grid">
-          {buyable.map((weapon) => {
-            const q = qualityOf(weapon);
-            const owned = ownedIds.includes(weapon.id);
-            const equipped = equippedId === weapon.id;
-            const price = priceOf(weapon);
-            const afford = coins >= price;
+        <div className="tg-shop__module-tabs">
+          {modules.map((mod) => {
+            const isActive = mod.key === activeModule.key;
+            const ownedCount = mod.items.filter((w) => ownedIds.includes(w.id)).length;
             return (
-              <div
-                key={weapon.id}
-                className={"tg-shop__card" + (owned ? " is-owned" : afford ? "" : " is-disabled")}
-                style={{ "--q": QUALITY_META[q].color, "--q-glow": QUALITY_META[q].glow } as React.CSSProperties}
+              <button
+                key={mod.key}
+                type="button"
+                className={"tg-shop__module-tab" + (isActive ? " is-active" : "")}
+                onClick={() => {
+                  playSfx("click");
+                  setActiveKey(mod.key);
+                }}
               >
-                <div className="tg-shop__card-icon tg-shop__card-icon--weapon">
-                  <img src={weaponIconPath(weapon)} alt={weapon.name} />
-                </div>
-                <div className="tg-shop__card-name">{weapon.name}</div>
-                <div className="tg-shop__card-desc">{getSeries(weapon.series as WeaponSeriesId).name} · {QUALITY_META[q].label}色 · 伤 {Math.round(weapon.stats.damage)}</div>
-                {!owned && (
-                  <div className="tg-shop__card-price">
-                    <Coins size={14} color="#fbbf24" />
-                    <span>{price}</span>
-                  </div>
+                <span className="tg-shop__module-glyph">{mod.glyph}</span>
+                <span className="tg-shop__module-name">{mod.label}</span>
+                {mod.key !== "resources" && (
+                  <span className="tg-shop__module-count">
+                    {ownedCount}/{mod.items.length}
+                  </span>
                 )}
-                {owned ? (
-                  <button className="tg-shop__card-buy is-owned" disabled>
-                    {equipped ? <><Gem size={13} />已装备</> : <><Check size={13} />已拥有</>}
-                  </button>
-                ) : (
-                  <button
-                    className="tg-shop__card-buy"
-                    onClick={() => buyWeapon(weapon)}
-                    disabled={!afford}
-                  >
-                    {afford ? <><Coins size={13} />购买</> : "金币不足"}
-                  </button>
-                )}
-              </div>
+              </button>
             );
           })}
         </div>
-        {buyable.length === 0 && <div className="tg-shop__empty">暂无武器可购买</div>}
+      </nav>
+
+      {/* 当前模块内容 */}
+      <section className="tg-shop__module-panel" key={activeModule.key}>
+        <div className="tg-shop__section-title">
+          {activeModule.key === "resources" ? (
+            <Sparkles size={16} color="#a5b4fc" />
+          ) : (
+            <Swords size={16} color="#fbbf24" />
+          )}
+          {activeModule.label}
+          <span>
+            {activeModule.attackLabel ? activeModule.attackLabel + " · " : ""}
+            {activeModule.desc}
+          </span>
+        </div>
+
+        {activeModule.key === "resources" ? (
+          <ResourceShopGrid />
+        ) : (
+          <div className="tg-shop__grid">
+            {activeModule.items.map((weapon) => {
+              const q = qualityOf(weapon);
+              const owned = ownedIds.includes(weapon.id);
+              const equipped = equippedId === weapon.id;
+              const price = priceOf(weapon);
+              const afford = coins >= price;
+              return (
+                <div
+                  key={weapon.id}
+                  className={"tg-shop__card" + (owned ? " is-owned" : afford ? "" : " is-disabled")}
+                  style={{ "--q": QUALITY_META[q].color, "--q-glow": QUALITY_META[q].glow } as React.CSSProperties}
+                >
+                  <div className="tg-shop__card-icon tg-shop__card-icon--weapon">
+                    <img src={weaponIconPath(weapon)} alt={weapon.name} />
+                  </div>
+                  <div className="tg-shop__card-name">{weapon.name}</div>
+                  <div className="tg-shop__card-desc">
+                    {getSeries(weapon.series as WeaponSeriesId).name} · {QUALITY_META[q].label}色 · 伤 {Math.round(weapon.stats.damage)}
+                  </div>
+                  {!owned && (
+                    <div className="tg-shop__card-price">
+                      <Coins size={14} color="#fbbf24" />
+                      <span>{price}</span>
+                    </div>
+                  )}
+                  {owned ? (
+                    <button className="tg-shop__card-buy is-owned" disabled>
+                      {equipped ? <><Gem size={13} />已装备</> : <><Check size={13} />已拥有</>}
+                    </button>
+                  ) : (
+                    <button
+                      className="tg-shop__card-buy"
+                      onClick={() => buyWeapon(weapon)}
+                      disabled={!afford}
+                    >
+                      {afford ? <><Coins size={13} />购买</> : "金币不足"}
+                    </button>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        )}
+        {activeModule.key !== "resources" && activeModule.items.length === 0 && (
+          <div className="tg-shop__empty">该模块暂无武器可购买</div>
+        )}
       </section>
 
       <p className="tg-shop__note">商品从后端动态拉取。武器购买后在「我的武将」→「军械库」中装备。每局游戏结束后, 击杀奖励的金币会同步到此账户。</p>
