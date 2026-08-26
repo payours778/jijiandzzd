@@ -10,9 +10,9 @@
 import type { WeaponSeriesId } from "./types";
 
 /** 武器素材版本号（更新素材时递增） */
-export const WEAPON_ASSET_VERSION = "3";
+export const WEAPON_ASSET_VERSION = "4";
 
-/** 近战系（复用剑素材：挥砍动画，单帧 64x64） */
+/** 近战系（复用剑素材：挥砍动画，单帧 120x120） */
 const SWORD_KIND: WeaponSeriesId[] = ["sword", "blade", "spear", "halberd", "hammer", "dagger"];
 /** 远程/法器系（复用弓素材：动画，单帧 52x52） */
 
@@ -32,8 +32,8 @@ export function weaponAnimPath(weapon: { id: string; series: WeaponSeriesId }): 
   return `/assets/weapons/${weapon.series}/${weapon.id}/${file}?v=${WEAPON_ASSET_VERSION}`;
 }
 
-/** 动画条单帧尺寸（与素材一致：剑 64x64，弓 52x52） */
+/** 动画条单帧尺寸（与素材一致：近战 120x120，弓 52x52） */
 export function weaponAnimFrameSize(series: WeaponSeriesId): number {
-  return isSwordKind(series) ? 64 : 52;
+  return isSwordKind(series) ? 120 : 52;
 }
 

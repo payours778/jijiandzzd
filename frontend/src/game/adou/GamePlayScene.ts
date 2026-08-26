@@ -2605,7 +2605,8 @@ private updateCoinText() {
       .sprite(center.x, center.y, animKey, 0)
       .setOrigin(0.5)
       .setDepth(82)
-      .setDisplaySize(Config.cellWidth * 0.95, Config.cellHeight * 0.95);
+      // 120 画布：柄端在中心，放大一点让挥砍弧线清晰可见
+      .setDisplaySize(Config.cellWidth * 1.25, Config.cellHeight * 1.25);
     sprite.setFlipX(true);
     sprite.play(animKey);
     sprite.once(Phaser.Animations.Events.ANIMATION_COMPLETE, () => {
