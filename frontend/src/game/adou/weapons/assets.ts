@@ -10,7 +10,7 @@
 import type { WeaponSeriesId } from "./types";
 
 /** 武器素材版本号（更新素材时递增） */
-export const WEAPON_ASSET_VERSION = "2";
+export const WEAPON_ASSET_VERSION = "3";
 
 /** 近战系（复用剑素材：挥砍动画，单帧 64x64） */
 const SWORD_KIND: WeaponSeriesId[] = ["sword", "blade", "spear", "halberd", "hammer", "dagger"];
@@ -36,3 +36,4 @@ export function weaponAnimPath(weapon: { id: string; series: WeaponSeriesId }): 
 export function weaponAnimFrameSize(series: WeaponSeriesId): number {
   return isSwordKind(series) ? 64 : 52;
 }
+
