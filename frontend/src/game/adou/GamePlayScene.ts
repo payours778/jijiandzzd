@@ -2558,14 +2558,13 @@ private updateCoinText() {
     });
   }
 
-  /** 解析该单位在战斗中使用的武器（武将按专属兵器，小兵按兵种） */
+  /** 解析该单位在战斗中使用的武器（仅武将按专属兵器；小兵不装备武器，只走文字特效） */
   resolveBattleWeaponId(unit: Unit): string | null {
-    const u = unit as unknown as { generalName?: string; soldierType?: string };
+    const u = unit as unknown as { generalName?: string };
     if (u.generalName) {
       return getWeaponByHolder(u.generalName)?.id ?? null;
     }
-    const map: Record<string, string> = { 刀: "podao", 枪: "qixing-spear", 弓: "tongbei-bow" };
-    return u.soldierType ? (map[u.soldierType] ?? null) : null;
+    return null;
   }
 
   /** 在单位格子播放其武器挥砍/射击动画（低频率节流，避免高频攻击叠加） */
