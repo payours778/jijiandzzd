@@ -15,7 +15,7 @@ import {
 } from "./config";
 import { Unit } from "./Unit";
 import { Farm } from "./units/Farm";
-import { General } from "./units/General";
+import { General, GENERAL_NAME_TO_ID } from "./units/General";
 import { GeneralFragment } from "./units/GeneralFragment";
 import { Medic } from "./units/Medic";
 import { Soldier } from "./units/Soldier";
@@ -141,6 +141,11 @@ export class GamePlayScene extends Phaser.Scene {
   private selectedTestType: string | null = null;
   private testButtons: Phaser.GameObjects.Text[] = [];
   private testSfxButtons: Phaser.GameObjects.Text[] = [];
+  private testWeaponButtons: Phaser.GameObjects.Text[] = [];
+  private testSelectedWeaponId: string | null = null;
+  private testEquipTarget: General | null = null;
+  private testEquipMarker?: Phaser.GameObjects.Rectangle;
+  private testWeaponLabel?: Phaser.GameObjects.Text;
   private cardTooltip?: Phaser.GameObjects.Text;
   private slashPool: Phaser.GameObjects.Graphics[] = [];
   private arrowPool: Phaser.GameObjects.Graphics[] = [];
@@ -391,7 +396,13 @@ export class GamePlayScene extends Phaser.Scene {
       color: "#a78bfa",
     });
 
+    this.testWeaponButtons = [];
+    this.testSelectedWeaponId = null;
+    this.testEquipTarget = null;
+    this.testEquipMarker = undefined;
+    this.testWeaponLabel = undefined;
     this.createRecycleBin();
+    this.createTestWeaponPanel();
 
     const testSfxList = [
       { text: "吕布出场", sfx: "lubu_boss_entry" },
@@ -476,6 +487,109 @@ export class GamePlayScene extends Phaser.Scene {
     });
   }
 
+  private createTestWeaponPanel() {
+    const px0 = 826;
+    const py0 = 208;
+    const pw = 132;
+    const ph = 240;
+    this.drawRoundedPanel(px0, py0, pw, ph, 0x15181d, 0.85, 0x57534e);
+
+    this.add.text(px0 + pw / 2, py0 + 13, "武器（点击装备）", {
+      fontFamily: Config.fontFamily, fontSize: "13px", color: "#fbbf24", fontStyle: "bold",
+    }).setOrigin(0.5);
+
+    const list: Array<{ id: string | null; label: string }> = [
+      { id: null, label: "卸下（默认）" },
+      { id: "longdan-spear", label: "枪·龙胆" },
+      { id: "tie-qiang", label: "枪·铁枪" },
+      { id: "she-mao", label: "矛·蛇矛" },
+      { id: "fangtian-ji", label: "戟·画戟" },
+      { id: "da-dao", label: "刀·长刀" },
+      { id: "qinglong-blade", label: "刀·青龙" },
+      { id: "qinggang-sword", label: "剑·青锋" },
+      { id: "yitian-sword", label: "剑·倚天" },
+      { id: "lie-gong", label: "弓·烈弓" },
+      { id: "luori-bow", label: "弓·落日" },
+    ];
+    const bw = 116;
+    const bh = 18;
+    const gap = 1;
+    const startY = py0 + 26;
+    list.forEach((item, index) => {
+      const by = startY + index * (bh + gap);
+      this.drawRoundedPanel(px0 + 8, by, bw, bh, 0x1f2937, 0.9, 0x57534e);
+      const btn = this.add.text(px0 + 8 + bw / 2, by + bh / 2, item.label, {
+        fontFamily: Config.fontFamily, fontSize: "13px", color: "#e5e7eb",
+      }).setOrigin(0.5).setInteractive({ useHandCursor: true }).setData("weaponId", item.id);
+      btn.on("pointerdown", () => this.onTestWeaponClick(item.id));
+      this.testWeaponButtons.push(btn);
+    });
+
+    this.testWeaponLabel = this.add.text(px0 + pw / 2, py0 + ph + 16, "", {
+      fontFamily: Config.fontFamily, fontSize: "13px", color: "#fcd34d",
+    }).setOrigin(0.5);
+    this.updateTestWeaponPanel();
+  }
+
+  private onTestWeaponClick(weaponId: string | null) {
+    playSfx("click");
+    this.testSelectedWeaponId = weaponId;
+    this.updateTestWeaponPanel();
+    if (this.testEquipTarget) {
+      this.equipTestWeapon(this.testEquipTarget, weaponId);
+      this.messageText.setText(`已为 ${this.testEquipTarget.generalName} 更换武器`);
+    } else {
+      this.messageText.setText(weaponId ? "已选择武器，拖一个武将到棋盘即可装备" : "已选择卸下武器");
+    }
+  }
+
+  private equipTestWeapon(unit: General, weaponId: string | null) {
+    if (weaponId) {
+      unit.equipWeapon(weaponId);
+    } else {
+      unit.unequipWeapon();
+    }
+    const heroId = GENERAL_NAME_TO_ID[unit.generalName];
+    try {
+      (window as any).__generalStore?.getState?.()?.equipWeapon?.(heroId, "main", weaponId);
+    } catch { /* 静默 */ }
+    this.updateTestWeaponPanel();
+  }
+
+  private selectTestGeneral(unit: General) {
+    this.testEquipTarget = unit;
+    if (!this.testEquipMarker) {
+      this.testEquipMarker = this.add.rectangle(0, 0, Config.cellWidth, Config.cellHeight)
+        .setStrokeStyle(2, 0xfbbf24, 1)
+        .setFillStyle(0xfbbf24, 0.12)
+        .setDepth(50);
+    }
+    this.testEquipMarker.setPosition(unit.x, unit.y);
+    this.testEquipMarker.setVisible(true);
+    this.messageText.setText(`已选中 ${unit.generalName}，点击右侧武器即可更换`);
+    this.updateTestWeaponPanel();
+  }
+
+  private clearTestEquipTarget() {
+    this.testEquipTarget = null;
+    this.testEquipMarker?.setVisible(false);
+    this.updateTestWeaponPanel();
+  }
+
+  private updateTestWeaponPanel() {
+    this.testWeaponButtons.forEach((btn) => {
+      const id = btn.getData("weaponId") as string | null;
+      const active = id === this.testSelectedWeaponId;
+      btn.setBackgroundColor(active ? "#b45309" : "transparent");
+      btn.setColor(active ? "#fff7ed" : "#e5e7eb");
+    });
+    const target = this.testEquipTarget;
+    const pending = this.testSelectedWeaponId ? (getWeapon(this.testSelectedWeaponId)?.name ?? "默认") : "默认";
+    this.testWeaponLabel?.setText(
+      target ? `已选 ${target.generalName}：${target.getWeapon()?.name ?? "默认"}` : `待装：${pending}`
+    );
+  }
+
   private handleTestPointerDown(pointer: Phaser.Input.Pointer) {
     for (const button of this.testSfxButtons) {
       if (button.getBounds().contains(pointer.x, pointer.y)) {
@@ -552,6 +666,15 @@ export class GamePlayScene extends Phaser.Scene {
     if (this.gameOver) {
       return;
     }
+
+    if (this.testEquipTarget) {
+      if (this.testEquipTarget.dead || this.testEquipTarget.isDestroyed) {
+        this.clearTestEquipTarget();
+      } else if (this.testEquipMarker) {
+        this.testEquipMarker.setPosition(this.testEquipTarget.x, this.testEquipTarget.y);
+      }
+    }
+
 
     this.checkSynthesis();
 
@@ -1511,7 +1634,15 @@ export class GamePlayScene extends Phaser.Scene {
     }
 
     this.board[row][col] = unit;
-    unit.setInteractive({ draggable: true });
+    if (unit instanceof General) {
+      unit.setInteractive({ draggable: true });
+      unit.on("pointerdown", () => this.selectTestGeneral(unit));
+      if (this.testSelectedWeaponId) {
+        this.equipTestWeapon(unit, this.testSelectedWeaponId);
+      }
+    } else {
+      unit.setInteractive({ draggable: true });
+    }
     this.messageText.setText(`已放置：${type}`);
   }
 
@@ -1532,6 +1663,9 @@ export class GamePlayScene extends Phaser.Scene {
   }
 
   private recycleUnit(unit: Unit) {
+    if (this.testEquipTarget === unit) {
+      this.clearTestEquipTarget();
+    }
     this.board[unit.row][unit.col] = null;
 
     if (unit.baseText in FragmentPool) {
@@ -3099,5 +3233,11 @@ private updateCoinText() {
     return "#c084fc";
   }
 }
+
+
+
+
+
+
 
 
