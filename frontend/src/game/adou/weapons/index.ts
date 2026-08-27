@@ -12,6 +12,7 @@ export {
   listWeapons,
   getWeapon,
   getWeaponByHolder,
+  getDefaultWeaponFor,
   getWeaponsBySeries,
   queryWeapons,
 } from "./registry";

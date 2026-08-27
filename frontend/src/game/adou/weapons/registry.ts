@@ -605,6 +605,13 @@ export function getWeaponByHolder(holder: string): WeaponDefinition | undefined 
   return weapons.find((w) => w.defaultHolder === holder);
 }
 
+/** 获取武将默认白色（普通品质）基础武器：按专属兵器体系取同体系白装 */
+export function getDefaultWeaponFor(generalName: string): WeaponDefinition | undefined {
+  const holder = weapons.find((w) => w.defaultHolder === generalName);
+  if (!holder) return undefined;
+  return weapons.find((w) => w.series === holder.series && w.rarity === "common") ?? holder;
+}
+
 /** 按体系查找 */
 export function getWeaponsBySeries(series: WeaponSeriesId): WeaponDefinition[] {
   return weapons.filter((w) => w.series === series);

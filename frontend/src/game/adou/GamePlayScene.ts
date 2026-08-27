@@ -45,7 +45,7 @@ import { useAppStore } from "../../store/useAppStore";
 
 import {
   getWeapon,
-  getWeaponByHolder,
+  getDefaultWeaponFor,
   getWeaponsBySeries,
   getSeries,
   WEAPON_ASSET_VERSION,
@@ -2749,7 +2749,7 @@ private updateCoinText() {
       return holder.weaponId;
     }
     if (holder.generalName) {
-      return getWeaponByHolder(holder.generalName)?.id ?? null;
+      return getDefaultWeaponFor(holder.generalName)?.id ?? null;
     }
     return null;
   }
@@ -2926,6 +2926,28 @@ private updateCoinText() {
       alpha: 0,
       duration: 200,
       onComplete: () => streak.destroy(),
+    });
+  }
+
+  /** 戳击落点冲击特效（武将用），不生成额外枪身贴图，交由挂载武器表现 */
+  thrustImpact(unit: Unit, targetCol: number) {
+    const safeTargetCol = Math.max(0, targetCol);
+    const endX = Config.boardX + safeTargetCol * Config.cellWidth + Config.cellWidth / 2;
+    const flash = this.add.circle(endX, unit.y, 8, 0xfbbf24, 0.9).setDepth(90);
+    const ring = this.add.circle(endX, unit.y, 5, 0xfff7d6, 0.8).setDepth(90);
+    this.tweens.add({
+      targets: flash,
+      scale: 3,
+      alpha: 0,
+      duration: 130,
+      onComplete: () => flash.destroy(),
+    });
+    this.tweens.add({
+      targets: ring,
+      scale: 2.2,
+      alpha: 0,
+      duration: 160,
+      onComplete: () => ring.destroy(),
     });
   }
 
