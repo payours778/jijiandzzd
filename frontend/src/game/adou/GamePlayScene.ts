@@ -50,6 +50,7 @@ import {
   WEAPON_ASSET_VERSION,
   weaponAnimFrameSize,
   weaponAnimPath,
+  type WeaponDefinition,
 } from "./weapons";
 
 interface HandCard {
@@ -2565,11 +2566,21 @@ private updateCoinText() {
 
   /** 解析该单位在战斗中使用的武器（仅武将按专属兵器；小兵不装备武器，只走文字特效） */
   resolveBattleWeaponId(unit: Unit): string | null {
-    const u = unit as unknown as { generalName?: string };
-    if (u.generalName) {
-      return getWeaponByHolder(u.generalName)?.id ?? null;
+    // 优先使用该单位实际装备的武器；未装备时回退到武将专属默认兵器
+    const holder = unit as unknown as { generalName?: string; weaponId?: string | null };
+    if (holder.weaponId) {
+      return holder.weaponId;
+    }
+    if (holder.generalName) {
+      return getWeaponByHolder(holder.generalName)?.id ?? null;
     }
     return null;
+  }
+
+  /** 获取单位当前战斗武器定义（已装备优先，无则用默认专属） */
+  getBattleWeapon(unit: Unit): WeaponDefinition | null {
+    const id = this.resolveBattleWeaponId(unit);
+    return id ? getWeapon(id) ?? null : null;
   }
 
   /** 在单位格子播放其武器挥砍/射击动画（低频率节流，避免高频攻击叠加） */
@@ -3088,3 +3099,5 @@ private updateCoinText() {
     return "#c084fc";
   }
 }
+
+

@@ -7,6 +7,7 @@ import { GeneralConfig, type GeneralKey, type GeneralConfigItem, GENERAL_NAME_TO
 // 3B: 接入武器系统 - 通用 HasWeaponSlot 接口
 import { attachWeapon, detachWeapon, getEquippedWeapon, type HasWeaponSlot } from "../weapons/mount";
 import type { WeaponDefinition, WeaponId } from "../weapons/types";
+import { getWeaponByHolder, weaponIconPath } from "../weapons";
 // 3A: 兼容老 API
 export { GeneralConfig, GENERAL_NAME_TO_ID };
 export type { GeneralKey, GeneralConfigItem };
@@ -61,10 +62,9 @@ export class General extends Unit implements HasWeaponSlot {
   private guanYuSkillCooldown = 6000;
   private guanYuLeaping = false;
   private zhangFeiDamageAccumulator = 0;
-  private guanpingWeapon?: Phaser.GameObjects.Image;
-  private guanpingWeaponAnimating = false;
-  private zhaoyunWeapon?: Phaser.GameObjects.Image;
-  private zhaoyunWeaponAnimating = false;
+  private mountedWeapon?: Phaser.GameObjects.Image;
+  private mountedWeaponAnimating = false;
+  private mountedWeaponSynced = false;
   private weiYanRageRemaining = 0;
   private weiYanRageCooldownRemaining = 0;
   xp = 0;
@@ -91,6 +91,15 @@ export class General extends Unit implements HasWeaponSlot {
     this.showHpText(true);
     this.attachXpBar();
     // 5A: 从 generals/store 读取已装备的主武器, 自动 attach
+    // 武将挂载武器：龙胆亮银枪 / 青龙做月刀例，后续随装备武器切换贴图
+    if (generalName === "关平" || generalName === "赵云") {
+      this.mountedWeapon = this.scene.add
+        .image(x + 26, y + 10, "zhaoyun-spear")
+        .setOrigin(0.5, 1)
+        .setDepth(80)
+        .setDisplaySize(30, 60);
+    }
+
     try {
       const inst = (window as any).__generalStore?.getState?.()?.instances?.[GENERAL_NAME_TO_ID[generalName] as string];
       const mainW = inst?.equippedWeapons?.main;
@@ -98,22 +107,8 @@ export class General extends Unit implements HasWeaponSlot {
         this.equipWeapon(mainW);
       }
     } catch { /* 静默 */ }
+    this.syncMountedWeapon(this.scene);
 
-    if (generalName === "关平") {
-      this.guanpingWeapon = this.scene.add
-        .image(x + 26, y + 12, "guanping-saber")
-        .setOrigin(0.5, 1)
-        .setDepth(80)
-        .setDisplaySize(12, 35);
-    }
-    // 赵云待机：龙胆亮银枪竖立于身侧右侧，攻击时向左突刺
-    if (generalName === "赵云") {
-      this.zhaoyunWeapon = this.scene.add
-        .image(x + 28, y + 6, "zhaoyun-spear")
-        .setOrigin(0.5, 1)
-        .setDepth(80)
-        .setDisplaySize(30, 60);
-    }
   }
 
   playUpgradeSfx() {
@@ -125,11 +120,9 @@ export class General extends Unit implements HasWeaponSlot {
   }
 
   // 3B: 武器变化回调 (HasWeaponSlot 接口)
-  onWeaponChanged(weapon: WeaponDefinition | null): void {
-    // 当前仅做日志, Phase 5 接入战斗时再实现特效切换
-    if (weapon) {
-      console.debug(`[General] ${this.generalName} 装备 ${weapon.name}`);
-    }
+  onWeaponChanged(_weapon: WeaponDefinition | null): void {
+    // 武器变更时同步挂载武器贴图
+    this.syncMountedWeapon(this.scene);
   }
 
   // 3B: 装备/卸下 API
@@ -150,8 +143,7 @@ export class General extends Unit implements HasWeaponSlot {
 
     this.syncXpBar();
     this.updateLongDanLabel();
-    this.updateGuanpingWeapon();
-    this.updateZhaoyunWeapon();
+    this.updateMountedWeapon();
     const config = GeneralConfig[this.generalName];
 
     if (this.generalName === "黄祖") {
@@ -208,8 +200,12 @@ export class General extends Unit implements HasWeaponSlot {
           zombie.markZhaoyunHit();
           zombie.takeDamage(config.damage * damageMultiplier * longDanMultiplier, false, this);
         });
-        scene.showZhaoyunStab(this);
-        this.animateZhaoyunWeaponAttack(scene);
+        if (this.battleWeapon()?.attackType === "ranged") {
+          scene.showHuangzhongBow(this);
+        } else {
+          scene.showZhaoyunStab(this);
+        }
+        this.animateMountedWeapon(scene);
         playGeneralAttackSfx(this.generalName);
         this.attackTimer = config.cooldown * cooldownMultiplier;
       }
@@ -222,6 +218,7 @@ export class General extends Unit implements HasWeaponSlot {
         targets.forEach((zombie) => zombie.takeDamage(config.damage * damageMultiplier, false, this));
         scene.huangzhongArrowRow(this.row, config.damage * damageMultiplier);
         scene.showHuangzhongBow(this);
+        scene.playWeaponStrike(this);
         playGeneralAttackSfx(this.generalName);
         if (Math.random() < (config.arrowStormChance ?? 0.1)) {
           scene.rainArrowsAll(config.damage * damageMultiplier, this, config.arrowStormDuration ?? 4700);
@@ -249,6 +246,7 @@ export class General extends Unit implements HasWeaponSlot {
       if (guanYuTarget) {
         guanYuTarget.takeDamage(config.damage * damageMultiplier, false, this);
         scene.showGuanyuSlash(this);
+        scene.playWeaponStrike(this);
         playGeneralAttackSfx(this.generalName);
         this.attackTimer = config.cooldown * cooldownMultiplier;
       }
@@ -277,6 +275,7 @@ export class General extends Unit implements HasWeaponSlot {
         this.huangZuRapidRemaining = config.rapidDuration ?? 3000;
         this.huangZuRapidAttackTimer = 0;
         scene.showHuangzhongBow(this);
+        scene.playWeaponStrike(this);
         playSfx("bow");
         playSfx("huangzu_skill_voice");
       }
@@ -286,6 +285,7 @@ export class General extends Unit implements HasWeaponSlot {
           const rapidTarget = scene.getHighestHpZombie();
           if (rapidTarget) {
             scene.shootArrow(this.x, this.y, rapidTarget, config.damage * damageMultiplier, this);
+            scene.playWeaponStrike(this);
             playSfx("bow");
             this.huangZuRapidAttackTimer =
               (config.cooldown * cooldownMultiplier) / (config.rapidSpeedMultiplier ?? 3);
@@ -296,6 +296,7 @@ export class General extends Unit implements HasWeaponSlot {
       const huangZuTarget = scene.getNearestZombieInRow(this.row, this.x);
       if (huangZuTarget) {
         scene.shootArrow(this.x, this.y, huangZuTarget, config.damage * damageMultiplier, this);
+        scene.playWeaponStrike(this);
         playSfx("bow");
         this.attackTimer = config.cooldown * cooldownMultiplier;
       }
@@ -322,7 +323,7 @@ export class General extends Unit implements HasWeaponSlot {
       const targets = scene.getZombiesInCircle(this.row, this.col, 1.5);
       if (targets.length > 0) {
         targets.forEach((zombie) => zombie.takeDamage(config.damage * damageMultiplier, false, this));
-        this.animateGuanpingWeaponAttack(scene);
+        this.animateMountedWeapon(scene);
         playGeneralAttackSfx(this.generalName);
         if (Math.random() < (config.bladeChance ?? 0.05)) {
           this.triggerGuanpingBlade(scene);
@@ -360,6 +361,7 @@ export class General extends Unit implements HasWeaponSlot {
           });
           this.heal(totalDamage * (config.weiYanLifestealRatio ?? 1));
           scene.showHeavyThrust(this);
+          scene.playWeaponStrike(this);
           playGeneralAttackSfx(this.generalName);
           if (targets.some((zombie) => zombie.dead)) {
             playSfx("weiyan_kill");
@@ -376,6 +378,7 @@ export class General extends Unit implements HasWeaponSlot {
       if (target) {
         target.takeDamage(config.damage * damageMultiplier, false, this);
         scene.showHeavyThrust(this);
+        scene.playWeaponStrike(this);
         playGeneralAttackSfx(this.generalName);
         if (target.dead) {
           playSfx("weiyan_kill");
@@ -659,10 +662,8 @@ export class General extends Unit implements HasWeaponSlot {
     this.longDanLabel = undefined;
     this.reviveLabel?.destroy();
     this.reviveCross?.destroy();
-    this.guanpingWeapon?.destroy();
-    this.guanpingWeapon = undefined;
-    this.zhaoyunWeapon?.destroy();
-    this.zhaoyunWeapon = undefined;
+    this.mountedWeapon?.destroy();
+    this.mountedWeapon = undefined;
     this.xpBarTween?.remove();
     this.xpBarTween = undefined;
     this.xpBar?.destroy();
@@ -788,85 +789,122 @@ export class General extends Unit implements HasWeaponSlot {
     });
   }
 
-  private updateGuanpingWeapon() {
-    if (!this.guanpingWeapon) {
+  private updateMountedWeapon() {
+    if (!this.mountedWeapon) {
       return;
     }
-    if (this.dead || this.reviving || this.guanpingWeaponAnimating) {
-      if (!this.guanpingWeaponAnimating) {
-        this.guanpingWeapon.setVisible(false);
+    if (this.dead || this.reviving || this.mountedWeaponAnimating) {
+      if (!this.mountedWeaponAnimating) {
+        this.mountedWeapon.setVisible(false);
       }
       return;
     }
-    this.guanpingWeapon.setPosition(this.x + 26, this.y + 12);
-    this.guanpingWeapon.setAngle(0);
-    this.guanpingWeapon.setScale(1);
-    this.guanpingWeapon.setAlpha(1);
-    this.guanpingWeapon.setVisible(true);
+    const pos = this.mountedWeaponIdlePos();
+    this.mountedWeapon.setPosition(pos.x, pos.y);
+    this.mountedWeapon.setAngle(0);
+    this.mountedWeapon.setScale(1);
+    this.mountedWeapon.setAlpha(1);
+    this.mountedWeapon.setVisible(true);
   }
 
-  private animateGuanpingWeaponAttack(scene: GamePlayScene) {
-    if (!this.guanpingWeapon) {
+  private mountedWeaponIdlePos(): { x: number; y: number } {
+    return this.generalName === "赵云"
+      ? { x: this.x + 28, y: this.y + 6 }
+      : { x: this.x + 26, y: this.y + 12 };
+  }
+
+  private battleWeapon(): WeaponDefinition | null {
+    return this.getWeapon() ?? getWeaponByHolder(this.generalName) ?? null;
+  }
+
+  /** 将挂载武器贴图同步为当前装备/默认武器，使武器素材随更换自动变化 */
+  private syncMountedWeapon(scene: Phaser.Scene) {
+    if (!this.mountedWeapon) {
       return;
     }
-    this.guanpingWeaponAnimating = true;
-    this.guanpingWeapon.setPosition(this.x + 26, this.y + 12);
-    this.guanpingWeapon.setAngle(0);
-    this.guanpingWeapon.setScale(1);
-    this.guanpingWeapon.setAlpha(1);
-    this.guanpingWeapon.setVisible(true);
-    const targetScale = (Config.cellWidth * 1.5) / 35;
-    scene.tweens.add({
-      targets: this.guanpingWeapon,
-      angle: 360,
-      scale: targetScale,
-      alpha: 0,
-      duration: 280,
-      ease: "Cubic.easeOut",
-      onComplete: () => {
-        this.guanpingWeaponAnimating = false;
-        this.updateGuanpingWeapon();
-      },
+    const weapon = this.battleWeapon();
+    if (!weapon) {
+      this.mountedWeapon.setVisible(false);
+      return;
+    }
+    const key = `weapon-model-${weapon.id}`;
+    if (scene.textures.exists(key)) {
+      this.mountedWeapon.setTexture(key);
+      this.applyMountedWeaponSize(this.mountedWeapon, weapon);
+      return;
+    }
+    if (scene.load.isLoading()) {
+      return;
+    }
+    scene.load.image(key, weaponIconPath(weapon));
+    scene.load.once(`filecomplete-image-${key}`, () => {
+      if (this.mountedWeapon?.active) {
+        this.mountedWeapon.setTexture(key);
+        this.applyMountedWeaponSize(this.mountedWeapon, weapon);
+      }
     });
+    scene.load.start();
   }
 
-  private updateZhaoyunWeapon() {
-    if (!this.zhaoyunWeapon) {
-      return;
+  private applyMountedWeaponSize(img: Phaser.GameObjects.Image, weapon: WeaponDefinition) {
+    img.setOrigin(0.5, 1);
+    switch (weapon.series) {
+      case "bow":
+        img.setDisplaySize(34, 30);
+        break;
+      case "halberd":
+        img.setDisplaySize(26, 26);
+        break;
+      case "spear":
+        img.setDisplaySize(30, 60);
+        break;
+      case "blade":
+        img.setDisplaySize(26, 54);
+        break;
+      default:
+        img.setDisplaySize(26, 52);
+        break;
     }
-    if (this.dead || this.reviving || this.zhaoyunWeaponAnimating) {
-      if (!this.zhaoyunWeaponAnimating) {
-        this.zhaoyunWeapon.setVisible(false);
-      }
-      return;
-    }
-    this.zhaoyunWeapon.setPosition(this.x + 28, this.y + 6);
-    this.zhaoyunWeapon.setAngle(0);
-    this.zhaoyunWeapon.setScale(1);
-    this.zhaoyunWeapon.setAlpha(1);
-    this.zhaoyunWeapon.setVisible(true);
   }
 
-  private animateZhaoyunWeaponAttack(scene: GamePlayScene) {
-    if (!this.zhaoyunWeapon || this.zhaoyunWeaponAnimating) {
+  /** 根据当前武器体系播放对应攻击动作：枪刺、刀挥、剑劈刺、弓射击 */
+  private animateMountedWeapon(scene: GamePlayScene) {
+    if (!this.mountedWeapon || this.mountedWeaponAnimating) {
       return;
     }
-    this.zhaoyunWeaponAnimating = true;
-    const idleX = this.x + 28;
-    const idleY = this.y + 6;
-    this.zhaoyunWeapon.setPosition(idleX, idleY);
-    this.zhaoyunWeapon.setAngle(0);
-    this.zhaoyunWeapon.setScale(1);
-    this.zhaoyunWeapon.setAlpha(1);
-    this.zhaoyunWeapon.setVisible(true);
-    // 还原原版枪兵刺击：枪身转平指向左侧，连续三次前刺“刺刺刺”，一次比一次刺得深
+    const weapon = this.battleWeapon();
+    if (!weapon || weapon.attackType === "ranged") {
+      scene.playWeaponStrike(this);
+      return;
+    }
+    this.mountedWeaponAnimating = true;
+    const pos = this.mountedWeaponIdlePos();
+    this.mountedWeapon.setPosition(pos.x, pos.y);
+    this.mountedWeapon.setAngle(0);
+    this.mountedWeapon.setScale(1);
+    this.mountedWeapon.setAlpha(1);
+    this.mountedWeapon.setVisible(true);
+    if (weapon.series === "spear" || weapon.series === "halberd") {
+      this.animateMountedThrust(scene, pos);
+    } else if (weapon.series === "blade") {
+      this.animateMountedSpin(scene);
+    } else if (weapon.series === "sword") {
+      this.animateMountedSwordCombo(scene, pos);
+    } else {
+      this.mountedWeaponAnimating = false;
+      scene.playWeaponStrike(this);
+    }
+  }
+
+  /** 枪式三连刺（刺刺刺） */
+  private animateMountedThrust(scene: GamePlayScene, pos: { x: number; y: number }) {
+    const img = this.mountedWeapon!;
     const stabAngle = -80;
     const stabPoseX = this.x + 12;
     const thrustDepths = [22, 44, 66];
     let stabIndex = 0;
-    // 起手：从待机的竖直姿态快速转到向左的刺击姿态
     scene.tweens.add({
-      targets: this.zhaoyunWeapon,
+      targets: img,
       x: stabPoseX,
       angle: stabAngle,
       scale: 1,
@@ -875,24 +913,23 @@ export class General extends Unit implements HasWeaponSlot {
       onComplete: () => {
         const doStab = () => {
           if (stabIndex >= thrustDepths.length) {
-            // 收枪回右侧待机姿态
             scene.tweens.add({
-              targets: this.zhaoyunWeapon,
-              x: idleX,
+              targets: img,
+              x: pos.x,
               angle: 0,
               scale: 1,
               duration: 50,
               ease: "Cubic.easeOut",
               onComplete: () => {
-                this.zhaoyunWeaponAnimating = false;
-                this.updateZhaoyunWeapon();
+                this.mountedWeaponAnimating = false;
+                this.updateMountedWeapon();
               },
             });
             return;
           }
           const thrustX = stabPoseX - thrustDepths[stabIndex];
           scene.tweens.add({
-            targets: this.zhaoyunWeapon,
+            targets: img,
             x: thrustX,
             angle: stabAngle,
             scale: 1.15,
@@ -900,7 +937,7 @@ export class General extends Unit implements HasWeaponSlot {
             ease: "Cubic.easeOut",
             onComplete: () => {
               scene.tweens.add({
-                targets: this.zhaoyunWeapon,
+                targets: img,
                 x: stabPoseX,
                 scale: 1,
                 duration: 40,
@@ -918,6 +955,70 @@ export class General extends Unit implements HasWeaponSlot {
     });
   }
 
+  /** 刀式绕柄端旋转挥砍一圈（关平样式） */
+  private animateMountedSpin(scene: GamePlayScene) {
+    const img = this.mountedWeapon!;
+    const targetScale = (Config.cellWidth * 1.5) / 35;
+    scene.tweens.add({
+      targets: img,
+      angle: 360,
+      scale: targetScale,
+      alpha: 0,
+      duration: 280,
+      ease: "Cubic.easeOut",
+      onComplete: () => {
+        this.mountedWeaponAnimating = false;
+        this.updateMountedWeapon();
+      },
+    });
+  }
+
+  /** 剑式劈砍 + 突刺组合 */
+  private animateMountedSwordCombo(scene: GamePlayScene, pos: { x: number; y: number }) {
+    const img = this.mountedWeapon!;
+    scene.tweens.add({
+      targets: img,
+      x: this.x + 16,
+      angle: -32,
+      scale: 1,
+      duration: 40,
+      ease: "Quad.easeOut",
+      onComplete: () => {
+        scene.tweens.add({
+          targets: img,
+          x: this.x - 6,
+          angle: -112,
+          scale: 1.18,
+          duration: 65,
+          ease: "Cubic.easeOut",
+          onComplete: () => {
+            scene.tweens.add({
+              targets: img,
+              x: this.x - 42,
+              angle: -82,
+              scale: 1.22,
+              duration: 55,
+              ease: "Cubic.easeOut",
+              onComplete: () => {
+                scene.tweens.add({
+                  targets: img,
+                  x: pos.x,
+                  angle: 0,
+                  scale: 1,
+                  duration: 60,
+                  ease: "Cubic.easeOut",
+                  onComplete: () => {
+                    this.mountedWeaponAnimating = false;
+                    this.updateMountedWeapon();
+                  },
+                });
+              },
+            });
+          },
+        });
+      },
+    });
+  }
   private performGuanYuLeap(scene: GamePlayScene, target: Unit, baseDamage: number) {
     this.guanYuLeaping = true;
     this.setInvincible(true);
@@ -942,6 +1043,7 @@ export class General extends Unit implements HasWeaponSlot {
               target.takeDamage(baseDamage * 3, false, this);
             }
             scene.showGuanyuSlash(this);
+            scene.playWeaponStrike(this);
             scene.tweens.add({
               targets: this,
               x: startX,
@@ -978,3 +1080,9 @@ export class General extends Unit implements HasWeaponSlot {
     }
   }
 }
+
+
+
+
+
+
