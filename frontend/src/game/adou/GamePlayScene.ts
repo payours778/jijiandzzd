@@ -44,13 +44,15 @@ import { useGeneralStore } from "./generals/store";
 import { useAppStore } from "../../store/useAppStore";
 
 import {
-  listWeapons,
   getWeapon,
   getWeaponByHolder,
+  getWeaponsBySeries,
+  getSeries,
   WEAPON_ASSET_VERSION,
   weaponAnimFrameSize,
   weaponAnimPath,
   type WeaponDefinition,
+  type WeaponSeriesId,
 } from "./weapons";
 
 interface HandCard {
@@ -146,6 +148,9 @@ export class GamePlayScene extends Phaser.Scene {
   private testEquipTarget: General | null = null;
   private testEquipMarker?: Phaser.GameObjects.Rectangle;
   private testWeaponLabel?: Phaser.GameObjects.Text;
+  private testWeaponSeries: WeaponSeriesId = "sword";
+  private testWeaponSeriesTabs: Phaser.GameObjects.Text[] = [];
+  private testWeaponButtonPanels: Phaser.GameObjects.Graphics[] = [];
   private cardTooltip?: Phaser.GameObjects.Text;
   private slashPool: Phaser.GameObjects.Graphics[] = [];
   private arrowPool: Phaser.GameObjects.Graphics[] = [];
@@ -401,6 +406,9 @@ export class GamePlayScene extends Phaser.Scene {
     this.testEquipTarget = null;
     this.testEquipMarker = undefined;
     this.testWeaponLabel = undefined;
+    this.testWeaponSeries = "sword";
+    this.testWeaponSeriesTabs = [];
+    this.testWeaponButtonPanels = [];
     this.createRecycleBin();
     this.createTestWeaponPanel();
 
@@ -494,40 +502,37 @@ export class GamePlayScene extends Phaser.Scene {
     const ph = 240;
     this.drawRoundedPanel(px0, py0, pw, ph, 0x15181d, 0.85, 0x57534e);
 
-    this.add.text(px0 + pw / 2, py0 + 13, "武器（点击装备）", {
+    this.add.text(px0 + pw / 2, py0 + 13, "武器·军械库", {
       fontFamily: Config.fontFamily, fontSize: "13px", color: "#fbbf24", fontStyle: "bold",
     }).setOrigin(0.5);
 
-    const list: Array<{ id: string | null; label: string }> = [
-      { id: null, label: "卸下（默认）" },
-      { id: "longdan-spear", label: "枪·龙胆" },
-      { id: "tie-qiang", label: "枪·铁枪" },
-      { id: "she-mao", label: "矛·蛇矛" },
-      { id: "fangtian-ji", label: "戟·画戟" },
-      { id: "da-dao", label: "刀·长刀" },
-      { id: "qinglong-blade", label: "刀·青龙" },
-      { id: "qinggang-sword", label: "剑·青锋" },
-      { id: "yitian-sword", label: "剑·倚天" },
-      { id: "lie-gong", label: "弓·烈弓" },
-      { id: "luori-bow", label: "弓·落日" },
-    ];
-    const bw = 116;
-    const bh = 18;
-    const gap = 1;
-    const startY = py0 + 26;
-    list.forEach((item, index) => {
-      const by = startY + index * (bh + gap);
-      this.drawRoundedPanel(px0 + 8, by, bw, bh, 0x1f2937, 0.9, 0x57534e);
-      const btn = this.add.text(px0 + 8 + bw / 2, by + bh / 2, item.label, {
-        fontFamily: Config.fontFamily, fontSize: "13px", color: "#e5e7eb",
-      }).setOrigin(0.5).setInteractive({ useHandCursor: true }).setData("weaponId", item.id);
-      btn.on("pointerdown", () => this.onTestWeaponClick(item.id));
-      this.testWeaponButtons.push(btn);
+    // 军械库仅实装 剑/刀/枪/弓 四系，页签按商店顺序展示
+    const seriesOrder: WeaponSeriesId[] = ["sword", "blade", "spear", "bow"];
+    const tabW = 24;
+    const tabH = 13;
+    const tabGap = 2;
+    const tabStartX = px0 + 8;
+    const tabStartY = py0 + 24;
+    seriesOrder.forEach((seriesId, index) => {
+      const tx = tabStartX + index * (tabW + tabGap);
+      const ty = tabStartY;
+      this.drawRoundedPanel(tx, ty, tabW, tabH, 0x1f2937, 0.9, 0x57534e);
+      const tab = this.add.text(tx + tabW / 2, ty + tabH / 2, `${getSeries(seriesId).glyph}系`, {
+        fontFamily: Config.fontFamily, fontSize: "10px", color: "#e5e7eb",
+      }).setOrigin(0.5).setInteractive({ useHandCursor: true }).setData("seriesId", seriesId);
+      tab.on("pointerdown", () => this.onTestWeaponSeriesClick(seriesId));
+      this.testWeaponSeriesTabs.push(tab);
     });
 
     this.testWeaponLabel = this.add.text(px0 + pw / 2, py0 + ph + 16, "", {
       fontFamily: Config.fontFamily, fontSize: "13px", color: "#fcd34d",
     }).setOrigin(0.5);
+    this.updateTestWeaponPanel();
+  }
+
+  private onTestWeaponSeriesClick(seriesId: WeaponSeriesId) {
+    playSfx("click");
+    this.testWeaponSeries = seriesId;
     this.updateTestWeaponPanel();
   }
 
@@ -577,12 +582,50 @@ export class GamePlayScene extends Phaser.Scene {
   }
 
   private updateTestWeaponPanel() {
-    this.testWeaponButtons.forEach((btn) => {
-      const id = btn.getData("weaponId") as string | null;
-      const active = id === this.testSelectedWeaponId;
+    // 系列页签：高亮当前系列
+    this.testWeaponSeriesTabs.forEach((tab) => {
+      const active = tab.getData("seriesId") === this.testWeaponSeries;
+      tab.setBackgroundColor(active ? "#b45309" : "transparent");
+      tab.setColor(active ? "#fff7ed" : "#e5e7eb");
+    });
+
+    // 重建当前系列武器列表（含"卸下"入口），数据来自军械库同源注册表
+    this.testWeaponButtons.forEach((btn) => btn.destroy());
+    this.testWeaponButtons = [];
+    this.testWeaponButtonPanels.forEach((panel) => panel.destroy());
+    this.testWeaponButtonPanels = [];
+
+    const px0 = 826;
+    const startX = px0 + 8;
+    const startY = 254;
+    const bw = 56;
+    const bh = 16;
+    const gap = 2;
+    const items: Array<{ id: string | null; label: string }> = [
+      { id: null, label: "卸下（默认）" },
+      ...getWeaponsBySeries(this.testWeaponSeries).map((w) => ({
+        id: w.id,
+        label: w.name.length > 5 ? w.name.slice(0, 5) : w.name,
+      })),
+    ];
+    items.forEach((item, index) => {
+      const col = index % 2;
+      const row = Math.floor(index / 2);
+      const bx = startX + col * (bw + gap);
+      const by = startY + row * (bh + gap);
+      this.testWeaponButtonPanels.push(
+        this.drawRoundedPanel(bx, by, bw, bh, 0x1f2937, 0.9, 0x57534e),
+      );
+      const btn = this.add.text(bx + bw / 2, by + bh / 2, item.label, {
+        fontFamily: Config.fontFamily, fontSize: "10px", color: "#e5e7eb",
+      }).setOrigin(0.5).setInteractive({ useHandCursor: true }).setData("weaponId", item.id);
+      btn.on("pointerdown", () => this.onTestWeaponClick(item.id));
+      const active = item.id === this.testSelectedWeaponId;
       btn.setBackgroundColor(active ? "#b45309" : "transparent");
       btn.setColor(active ? "#fff7ed" : "#e5e7eb");
+      this.testWeaponButtons.push(btn);
     });
+
     const target = this.testEquipTarget;
     const pending = this.testSelectedWeaponId ? (getWeapon(this.testSelectedWeaponId)?.name ?? "默认") : "默认";
     this.testWeaponLabel?.setText(
@@ -3233,11 +3276,3 @@ private updateCoinText() {
     return "#c084fc";
   }
 }
-
-
-
-
-
-
-
-
