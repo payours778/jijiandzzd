@@ -47,6 +47,7 @@ import {
   listWeapons,
   getWeapon,
   getWeaponByHolder,
+  WEAPON_ASSET_VERSION,
   weaponAnimFrameSize,
   weaponAnimPath,
 } from "./weapons";
@@ -175,6 +176,10 @@ export class GamePlayScene extends Phaser.Scene {
       endFrame: 7,
     });
     this.load.image("guanping-saber", "effects/guanping-saber.png");
+    this.load.image(
+      "zhaoyun-spear",
+      `/assets/weapons/spear/longdan-spear/longdan-spear-模型.png?v=${WEAPON_ASSET_VERSION}`,
+    );
   }
 
   /**

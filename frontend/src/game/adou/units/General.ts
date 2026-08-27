@@ -63,6 +63,8 @@ export class General extends Unit implements HasWeaponSlot {
   private zhangFeiDamageAccumulator = 0;
   private guanpingWeapon?: Phaser.GameObjects.Image;
   private guanpingWeaponAnimating = false;
+  private zhaoyunWeapon?: Phaser.GameObjects.Image;
+  private zhaoyunWeaponAnimating = false;
   private weiYanRageRemaining = 0;
   private weiYanRageCooldownRemaining = 0;
   xp = 0;
@@ -97,12 +99,20 @@ export class General extends Unit implements HasWeaponSlot {
       }
     } catch { /* 静默 */ }
 
-        if (generalName === "关平") {
+    if (generalName === "关平") {
       this.guanpingWeapon = this.scene.add
         .image(x + 26, y + 12, "guanping-saber")
         .setOrigin(0.5, 1)
         .setDepth(80)
         .setDisplaySize(12, 35);
+    }
+    // 赵云待机：龙胆亮银枪竖立于身侧右侧，攻击时向左突刺
+    if (generalName === "赵云") {
+      this.zhaoyunWeapon = this.scene.add
+        .image(x + 28, y + 6, "zhaoyun-spear")
+        .setOrigin(0.5, 1)
+        .setDepth(80)
+        .setDisplaySize(30, 60);
     }
   }
 
@@ -141,6 +151,7 @@ export class General extends Unit implements HasWeaponSlot {
     this.syncXpBar();
     this.updateLongDanLabel();
     this.updateGuanpingWeapon();
+    this.updateZhaoyunWeapon();
     const config = GeneralConfig[this.generalName];
 
     if (this.generalName === "黄祖") {
@@ -198,6 +209,7 @@ export class General extends Unit implements HasWeaponSlot {
           zombie.takeDamage(config.damage * damageMultiplier * longDanMultiplier, false, this);
         });
         scene.showZhaoyunStab(this);
+        this.animateZhaoyunWeaponAttack(scene);
         playGeneralAttackSfx(this.generalName);
         this.attackTimer = config.cooldown * cooldownMultiplier;
       }
@@ -649,6 +661,8 @@ export class General extends Unit implements HasWeaponSlot {
     this.reviveCross?.destroy();
     this.guanpingWeapon?.destroy();
     this.guanpingWeapon = undefined;
+    this.zhaoyunWeapon?.destroy();
+    this.zhaoyunWeapon = undefined;
     this.xpBarTween?.remove();
     this.xpBarTween = undefined;
     this.xpBar?.destroy();
@@ -812,6 +826,71 @@ export class General extends Unit implements HasWeaponSlot {
       onComplete: () => {
         this.guanpingWeaponAnimating = false;
         this.updateGuanpingWeapon();
+      },
+    });
+  }
+
+  private updateZhaoyunWeapon() {
+    if (!this.zhaoyunWeapon) {
+      return;
+    }
+    if (this.dead || this.reviving || this.zhaoyunWeaponAnimating) {
+      if (!this.zhaoyunWeaponAnimating) {
+        this.zhaoyunWeapon.setVisible(false);
+      }
+      return;
+    }
+    this.zhaoyunWeapon.setPosition(this.x + 28, this.y + 6);
+    this.zhaoyunWeapon.setAngle(0);
+    this.zhaoyunWeapon.setScale(1);
+    this.zhaoyunWeapon.setAlpha(1);
+    this.zhaoyunWeapon.setVisible(true);
+  }
+
+  private animateZhaoyunWeaponAttack(scene: GamePlayScene) {
+    if (!this.zhaoyunWeapon || this.zhaoyunWeaponAnimating) {
+      return;
+    }
+    this.zhaoyunWeaponAnimating = true;
+    const idleX = this.x + 28;
+    const idleY = this.y + 6;
+    this.zhaoyunWeapon.setPosition(idleX, idleY);
+    this.zhaoyunWeapon.setAngle(0);
+    this.zhaoyunWeapon.setScale(1);
+    this.zhaoyunWeapon.setAlpha(1);
+    this.zhaoyunWeapon.setVisible(true);
+    // 突刺：枪身向左放平并前刺，配合"刺"字特效后收回
+    scene.tweens.add({
+      targets: this.zhaoyunWeapon,
+      x: this.x - 18,
+      angle: -72,
+      scale: 1.12,
+      duration: 85,
+      ease: "Cubic.easeOut",
+      onComplete: () => {
+        scene.tweens.add({
+          targets: this.zhaoyunWeapon,
+          x: this.x - 42,
+          angle: -90,
+          scale: 1.28,
+          duration: 65,
+          ease: "Cubic.easeIn",
+          onComplete: () => {
+            scene.tweens.add({
+              targets: this.zhaoyunWeapon,
+              x: idleX,
+              angle: 0,
+              scale: 1,
+              alpha: 1,
+              duration: 150,
+              ease: "Cubic.easeOut",
+              onComplete: () => {
+                this.zhaoyunWeaponAnimating = false;
+                this.updateZhaoyunWeapon();
+              },
+            });
+          },
+        });
       },
     });
   }
