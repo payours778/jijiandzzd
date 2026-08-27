@@ -10,7 +10,7 @@
 import type { WeaponSeriesId } from "./types";
 
 /** 武器素材版本号（更新素材时递增） */
-export const WEAPON_ASSET_VERSION = "4";
+export const WEAPON_ASSET_VERSION = "5";
 
 /** 近战系（复用剑素材：挥砍动画，单帧 120x120） */
 const SWORD_KIND: WeaponSeriesId[] = ["sword", "blade", "spear", "halberd", "hammer", "dagger"];
