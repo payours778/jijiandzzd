@@ -859,38 +859,61 @@ export class General extends Unit implements HasWeaponSlot {
     this.zhaoyunWeapon.setScale(1);
     this.zhaoyunWeapon.setAlpha(1);
     this.zhaoyunWeapon.setVisible(true);
-    // 突刺：枪身向左放平并前刺，配合"刺"字特效后收回
+    // 还原原版枪兵刺击：枪身转平指向左侧，连续三次前刺“刺刺刺”，一次比一次刺得深
+    const stabAngle = -80;
+    const stabPoseX = this.x + 12;
+    const thrustDepths = [22, 44, 66];
+    let stabIndex = 0;
+    // 起手：从待机的竖直姿态快速转到向左的刺击姿态
     scene.tweens.add({
       targets: this.zhaoyunWeapon,
-      x: this.x - 18,
-      angle: -72,
-      scale: 1.12,
-      duration: 85,
-      ease: "Cubic.easeOut",
+      x: stabPoseX,
+      angle: stabAngle,
+      scale: 1,
+      duration: 45,
+      ease: "Quad.easeOut",
       onComplete: () => {
-        scene.tweens.add({
-          targets: this.zhaoyunWeapon,
-          x: this.x - 42,
-          angle: -90,
-          scale: 1.28,
-          duration: 65,
-          ease: "Cubic.easeIn",
-          onComplete: () => {
+        const doStab = () => {
+          if (stabIndex >= thrustDepths.length) {
+            // 收枪回右侧待机姿态
             scene.tweens.add({
               targets: this.zhaoyunWeapon,
               x: idleX,
               angle: 0,
               scale: 1,
-              alpha: 1,
-              duration: 150,
+              duration: 50,
               ease: "Cubic.easeOut",
               onComplete: () => {
                 this.zhaoyunWeaponAnimating = false;
                 this.updateZhaoyunWeapon();
               },
             });
-          },
-        });
+            return;
+          }
+          const thrustX = stabPoseX - thrustDepths[stabIndex];
+          scene.tweens.add({
+            targets: this.zhaoyunWeapon,
+            x: thrustX,
+            angle: stabAngle,
+            scale: 1.15,
+            duration: 55,
+            ease: "Cubic.easeOut",
+            onComplete: () => {
+              scene.tweens.add({
+                targets: this.zhaoyunWeapon,
+                x: stabPoseX,
+                scale: 1,
+                duration: 40,
+                ease: "Quad.easeIn",
+                onComplete: () => {
+                  stabIndex += 1;
+                  doStab();
+                },
+              });
+            },
+          });
+        };
+        doStab();
       },
     });
   }
