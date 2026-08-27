@@ -91,14 +91,12 @@ export class General extends Unit implements HasWeaponSlot {
     this.showHpText(true);
     this.attachXpBar();
     // 5A: 从 generals/store 读取已装备的主武器, 自动 attach
-    // 武将挂载武器：龙胆亮银枪 / 青龙做月刀例，后续随装备武器切换贴图
-    if (generalName === "关平" || generalName === "赵云") {
-      this.mountedWeapon = this.scene.add
-        .image(x + 26, y + 10, "zhaoyun-spear")
-        .setOrigin(0.5, 1)
-        .setDepth(80)
-        .setDisplaySize(30, 60);
-    }
+    // 所有武将默认挂载武器贴图（专属武器或已装备武器），待机时显示在身侧
+    this.mountedWeapon = this.scene.add
+      .image(x + 26, y + 10, "zhaoyun-spear")
+      .setOrigin(0.5, 1)
+      .setDepth(80)
+      .setDisplaySize(30, 60);
 
     try {
       const inst = (window as any).__generalStore?.getState?.()?.instances?.[GENERAL_NAME_TO_ID[generalName] as string];
@@ -799,6 +797,8 @@ export class General extends Unit implements HasWeaponSlot {
       }
       return;
     }
+    // 待机时同步武器贴图（含懒加载），保证所有武将身侧显示已装备/专属武器
+    this.syncMountedWeapon(this.scene);
     const pos = this.mountedWeaponIdlePos();
     this.mountedWeapon.setPosition(pos.x, pos.y);
     this.mountedWeapon.setAngle(0);
@@ -1080,8 +1080,6 @@ export class General extends Unit implements HasWeaponSlot {
     }
   }
 }
-
-
 
 
 

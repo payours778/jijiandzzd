@@ -149,7 +149,7 @@ const weapons: WeaponDefinition[] = [
   {
     id: "modao-blade", series: "blade", name: "陌刀", glyph: "刀",
     description: "唐代军阵陌刀，重装破阵如直刀裂竹。",
-    attackType: "melee", rarity: "epic", status: "available",
+    attackType: "melee", rarity: "epic", status: "available", defaultHolder: "魏延",
     stats: { damage: 20 },
     tags: ["破甲"],
   },
