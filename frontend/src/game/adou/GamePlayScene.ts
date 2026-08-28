@@ -3157,8 +3157,11 @@ private updateCoinText() {
     });
   }
 
-  showZhaoyunStab(unit: Unit) {
+  showZhaoyunStab(unit: Unit, stabIndex = -1) {
     for (let i = 0; i < 3; i += 1) {
+      if (stabIndex >= 0 && i !== stabIndex) {
+        continue;
+      }
       this.spawnSymbol(
         unit.x - (i + 1) * 28,
         unit.y + (i - 1) * 12,

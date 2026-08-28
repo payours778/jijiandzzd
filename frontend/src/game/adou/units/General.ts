@@ -195,14 +195,13 @@ export class General extends Unit implements HasWeaponSlot {
       const longDanMultiplier = 1 + (config.longDanDamageBonus ?? 0.1) * this.longDanStacks;
       const targets = scene.getZombiesInRange(this.row, this.col - 2, this.col - 1);
       if (targets.length > 0) {
-        targets.forEach((zombie) => {
-          zombie.markZhaoyunHit();
-          zombie.takeDamage(config.damage * damageMultiplier * longDanMultiplier, false, this);
-        });
+        // 近战为刺刺刺三连：伤害随每次戳击生效；远程单发在起始时结算
         if (this.battleWeapon()?.attackType === "ranged") {
+          targets.forEach((zombie) => {
+            zombie.markZhaoyunHit();
+            zombie.takeDamage(config.damage * damageMultiplier * longDanMultiplier, false, this);
+          });
           scene.showHuangzhongBow(this);
-        } else {
-          scene.showZhaoyunStab(this);
         }
         this.animateMountedWeapon(scene);
         playGeneralAttackSfx(this.generalName);
@@ -922,7 +921,12 @@ export class General extends Unit implements HasWeaponSlot {
 
     // 其余按武器体系兜底：枪三连刺 / 刀回旋 / 剑劈刺组合
     if (weapon.series === "spear" || weapon.series === "halberd") {
-      this.animateMountedThrust(scene, pos, rangeCells);
+      this.animateMountedThrust(
+        scene,
+        pos,
+        rangeCells,
+        this.generalName === "赵云" ? (stabIndex) => this.performZhaoyunStab(scene, stabIndex) : undefined,
+      );
     } else if (weapon.series === "blade") {
       this.animateMountedSpin(scene, rangeCells);
     } else if (weapon.series === "sword") {
@@ -966,7 +970,7 @@ export class General extends Unit implements HasWeaponSlot {
   }
 
   /** 枪式三连刺（刺刺刺） */
-  private animateMountedThrust(scene: GamePlayScene, pos: { x: number; y: number }, cells: number) {
+  private animateMountedThrust(scene: GamePlayScene, pos: { x: number; y: number }, cells: number, onStabHit?: (stabIndex: number) => void) {
     const img = this.mountedWeapon!;
     const peak = this.mountedStrikePeak(cells);
     const stabAngle = -80;
@@ -1006,6 +1010,7 @@ export class General extends Unit implements HasWeaponSlot {
             duration: 55,
             ease: "Cubic.easeOut",
             onComplete: () => {
+              onStabHit?.(stabIndex);
               scene.tweens.add({
                 targets: img,
                 x: stabPoseX,
@@ -1023,6 +1028,22 @@ export class General extends Unit implements HasWeaponSlot {
         doStab();
       },
     });
+  }
+
+  /** 赵云单次戳击：命中当前攻击范围内的所有敌人，结算龙胆加成 */
+  private performZhaoyunStab(scene: GamePlayScene, stabIndex: number) {
+    if (this.dead || this.reviving) {
+      return;
+    }
+    const config = GeneralConfig[this.generalName];
+    const damageMultiplier = 1 + (this.level - 1) * 1;
+    const longDanMultiplier = 1 + (config.longDanDamageBonus ?? 0.1) * this.longDanStacks;
+    const targets = scene.getZombiesInRange(this.row, this.col - 2, this.col - 1);
+    targets.forEach((zombie) => {
+      zombie.markZhaoyunHit();
+      zombie.takeDamage(config.damage * damageMultiplier * longDanMultiplier, false, this);
+    });
+    scene.showZhaoyunStab(this, stabIndex);
   }
 
   /** 刀式绕柄端旋转挥砍一圈（关平样式） */
