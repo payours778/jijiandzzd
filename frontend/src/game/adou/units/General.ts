@@ -361,7 +361,6 @@ export class General extends Unit implements HasWeaponSlot {
             zombie.takeDamage(damage, false, this);
           });
           this.heal(totalDamage * (config.weiYanLifestealRatio ?? 1));
-          scene.showRapidStab(this);
           this.animateMountedWeapon(scene);
           playGeneralAttackSfx(this.generalName);
           if (targets.some((zombie) => zombie.dead)) {
@@ -378,7 +377,6 @@ export class General extends Unit implements HasWeaponSlot {
         .sort((a, b) => b.x - a.x)[0] || null;
       if (target) {
         target.takeDamage(config.damage * damageMultiplier, false, this);
-        scene.showRapidStab(this);
         this.animateMountedWeapon(scene);
         playGeneralAttackSfx(this.generalName);
         if (target.dead) {
@@ -916,7 +914,7 @@ export class General extends Unit implements HasWeaponSlot {
         this.animateMountedChop(scene, pos, rangeCells);
         return;
       case "魏延":
-        this.animateMountedRapidStab(scene, pos, rangeCells);
+        this.animateMountedFlatThrust(scene, pos, rangeCells);
         return;
       default:
         break;
@@ -1236,57 +1234,51 @@ export class General extends Unit implements HasWeaponSlot {
     });
   }
 
-  /** 极速连刺（魏延）：短促高频双连刺，总时长约 80ms，贴合 100ms 攻击间隔 */
-  private animateMountedRapidStab(scene: GamePlayScene, pos: { x: number; y: number }, cells: number) {
+  /** 平刺（魏延）：武器水平朝左平直刺出再收回，总时长约 85ms，贴合 100ms 攻击频率 */
+  private animateMountedFlatThrust(scene: GamePlayScene, pos: { x: number; y: number }, cells: number) {
     const img = this.mountedWeapon!;
     const peak = this.mountedStrikePeak(cells);
-    const jabPoseX = this.x + 10;
-    const stabPoseX = this.x - 46;
+    const thrustPoseX = this.x + 8;
+    const thrustX = this.x - 8;
     scene.tweens.add({
       targets: img,
-      x: jabPoseX,
-      angle: -82,
+      x: thrustPoseX,
+      angle: -90,
       scale: 1,
-      duration: 12,
+      duration: 15,
       ease: "Quad.easeOut",
       onComplete: () => {
-        const doJab = (count: number) => {
-          if (count <= 0) {
+        scene.tweens.add({
+          targets: img,
+          x: thrustX,
+          angle: -90,
+          scale: peak,
+          duration: 30,
+          ease: "Cubic.easeOut",
+          onComplete: () => {
             scene.tweens.add({
               targets: img,
-              x: pos.x,
-              angle: 0,
+              x: thrustPoseX,
               scale: 1,
-              duration: 14,
-              ease: "Cubic.easeOut",
+              duration: 25,
+              ease: "Quad.easeIn",
               onComplete: () => {
-                this.mountedWeaponAnimating = false;
-                this.updateMountedWeapon();
+                scene.tweens.add({
+                  targets: img,
+                  x: pos.x,
+                  angle: 0,
+                  scale: 1,
+                  duration: 15,
+                  ease: "Cubic.easeOut",
+                  onComplete: () => {
+                    this.mountedWeaponAnimating = false;
+                    this.updateMountedWeapon();
+                  },
+                });
               },
             });
-            return;
-          }
-          const outX = stabPoseX - (count === 2 ? 0 : 4);
-          scene.tweens.add({
-            targets: img,
-            x: outX,
-            angle: -80,
-            scale: peak,
-            duration: 22,
-            ease: "Cubic.easeOut",
-            onComplete: () => {
-              scene.tweens.add({
-                targets: img,
-                x: jabPoseX,
-                scale: 1,
-                duration: 12,
-                ease: "Quad.easeIn",
-                onComplete: () => doJab(count - 1),
-              });
-            },
-          });
-        };
-        doJab(2);
+          },
+        });
       },
     });
   }

@@ -3170,20 +3170,6 @@ private updateCoinText() {
     }
   }
 
-  /** 魏延极速连刺：快速连续“刺”字标记 */
-  showRapidStab(unit: Unit) {
-    for (let i = 0; i < 3; i += 1) {
-      this.spawnSymbol(
-        unit.x - 26 - i * 24,
-        unit.y + (i - 1) * 10,
-        "刺",
-        "#4ade80",
-        0.9,
-        200,
-      );
-    }
-  }
-
   showHuangzhongBow(unit: Unit) {
     this.spawnSymbol(unit.x - 24, unit.y, "弓", "#fbbf24", 0.9);
   }
