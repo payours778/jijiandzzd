@@ -1234,51 +1234,57 @@ export class General extends Unit implements HasWeaponSlot {
     });
   }
 
-  /** 平刺（魏延）：武器水平朝左平直刺出再收回，总时长约 85ms，贴合 100ms 攻击频率 */
+  /** 平刺（魏延）：单 tween 驱动全程姿态，总时长约 68ms 贴合 100ms 攻击频率 */
   private animateMountedFlatThrust(scene: GamePlayScene, pos: { x: number; y: number }, cells: number) {
     const img = this.mountedWeapon!;
     const peak = this.mountedStrikePeak(cells);
     const thrustPoseX = this.x + 8;
     const thrustX = this.x - 8;
+    const total = 68;
+    const p1 = 12 / total; // 起手抬平
+    const p2 = 36 / total; // 刺出到位
+    const p3 = 56 / total; // 收回
+    const state = { p: 0 };
+    const clamp01 = (t: number) => Math.min(Math.max(t, 0), 1);
+    const lerp = (a: number, b: number, t: number) => a + (b - a) * t;
     scene.tweens.add({
-      targets: img,
-      x: thrustPoseX,
-      angle: -90,
-      scale: 1,
-      duration: 15,
-      ease: "Quad.easeOut",
+      targets: state,
+      p: 1,
+      duration: total,
+      ease: "Linear",
+      onUpdate: () => {
+        const p = state.p;
+        let x: number;
+        let angle: number;
+        let scale: number;
+        if (p < p1) {
+          const t = clamp01(p / p1);
+          x = thrustPoseX;
+          angle = lerp(0, -90, t);
+          scale = 1;
+        } else if (p < p2) {
+          const t = clamp01((p - p1) / (p2 - p1));
+          x = lerp(thrustPoseX, thrustX, t);
+          angle = -90;
+          scale = lerp(1, peak, t);
+        } else if (p < p3) {
+          const t = clamp01((p - p2) / (p3 - p2));
+          x = lerp(thrustX, thrustPoseX, t);
+          angle = -90;
+          scale = lerp(peak, 1, t);
+        } else {
+          const t = clamp01((p - p3) / (1 - p3));
+          x = lerp(thrustPoseX, pos.x, t);
+          angle = lerp(-90, 0, t);
+          scale = 1;
+        }
+        img.setPosition(x, pos.y);
+        img.setAngle(angle);
+        img.setScale(scale);
+      },
       onComplete: () => {
-        scene.tweens.add({
-          targets: img,
-          x: thrustX,
-          angle: -90,
-          scale: peak,
-          duration: 30,
-          ease: "Cubic.easeOut",
-          onComplete: () => {
-            scene.tweens.add({
-              targets: img,
-              x: thrustPoseX,
-              scale: 1,
-              duration: 25,
-              ease: "Quad.easeIn",
-              onComplete: () => {
-                scene.tweens.add({
-                  targets: img,
-                  x: pos.x,
-                  angle: 0,
-                  scale: 1,
-                  duration: 15,
-                  ease: "Cubic.easeOut",
-                  onComplete: () => {
-                    this.mountedWeaponAnimating = false;
-                    this.updateMountedWeapon();
-                  },
-                });
-              },
-            });
-          },
-        });
+        this.mountedWeaponAnimating = false;
+        this.updateMountedWeapon();
       },
     });
   }
