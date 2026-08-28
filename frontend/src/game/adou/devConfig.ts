@@ -11,6 +11,19 @@ import { GeneralConfig } from "./units/General";
 
 const KEY = "mini-playbox-dev-config";
 
+/**
+ * 开发调试态：仅 URL 带 ?dev=1 或进入特效测试 (#/fx-test) 时生效。
+ * 避免调试机上残留的 DevConsole 存档（如被调快的僵尸速度）影响线上玩家。
+ */
+export function isDevMode(): boolean {
+  try {
+    if (new URLSearchParams(window.location.search).has("dev")) return true;
+    return window.location.hash === "#/fx-test";
+  } catch {
+    return false;
+  }
+}
+
 const NEW_GENERAL_HP: Record<string, number> = {
   刘备: 500,
   赵云: 500,
@@ -24,6 +37,7 @@ const NEW_GENERAL_HP: Record<string, number> = {
 };
 
 export function loadDevConfig() {
+  if (!isDevMode()) return;
   try {
     const raw = localStorage.getItem(KEY);
     if (!raw) return;

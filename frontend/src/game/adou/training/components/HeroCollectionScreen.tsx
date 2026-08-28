@@ -76,7 +76,7 @@ const RECRUIT_POOLS: RecruitPool[] = [
   {
     id: "elite",
     label: "精英招募",
-    short: "82 / 14 / 4",
+    short: "85 / 12 / 3",
     costLabel: "招募道具 ×1",
     cost: RECRUIT_POOL_RULES.elite.cost,
     epicPity: RECRUIT_POOL_RULES.elite.epicPity,

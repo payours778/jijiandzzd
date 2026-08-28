@@ -5,7 +5,7 @@ import { FxTestScene } from "../FxTestScene";
 import { GamePlayScene } from "../GamePlayScene";
 import { DevConsole } from "./DevConsole";
 import { GameStartScreen } from "./GameStartScreen";
-import { loadDevConfig } from "../devConfig";
+import { isDevMode, loadDevConfig } from "../devConfig";
 import { AudioToggleButton } from "../../../audio/AudioToggleButton";
 import { playMusic, playSfx, stopMusic, unlock } from "../../../audio/audioSystem";
 import { useAppStore } from "../../../store/useAppStore";
@@ -32,6 +32,8 @@ export function TowerDefenseGame({
   const [started, setStarted] = useState(true);  // 17: 进入即开始, GameStartScreen 已合并到 Stage
   const [showOrientationHint, setShowOrientationHint] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
+  // 开发者控制台仅开发态显示: ?dev=1 或特效测试模式，线上玩家不可见
+  const [devMode] = useState(() => mode === "fx-test" || isDevMode());
   const fromTraining =
     typeof window !== "undefined" &&
     sessionStorage.getItem("mini-playbox-return-to") === "training";
@@ -198,20 +200,22 @@ export function TowerDefenseGame({
       >
         {isMobile ? "← 返回" : fromTraining ? "返回军营" : "返回网站"}
       </button>
-      <button
-        className="tower-defense-dev"
-        type="button"
-        onClick={() => {
-          playSfx("click");
-          setConsoleOpen(true);
-        }}
-      >
-        {isMobile ? "⚙ 调试" : "开发者控制台"}
-      </button>
+      {devMode && (
+        <button
+          className="tower-defense-dev"
+          type="button"
+          onClick={() => {
+            playSfx("click");
+            setConsoleOpen(true);
+          }}
+        >
+          {isMobile ? "⚙ 调试" : "开发者控制台"}
+        </button>
+      )}
       <AudioToggleButton />
       <div ref={containerRef} className="tower-defense-container" />
       <div className="crt-overlay" aria-hidden="true" />
-      <DevConsole open={consoleOpen} onClose={() => setConsoleOpen(false)} />
+      {devMode && <DevConsole open={consoleOpen} onClose={() => setConsoleOpen(false)} />}
       {mode === "fx-test" && (
         <>
           <button

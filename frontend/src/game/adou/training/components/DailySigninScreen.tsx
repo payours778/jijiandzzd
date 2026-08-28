@@ -26,12 +26,12 @@ function getAuthToken(): string | null {
   try { return localStorage.getItem("mini-playbox-token"); } catch { return null; }
 }
 
-async function fetchStatus(): Promise<SigninStatus | null> {
+async function fetchStatus(): Promise<{ status: SigninStatus | null; needsLogin?: boolean }> {
   const token = getAuthToken();
-  if (!token) return null;
+  if (!token) return { status: null, needsLogin: true };
   const res = await fetch("/api/adou/daily-signin", { headers: { Authorization: "Bearer " + token } });
-  if (!res.ok) return null;
-  return await res.json();
+  if (!res.ok) return { status: null, needsLogin: res.status === 401 || res.status === 403 };
+  return { status: await res.json() };
 }
 
 async function postSignin(): Promise<{ ok: boolean; reward?: number; consecutiveDays?: number; coins?: number; error?: string }> {
@@ -54,6 +54,7 @@ export function DailySigninScreen() {
   const coins = useAppStore((s) => s.coins);
   const setCoins = useAppStore((s) => s.setCoins);
   const [status, setStatus] = useState<SigninStatus | null>(null);
+  const [needsLogin, setNeedsLogin] = useState(false);
   const [loading, setLoading] = useState(true);
   const [signingIn, setSigningIn] = useState(false);
   const [animating, setAnimating] = useState(false);
@@ -61,8 +62,8 @@ export function DailySigninScreen() {
   useEffect(() => {
     let cancelled = false;
     if (!user) { setLoading(false); return; }
-    fetchStatus().then((s) => {
-      if (!cancelled) { setStatus(s); setLoading(false); }
+    fetchStatus().then((r) => {
+      if (!cancelled) { setStatus(r.status); setNeedsLogin(!!r.needsLogin); setLoading(false); }
     });
     return () => { cancelled = true; };
   }, [user]);
@@ -88,7 +89,7 @@ export function DailySigninScreen() {
     useAppStore.setState({ toast: "签到成功! +" + (r.reward || 0) + " 金币" });
     playSfx("upgrade");
     // 刷新状态
-    fetchStatus().then((s) => setStatus(s));
+    fetchStatus().then((r) => setStatus(r.status));
     setSigningIn(false);
   };
 
@@ -112,7 +113,19 @@ export function DailySigninScreen() {
   }
 
   if (!status) {
-    return (
+    return needsLogin ? (
+      <div style={{ padding: 40, textAlign: "center", color: "#cbd5e1" }}>
+        <Gift size={48} color="#64748b" style={{ marginBottom: 12 }} />
+        <h3 style={{ color: "#f1f5f9", marginBottom: 8 }}>登录后才能签到</h3>
+        <p style={{ color: "#94a3b8", fontSize: 14, marginBottom: 16 }}>当前是游客身份, 登录账号即可每日领取金币</p>
+        <button
+          onClick={() => useAppStore.getState().setAuthOpen(true)}
+          style={{ cursor: "pointer", padding: "9px 26px", borderRadius: 8, border: "1px solid #fbbf24", background: "rgba(251,191,36,.14)", color: "#fbbf24", fontSize: 14 }}
+        >
+          去登录
+        </button>
+      </div>
+    ) : (
       <div style={{ padding: 40, textAlign: "center", color: "#cbd5e1" }}>
         <p>无法连接签到服务</p>
       </div>

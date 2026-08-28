@@ -297,7 +297,7 @@ export class GamePlayScene extends Phaser.Scene {
     this.fragmentPool = this.buildFragmentPool();
     this.renderHand();
     this.updateMantouText();
-    this.messageText.setText("点击抽卡获取文字卡牌，再点击格子放置");
+    this.messageText.setText("点击或拖拽手牌到棋盘放置，守住阿斗！");
 
     // 测试模式: 键盘 A 切换自动攻击, 0.5s 间隔强制触发所有单位 attack()
     if (this.testMode) {
@@ -818,14 +818,15 @@ export class GamePlayScene extends Phaser.Scene {
   }
 
   private createUI() {
-    this.mantouText = this.add.text(this.px(2.5), this.py(3), "", {
+    // 左上馒头/金币显示整体下移, 避开左上"返回军营"与右上音频等 HTML 悬浮按钮
+    this.mantouText = this.add.text(this.px(2.5), this.py(7), "", {
       fontFamily: Config.fontFamily,
       fontSize: "22px",
       color: "#facc15",
       fontStyle: "bold",
     });
     this.coinText = this.add
-      .text(this.px(97.5), this.py(3), "", {
+      .text(this.px(97.5), this.py(7), "", {
         fontFamily: Config.fontFamily,
         fontSize: "18px",
         color: "#fde68a",
@@ -891,7 +892,7 @@ export class GamePlayScene extends Phaser.Scene {
       });
 
     this.add
-      .text(this.px(97.5), this.py(6.5), "投降", {
+      .text(this.px(97.5), this.py(38), "投降", {
         fontFamily: Config.fontFamily,
         fontSize: "18px",
         color: "#fca5a5",
