@@ -896,6 +896,7 @@ export class General extends Unit implements HasWeaponSlot {
     this.mountedWeapon.setScale(1);
     this.mountedWeapon.setAlpha(1);
     this.mountedWeapon.setVisible(true);
+    const rangeCells = this.mountedAttackRangeCells();
 
     // 远程武器（弓）一律拉弓射箭，不受武将近战招式限制
     if (weapon.attackType === "ranged") {
@@ -906,14 +907,14 @@ export class General extends Unit implements HasWeaponSlot {
     // 按武将原用攻击方式分发：枪重刺 / 枪快刺 / 刀重斩
     switch (this.generalName) {
       case "张飞":
-        this.animateMountedHeavyThrust(scene, pos);
+        this.animateMountedHeavyThrust(scene, pos, rangeCells);
         return;
       case "张苞":
-        this.animateMountedQuickThrust(scene, pos);
+        this.animateMountedQuickThrust(scene, pos, rangeCells);
         return;
       case "关羽":
       case "魏延":
-        this.animateMountedChop(scene, pos);
+        this.animateMountedChop(scene, pos, rangeCells);
         return;
       default:
         break;
@@ -921,20 +922,53 @@ export class General extends Unit implements HasWeaponSlot {
 
     // 其余按武器体系兜底：枪三连刺 / 刀回旋 / 剑劈刺组合
     if (weapon.series === "spear" || weapon.series === "halberd") {
-      this.animateMountedThrust(scene, pos);
+      this.animateMountedThrust(scene, pos, rangeCells);
     } else if (weapon.series === "blade") {
-      this.animateMountedSpin(scene);
+      this.animateMountedSpin(scene, rangeCells);
     } else if (weapon.series === "sword") {
-      this.animateMountedSwordCombo(scene, pos);
+      this.animateMountedSwordCombo(scene, pos, rangeCells);
     } else {
       this.mountedWeaponAnimating = false;
       scene.playWeaponStrike(this);
     }
   }
 
+  /** 武将当前攻击距离（格）：按各武将实际索敌范围取值，魏延狂骨期间翻倍 */
+  private mountedAttackRangeCells(): number {
+    const config = GeneralConfig[this.generalName];
+    switch (this.generalName) {
+      case "刘备":
+        return 3;
+      case "赵云":
+        return 2;
+      case "关羽":
+        return 2;
+      case "张飞":
+        return 3;
+      case "张苞":
+        return 3;
+      case "关平":
+        return 1.5;
+      case "魏延":
+        return this.weiYanRageRemaining > 0
+          ? Math.round(2 * (config.weiYanRageRangeMultiplier ?? 2))
+          : 2;
+      default:
+        return 2;
+    }
+  }
+
+  /** 根据攻击距离（格）计算挂载武器的峰值放大倍数：武器视觉长度 ≈ 攻击距离 */
+  private mountedStrikePeak(cells: number): number {
+    const weaponLen = this.mountedWeapon?.displayHeight ?? 54;
+    const reach = Math.max(1, cells) * Config.cellWidth;
+    return Math.max(1.1, reach / weaponLen);
+  }
+
   /** 枪式三连刺（刺刺刺） */
-  private animateMountedThrust(scene: GamePlayScene, pos: { x: number; y: number }) {
+  private animateMountedThrust(scene: GamePlayScene, pos: { x: number; y: number }, cells: number) {
     const img = this.mountedWeapon!;
+    const peak = this.mountedStrikePeak(cells);
     const stabAngle = -80;
     const stabPoseX = this.x + 12;
     const thrustDepths = [22, 44, 66];
@@ -968,7 +1002,7 @@ export class General extends Unit implements HasWeaponSlot {
             targets: img,
             x: thrustX,
             angle: stabAngle,
-            scale: 1.15,
+            scale: peak,
             duration: 55,
             ease: "Cubic.easeOut",
             onComplete: () => {
@@ -992,9 +1026,9 @@ export class General extends Unit implements HasWeaponSlot {
   }
 
   /** 刀式绕柄端旋转挥砍一圈（关平样式） */
-  private animateMountedSpin(scene: GamePlayScene) {
+  private animateMountedSpin(scene: GamePlayScene, cells: number) {
     const img = this.mountedWeapon!;
-    const targetScale = (Config.cellWidth * 1.5) / 35;
+    const targetScale = this.mountedStrikePeak(cells);
     scene.tweens.add({
       targets: img,
       angle: 360,
@@ -1010,8 +1044,9 @@ export class General extends Unit implements HasWeaponSlot {
   }
 
   /** 剑式劈砍 + 突刺组合 */
-  private animateMountedSwordCombo(scene: GamePlayScene, pos: { x: number; y: number }) {
+  private animateMountedSwordCombo(scene: GamePlayScene, pos: { x: number; y: number }, cells: number) {
     const img = this.mountedWeapon!;
+    const peak = this.mountedStrikePeak(cells);
     scene.tweens.add({
       targets: img,
       x: this.x + 16,
@@ -1024,7 +1059,7 @@ export class General extends Unit implements HasWeaponSlot {
           targets: img,
           x: this.x - 6,
           angle: -112,
-          scale: 1.18,
+          scale: peak * 0.8,
           duration: 65,
           ease: "Cubic.easeOut",
           onComplete: () => {
@@ -1032,7 +1067,7 @@ export class General extends Unit implements HasWeaponSlot {
               targets: img,
               x: this.x - 42,
               angle: -82,
-              scale: 1.22,
+              scale: peak,
               duration: 55,
               ease: "Cubic.easeOut",
               onComplete: () => {
@@ -1097,8 +1132,9 @@ export class General extends Unit implements HasWeaponSlot {
   }
 
   /** 枪式重刺（张飞）：起手后猛力单刺，幅度大、速度沉 */
-  private animateMountedHeavyThrust(scene: GamePlayScene, pos: { x: number; y: number }) {
+  private animateMountedHeavyThrust(scene: GamePlayScene, pos: { x: number; y: number }, cells: number) {
     const img = this.mountedWeapon!;
+    const peak = this.mountedStrikePeak(cells);
     scene.tweens.add({
       targets: img,
       x: this.x + 14,
@@ -1111,7 +1147,7 @@ export class General extends Unit implements HasWeaponSlot {
           targets: img,
           x: this.x - 66,
           angle: -78,
-          scale: 1.45,
+          scale: peak,
           duration: 95,
           ease: "Cubic.easeOut",
           onComplete: () => {
@@ -1143,8 +1179,9 @@ export class General extends Unit implements HasWeaponSlot {
   }
 
   /** 枪式快刺（张苞）：两连快速戳击 */
-  private animateMountedQuickThrust(scene: GamePlayScene, pos: { x: number; y: number }) {
+  private animateMountedQuickThrust(scene: GamePlayScene, pos: { x: number; y: number }, cells: number) {
     const img = this.mountedWeapon!;
+    const peak = this.mountedStrikePeak(cells);
     let hits = 0;
     scene.tweens.add({
       targets: img,
@@ -1174,7 +1211,7 @@ export class General extends Unit implements HasWeaponSlot {
             targets: img,
             x: this.x - 52,
             angle: -78,
-            scale: 1.2,
+            scale: peak,
             duration: 45,
             ease: "Cubic.easeOut",
             onComplete: () => {
@@ -1198,8 +1235,9 @@ export class General extends Unit implements HasWeaponSlot {
   }
 
   /** 刀式重斩（关羽/魏延）：举刀到右侧，再向左前劈落 */
-  private animateMountedChop(scene: GamePlayScene, pos: { x: number; y: number }) {
+  private animateMountedChop(scene: GamePlayScene, pos: { x: number; y: number }, cells: number) {
     const img = this.mountedWeapon!;
+    const peak = this.mountedStrikePeak(cells);
     scene.tweens.add({
       targets: img,
       x: this.x + 24,
@@ -1214,7 +1252,7 @@ export class General extends Unit implements HasWeaponSlot {
           x: this.x - 38,
           y: pos.y + 6,
           angle: -56,
-          scale: 1.4,
+          scale: peak,
           duration: 80,
           ease: "Cubic.easeOut",
           onComplete: () => {
