@@ -22,6 +22,7 @@ export class Soldier extends Unit implements HasWeaponSlot {
   ) {
     const stats = SoldierStats[soldierType as keyof typeof SoldierStats];
     super(scene, x, y, soldierType, { color: stats.color }, row, col, stats.hp);
+    this.applyDeco("ink");
     this.soldierType = soldierType;
     this.isFriendly = true;
     this.attachHealthBar(32, 0x22c55e);

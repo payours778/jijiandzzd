@@ -154,7 +154,7 @@ export class GamePlayScene extends Phaser.Scene {
   private testWeaponButtonPanels: Phaser.GameObjects.Graphics[] = [];
   private cardTooltip?: Phaser.GameObjects.Text;
   private slashPool: Phaser.GameObjects.Graphics[] = [];
-  private arrowPool: Phaser.GameObjects.Graphics[] = [];
+  private arrowPool: Phaser.GameObjects.Image[] = [];
   // 场景氛围层：随波次渐变的色调 + 防线告警闪烁
   private moodTint!: Phaser.GameObjects.Rectangle;
   private gateFlash!: Phaser.GameObjects.Rectangle;
@@ -378,7 +378,7 @@ export class GamePlayScene extends Phaser.Scene {
     for (let row = 0; row < this.board.length; row += 1) {
       for (let col = 0; col < Config.cols; col += 1) {
         const center = this.getCellCenter(row, col);
-        this.add.rectangle(center.x, center.y, Config.cellWidth - 4, Config.cellHeight - 4, 0x0f1713, 0.4);
+        this.add.rectangle(center.x, center.y, Config.cellWidth - 4, Config.cellHeight - 4, 0x0f1713, 0.16);
         this.add.rectangle(center.x, center.y, Config.cellWidth - 4, Config.cellHeight - 4, undefined)
           .setStrokeStyle(1, 0x3a3f48);
       }
@@ -768,6 +768,7 @@ export class GamePlayScene extends Phaser.Scene {
         return false;
       }
       zombie.tickDebuffs();
+      zombie.syncDecoPosition();
       zombie.update(this, time, delta);
       return true;
     });
@@ -822,7 +823,7 @@ export class GamePlayScene extends Phaser.Scene {
       for (let col = 0; col < Config.cols; col += 1) {
         this.board[row][col] = null;
         const center = this.getCellCenter(row, col);
-        this.add.rectangle(center.x, center.y, Config.cellWidth - 4, Config.cellHeight - 4, 0x0f1713, 0.4);
+        this.add.rectangle(center.x, center.y, Config.cellWidth - 4, Config.cellHeight - 4, 0x0f1713, 0.16);
         this.add.rectangle(center.x, center.y, Config.cellWidth - 4, Config.cellHeight - 4, undefined).setStrokeStyle(1, 0x3a3f48);
       }
     }
@@ -844,6 +845,10 @@ export class GamePlayScene extends Phaser.Scene {
 
     // ── 右缘：城墙 + 城门（僵尸越过此线即失败）──
     const wallX = boardRight + 10;
+    // 光源统一在右上：城墙向棋盘投出渐弱斜影
+    const wallShadow = this.add.graphics().setDepth(-13);
+    wallShadow.fillGradientStyle(0x000000, 0x000000, 0x000000, 0x000000, 0, 0.3, 0, 0.3);
+    wallShadow.fillRect(boardRight - 44, boardTop - 12, 54, boardH + 24);
     this.add
       .rectangle(wallX, boardTop + boardH / 2, 20, boardH, 0x7a6238, 0.95)
       .setDepth(-15);
@@ -2498,16 +2503,32 @@ private updateCoinText() {
     });
   }
 
+  /** 羽箭贴图（程序生成一次）：木杆 + 铁镞 + 朱红尾羽，替代纯色三角 */
+  private ensureArrowTexture() {
+    if (this.textures.exists("arrow-feather")) {
+      return;
+    }
+    const g = this.make.graphics({ x: 0, y: 0 }, false);
+    g.fillStyle(0xcaa66e, 1);
+    g.fillRect(7, 4, 21, 2);
+    g.fillStyle(0xefe9d8, 1);
+    g.fillTriangle(28, 0, 36, 5, 28, 10);
+    g.fillStyle(0xb04a3a, 1);
+    g.fillTriangle(9, 0, 2, 5, 9, 10);
+    g.fillTriangle(14, 0, 8, 5, 14, 10);
+    g.generateTexture("arrow-feather", 36, 10);
+    g.destroy();
+  }
+
   shootArrow(fromX: number, fromY: number, target: Zombie, damage: number, source?: Unit) {
     if (source) this.playWeaponStrike(source);
-    const arrow = this.arrowPool.shift() ?? this.add.graphics();
-    arrow.clear();
+    this.ensureArrowTexture();
+    const arrow = this.arrowPool.pop() ?? this.add.image(0, 0, "arrow-feather");
+    arrow.clearTint();
     arrow.setPosition(fromX, fromY);
+    arrow.setRotation(Phaser.Math.Angle.Between(fromX, fromY, target.x, target.y));
     arrow.setVisible(true);
     arrow.setDepth(80);
-    arrow.fillStyle(0x93c5fd, 1);
-    arrow.fillRect(-5, -1, 10, 2);
-    arrow.fillRect(3, -3, 3, 6);
 
     this.tweens.add({
       targets: arrow,
@@ -2529,14 +2550,13 @@ private updateCoinText() {
   }
 
   shootUnitArrow(fromX: number, fromY: number, target: Unit, damage: number) {
-    const arrow = this.arrowPool.shift() ?? this.add.graphics();
-    arrow.clear();
+    this.ensureArrowTexture();
+    const arrow = this.arrowPool.pop() ?? this.add.image(0, 0, "arrow-feather");
+    arrow.setTint(0xfbbf24);
     arrow.setPosition(fromX, fromY);
+    arrow.setRotation(Phaser.Math.Angle.Between(fromX, fromY, target.x, target.y));
     arrow.setVisible(true);
     arrow.setDepth(80);
-    arrow.fillStyle(0xfbbf24, 1);
-    arrow.fillRect(-5, -1, 10, 2);
-    arrow.fillRect(3, -3, 3, 6);
 
     this.tweens.add({
       targets: arrow,

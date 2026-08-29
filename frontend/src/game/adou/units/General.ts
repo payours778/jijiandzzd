@@ -86,6 +86,7 @@ export class General extends Unit implements HasWeaponSlot {
     this.id = `general-${generalName}-${row}-${col}-${Date.now()}`;
     this.generalName = generalName;
     this.isFriendly = true;
+    this.applyDeco("seal");
     this.attachHealthBar(36, 0x22c55e);
     this.attachOutline(0xfbbf24);
     this.showHpText(true);

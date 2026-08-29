@@ -24,7 +24,9 @@ export class DiaoChan extends Zombie {
     super(scene, x, y, row, "normal", strengthMultiplier);
     this.homeX = x;
     this.setText("貂蝉");
-    this.setFontSize(22);
+    this.setFontSize(34);
+    this.applyDeco("boss");
+    this.attachHealthBar(48, 0xef4444);
     this.setColor("#e879f9");
     this.setOrigin(0.5);
     this.maxHp = DiaoChanStats.hp * strengthMultiplier;

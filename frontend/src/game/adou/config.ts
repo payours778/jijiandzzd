@@ -120,10 +120,10 @@ export const GeneralPieces: Record<string, [string, string]> = {
 };
 
 export const SoldierStats = {
-  刀: { hp: 300, damage: 30, cooldown: 700, range: 1, color: "#d97706" },
-  枪: { hp: 200, damage: 15, cooldown: 700, range: 3, color: "#2563eb" },
-  骑: { hp: 250, damage: 15, cooldown: 700, range: 1.5, color: "#dc2626" },
-  弓: { hp: 200, damage: 10, cooldown: 1000, range: 999, color: "#059669" },
+  刀: { hp: 300, damage: 30, cooldown: 700, range: 1, color: "#c98a3d" },
+  枪: { hp: 200, damage: 15, cooldown: 700, range: 3, color: "#5b8dd6" },
+  骑: { hp: 250, damage: 15, cooldown: 700, range: 1.5, color: "#d96a5a" },
+  弓: { hp: 200, damage: 10, cooldown: 1000, range: 999, color: "#46a583" },
 };
 
 export const MedicConfig = {
@@ -131,7 +131,7 @@ export const MedicConfig = {
   healInterval: 3000,
   healPercent: 0.1,
   levelHealBonus: 0.05,
-  color: "#10b981",
+  color: "#4fae9b",
 };
 
 export const ZombieStats = {

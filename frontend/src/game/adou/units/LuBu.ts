@@ -21,8 +21,10 @@ export class LuBu extends Zombie {
   ) {
     super(scene, x, y, row, "normal", strengthMultiplier);
     this.setText("吕布");
-    this.setFontSize(22);
-    this.setColor("#ef4444");
+    this.setFontSize(34);
+    this.setColor("#fca5a5");
+    this.applyDeco("boss");
+    this.attachHealthBar(48, 0xef4444);
     this.setOrigin(0.5);
     this.maxHp = LuBuStats.hp * strengthMultiplier;
     this.hp = this.maxHp;

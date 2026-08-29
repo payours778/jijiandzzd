@@ -15,6 +15,7 @@ export abstract class Unit extends Phaser.GameObjects.Text {
   isDestroyed = false;
   protected healthBar?: Phaser.GameObjects.Rectangle;
   protected healthBarBackground?: Phaser.GameObjects.Rectangle;
+  protected healthBarGloss?: Phaser.GameObjects.Rectangle;
   protected healthBarWidth = 34;
   protected hpText?: Phaser.GameObjects.Text;
   protected levelText?: Phaser.GameObjects.Text;
@@ -31,6 +32,10 @@ export abstract class Unit extends Phaser.GameObjects.Text {
   private heavyWoundUntil = 0;
   private heavyWoundRatio = 1;
   private heavyWoundMarker?: Phaser.GameObjects.Text;
+  // 美术层：地面投影 + 身份底座（武将朱印 / 小兵淡墨圆底 / BOSS 名条）
+  protected shadow?: Phaser.GameObjects.Ellipse;
+  protected decoBase?: Phaser.GameObjects.Graphics;
+  private decoKind: "ink" | "seal" | "boss" | "none" = "none";
 
   constructor(
     scene: Phaser.Scene,
@@ -58,15 +63,96 @@ export abstract class Unit extends Phaser.GameObjects.Text {
     this.hp = maxHp;
     this.setOrigin(0.5);
     scene.add.existing(this);
+    this.hookPositionFollow();
+  }
+
+  /**
+   * 拦截 x/y 属性写入（tween/直接赋值/setPosition 都走这两个 setter），
+   * 让投影与身份底座实时跟随单位移动。
+   */
+  private hookPositionFollow() {
+    for (const prop of ["x", "y"] as const) {
+      let holder: object = this;
+      let desc = Object.getOwnPropertyDescriptor(this, prop);
+      for (let i = 0; i < 5 && !(desc && desc.get && desc.set); i += 1) {
+        holder = Object.getPrototypeOf(holder);
+        if (!holder) break;
+        desc = Object.getOwnPropertyDescriptor(holder, prop);
+      }
+      if (!desc || !desc.get || !desc.set) {
+        continue;
+      }
+      const get = desc.get;
+      const set = desc.set;
+      Object.defineProperty(this, prop, {
+        get: () => get.call(this),
+        set: (value: number) => {
+          set.call(this, value);
+          this.syncDecoPosition();
+        },
+        configurable: true,
+      });
+    }
+  }
+
+  /** 身份底座：seal=武将朱印, boss=BOSS 名条, ink=小兵淡墨圆底；同时铺地面投影 */
+  protected applyDeco(kind: "ink" | "seal" | "boss") {
+    this.decoKind = kind;
+    this.decoBase?.destroy();
+    const g = this.scene.add.graphics().setDepth(-6);
+    const w = Math.max(30, this.width);
+    const h = Math.max(30, this.displayHeight || 30);
+    if (kind === "seal") {
+      // 朱印上文字统一米金色，保证红底上的可读性（武将靠字面名字区分，不靠色相）
+      this.setColor("#f2e3bc");
+      g.fillStyle(0x8f2020, 0.94);
+      g.fillRoundedRect(-w / 2 - 7, -h / 2 - 5, w + 14, h + 12, 8);
+      g.lineStyle(1.5, 0xd9a441, 0.9);
+      g.strokeRoundedRect(-w / 2 - 7, -h / 2 - 5, w + 14, h + 12, 8);
+    } else if (kind === "boss") {
+      g.fillStyle(0x26090b, 0.96);
+      g.fillRoundedRect(-w / 2 - 10, -h / 2 - 7, w + 20, h + 16, 10);
+      g.lineStyle(2, 0xef4444, 0.92);
+      g.strokeRoundedRect(-w / 2 - 10, -h / 2 - 7, w + 20, h + 16, 10);
+    } else {
+      g.fillStyle(0x05080a, 0.5);
+      g.fillCircle(0, 2, 13);
+      g.lineStyle(1, 0xcabf9f, 0.3);
+      g.strokeCircle(0, 2, 13);
+    }
+    this.decoBase = g;
+    if (!this.shadow) {
+      this.shadow = this.scene.add
+        .ellipse(this.x + 4, this.y + h / 2 + 8, 26, 8, 0x000000, 0.32)
+        .setDepth(-10);
+    }
+    this.syncDecoPosition();
+  }
+
+  /** 投影与身份底座跟随单位（场景每帧循环调用，保证走位/突进时不脱节） */
+  syncDecoPosition() {
+    if (this.isDestroyed || !this.scene) {
+      return;
+    }
+    const halfH = (this.displayHeight || 30) / 2;
+    this.shadow?.setPosition(this.x + 4, this.y + halfH + 4);
+    this.decoBase?.setPosition(this.x, this.y);
   }
 
   attachHealthBar(width = 34, color = 0xef4444) {
     this.healthBarWidth = width;
+    this.healthBarBackground?.destroy();
+    this.healthBar?.destroy();
+    this.healthBarGloss?.destroy();
     this.healthBarBackground = this.scene.add
-      .rectangle(this.x, this.y - 32, width, 5, 0x111318)
-      .setOrigin(0.5);
+      .rectangle(this.x, this.y - 32, width, 6, 0x0b0d12, 0.92)
+      .setOrigin(0.5)
+      .setStrokeStyle(1, 0x000000, 0.7);
     this.healthBar = this.scene.add
-      .rectangle(this.x, this.y - 32, width, 5, color)
+      .rectangle(this.x, this.y - 32, width, 4, color)
+      .setOrigin(0.5);
+    this.healthBarGloss = this.scene.add
+      .rectangle(this.x, this.y - 33.2, width - 2, 1.4, 0xffffff, 0.24)
       .setOrigin(0.5);
     this.syncHealthBar();
   }
@@ -78,13 +164,14 @@ export abstract class Unit extends Phaser.GameObjects.Text {
     const hud = this.getHudPosition();
     this.healthBar?.setPosition(hud.x, hud.y - 32);
     this.healthBarBackground?.setPosition(hud.x, hud.y - 32);
+    this.healthBarGloss?.setPosition(hud.x, hud.y - 33.2);
     this.heavyWoundMarker?.setPosition(hud.x, hud.y - 46);
     this.hpText?.setPosition(hud.x, hud.y - 44);
     if (this.hpText?.visible) {
       this.hpText.setText(`${Math.round(this.hp)}/${Math.round(this.maxHp)}`);
     }
     const ratio = Math.max(0, this.hp / this.maxHp);
-    this.healthBar?.setDisplaySize(this.healthBarWidth * ratio, 5);
+    this.healthBar?.setDisplaySize(Math.max(0, this.healthBarWidth * ratio), 4);
     this.syncLevelText();
     this.syncOutline();
   }
@@ -366,11 +453,14 @@ export abstract class Unit extends Phaser.GameObjects.Text {
     // 子类销毁前清理自定义对象。
     this.healthBar?.destroy();
     this.healthBarBackground?.destroy();
+    this.healthBarGloss?.destroy();
     this.hpText?.destroy();
     this.levelText?.destroy();
     this.hitFlashTimer?.remove();
     this.outlineGraphics?.destroy();
     this.heavyWoundMarker?.destroy();
+    this.shadow?.destroy();
+    this.decoBase?.destroy();
   }
 
   protected playDeathSfx() {

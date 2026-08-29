@@ -22,7 +22,8 @@ export class Zombie extends Unit {
   ) {
     const stats = ZombieStats[zombieType];
     const hp = stats.hp * strengthMultiplier;
-    super(scene, x, y, zombieType === "cone" ? "障" : "尸", { color: "#65a30d" }, row, 0, hp);
+    super(scene, x, y, zombieType === "cone" ? "障" : "尸", { color: zombieType === "cone" ? "#8a7fb0" : "#9c8fc4" }, row, 0, hp);
+    this.applyDeco("ink");
     this.zombieType = zombieType;
     this.speed = stats.speed;
     this.strengthMultiplier = strengthMultiplier;
