@@ -85,6 +85,7 @@ export class GamePlayScene extends Phaser.Scene {
   private hand: HandCard[] = [];
   private handTexts: Phaser.GameObjects.Text[] = [];
   private handLevelTexts: Phaser.GameObjects.Text[] = [];
+  private handBases: Phaser.GameObjects.Graphics[] = [];
   private handTrayObjects: Phaser.GameObjects.GameObject[] = [];
   private mantou = Config.startingMantou;
   private selectedCard: CardType | null = null;
@@ -154,6 +155,9 @@ export class GamePlayScene extends Phaser.Scene {
   private cardTooltip?: Phaser.GameObjects.Text;
   private slashPool: Phaser.GameObjects.Graphics[] = [];
   private arrowPool: Phaser.GameObjects.Graphics[] = [];
+  // 场景氛围层：随波次渐变的色调 + 防线告警闪烁
+  private moodTint!: Phaser.GameObjects.Rectangle;
+  private gateFlash!: Phaser.GameObjects.Rectangle;
   private weaponAnimThrottle: Record<string, number> = {};
   private devCommandHandler = (event: Event) => {
     const command = (event as CustomEvent).detail?.command;
@@ -718,6 +722,13 @@ export class GamePlayScene extends Phaser.Scene {
       }
     }
 
+    // 防线告警：僵尸踏入最后一格时城门闪烁红光
+    if (this.gateFlash) {
+      const failLineX = Config.boardX + Config.cols * Config.cellWidth;
+      const breach = this.zombies.some((z) => !z.dead && z.x > failLineX - Config.cellWidth);
+      this.gateFlash.setAlpha(breach ? 0.2 + 0.16 * Math.sin(time / 130) : 0);
+    }
+
 
     this.checkSynthesis();
 
@@ -815,6 +826,115 @@ export class GamePlayScene extends Phaser.Scene {
         this.add.rectangle(center.x, center.y, Config.cellWidth - 4, Config.cellHeight - 4, undefined).setStrokeStyle(1, 0x3a3f48);
       }
     }
+
+    this.createBattlefieldAnchors();
+    this.updateSceneMood();
+  }
+
+  /**
+   * 棋盘两端的视觉锚点：右缘"城门/阿斗"防线，左缘敌袭雾气。
+   * 让"僵尸从哪来、守住什么"在画面上一目了然。
+   */
+  private createBattlefieldAnchors() {
+    const boardLeft = Config.boardX;
+    const boardTop = Config.boardY;
+    const boardRight = Config.boardX + Config.cols * Config.cellWidth;
+    const boardBottom = Config.boardY + this.board.length * Config.cellHeight;
+    const boardH = boardBottom - boardTop;
+
+    // ── 右缘：城墙 + 城门（僵尸越过此线即失败）──
+    const wallX = boardRight + 10;
+    this.add
+      .rectangle(wallX, boardTop + boardH / 2, 20, boardH, 0x7a6238, 0.95)
+      .setDepth(-15);
+    // 砖缝纹理
+    for (let y = boardTop + 18; y < boardBottom - 8; y += 26) {
+      this.add
+        .rectangle(wallX, y, 20, 2, 0x4a3a20, 0.8)
+        .setDepth(-15);
+    }
+    // 城门（开在墙身上：深色拱门 + 金色门沿）
+    const gateH = boardH * 0.34;
+    this.add
+      .rectangle(wallX, boardTop + boardH / 2, 14, gateH, 0x241505, 1)
+      .setDepth(-15)
+      .setStrokeStyle(2, 0x8a6a30, 0.9);
+    // 防线告警闪烁层（僵尸逼近最后一格时闪红）
+    this.gateFlash = this.add
+      .rectangle(boardRight - 46, boardTop + boardH / 2, 92, boardH, 0xff3b3b, 0)
+      .setDepth(-14);
+
+    // "阿斗"军旗（城墙下方空地，避开右侧 HUD 区，旗帜 + 竖排文字）
+    const flagX = boardRight + 52;
+    const flagY = boardTop + boardH * 0.88;
+    this.add.rectangle(flagX - 20, flagY - 33, 4, 66, 0x8a6a30, 0.95).setOrigin(0.5, 1);
+    const banner = this.add
+      .text(flagX - 14, flagY - 62, "阿\n斗", {
+        fontFamily: Config.fontFamily,
+        fontSize: "22px",
+        color: "#fbbf24",
+        fontStyle: "bold",
+        backgroundColor: "#7f1d1d",
+        padding: { x: 6, y: 4 },
+        align: "center",
+      })
+      .setOrigin(0, 1)
+      .setDepth(1);
+    // 旗面在旗下方轻轻飘动
+    this.tweens.add({
+      targets: banner,
+      angle: { from: -2.5, to: 2.5 },
+      duration: 1300,
+      yoyo: true,
+      repeat: -1,
+      ease: "sine.inout",
+    });
+
+    // ── 左缘：敌袭入口雾气 + 警旗 ──
+    const fog = this.add.graphics().setDepth(-14);
+    fog.fillGradientStyle(0x9fb8c8, 0x9fb8c8, 0x9fb8c8, 0x9fb8c8, 0.34, 0.05, 0.34, 0.05);
+    fog.fillRect(boardLeft - 12, boardTop - 12, Config.cellWidth * 1.1, boardH + 24);
+    const warnX = boardLeft - 62;
+    this.add.rectangle(warnX, boardTop + boardH / 2 - 40, 4, 80, 0x6b4a3a, 0.95).setOrigin(0.5, 1);
+    this.add
+      .text(warnX - 14, boardTop + boardH / 2 - 78, "敌\n袭", {
+        fontFamily: Config.fontFamily,
+        fontSize: "20px",
+        color: "#f87171",
+        fontStyle: "bold",
+        backgroundColor: "#27272a",
+        padding: { x: 5, y: 4 },
+        align: "center",
+      })
+      .setOrigin(0, 1)
+      .setDepth(1);
+
+    // ── 波次氛围层（覆盖棋盘，随波次渐变）──
+    this.moodTint = this.add
+      .rectangle(boardLeft - 12, boardTop - 12, Config.cols * Config.cellWidth + 24, boardH + 24, 0xfff2cc, 0.05)
+      .setOrigin(0)
+      .setDepth(-16);
+  }
+
+  /** 波次越高，棋盘色调越压抑：暖黄 → 黄昏橙 → 危险红 */
+  private updateSceneMood() {
+    const wave = this.wave;
+    let color = 0xfff2cc;
+    let alpha = 0.05;
+    if (wave >= 20) {
+      color = 0xff5a5a;
+      alpha = 0.13;
+    } else if (wave >= 15) {
+      color = 0xff8a5c;
+      alpha = 0.11;
+    } else if (wave >= 10) {
+      color = 0xffb35c;
+      alpha = 0.09;
+    } else if (wave >= 5) {
+      color = 0xffd98f;
+      alpha = 0.07;
+    }
+    this.moodTint.setFillStyle(color, alpha);
   }
 
   private createUI() {
@@ -1163,6 +1283,8 @@ export class GamePlayScene extends Phaser.Scene {
   private renderHand() {
     this.handTexts.forEach((text) => text.destroy());
     this.handLevelTexts.forEach((text) => text.destroy());
+    this.handBases.forEach((base) => base.destroy());
+    this.handBases = [];
     this.handTexts = [];
     this.handLevelTexts = [];
 
@@ -1175,7 +1297,6 @@ export class GamePlayScene extends Phaser.Scene {
           color: this.getCardColor(card),
           stroke: "#111",
           strokeThickness: 2,
-          backgroundColor: "#252a33",
           padding: { x: 12, y: 8 },
         })
         .setOrigin(0.5)
@@ -1184,6 +1305,15 @@ export class GamePlayScene extends Phaser.Scene {
         .setData("card", card)
         .setData("level", level)
         .setData("handIndex", index);
+
+      // 卡面底座：按兵种色描边的小卡片
+      const base = this.add.graphics().setDepth(29);
+      const borderColor = parseInt(this.getCardColor(card).slice(1), 16);
+      base.fillStyle(0x161a24, 0.96);
+      base.fillRoundedRect(text.x - 27, text.y - 25, 54, 50, 8);
+      base.lineStyle(2, borderColor, 0.7);
+      base.strokeRoundedRect(text.x - 27, text.y - 25, 54, 50, 8);
+      this.handBases.push(base);
 
       const isSelected = this.selectedHandIndex === index;
       text.setBackgroundColor(isSelected ? "#facc15" : "#252a33");
@@ -1208,15 +1338,15 @@ export class GamePlayScene extends Phaser.Scene {
 
       if (level > 1) {
         const badge = this.add
-          .text(text.x + 20, text.y - 20, String(level), {
+          .text(text.x, text.y + 33, "★".repeat(level), {
             fontFamily: Config.fontFamily,
-            fontSize: "13px",
+            fontSize: "11px",
             color: "#fbbf24",
             fontStyle: "bold",
             stroke: "#111",
             strokeThickness: 2,
           })
-          .setOrigin(0.5)
+          .setOrigin(0.5, 0)
           .setDepth(31);
         this.handLevelTexts.push(badge);
       }
@@ -1779,6 +1909,7 @@ export class GamePlayScene extends Phaser.Scene {
     this.wave += 1;
     this.bossSpawnedInWave = false;
     this.updateWaveText();
+    this.updateSceneMood();
     this.messageText.setText(`进入第 ${this.wave} 波`);
     if (this.wave % 5 === 0) {
       this.showBossWarning(this.getBossForWave(this.wave));
@@ -2600,6 +2731,22 @@ private updateCoinText() {
       hold: 900,
       repeat: 1,
       onComplete: () => warning.destroy(),
+    });
+
+    // BOSS 预警红晕：全屏边缘红光脉冲，与字效同步出现与消退
+    const vignette = this.add
+      .rectangle(this.px(50), this.py(50), Config.gameWidth, Config.gameHeight)
+      .setStrokeStyle(26, 0xef4444, 1)
+      .setOrigin(0.5)
+      .setDepth(149)
+      .setAlpha(0);
+    this.tweens.add({
+      targets: vignette,
+      alpha: { from: 0.55, to: 0.12 },
+      duration: 300,
+      yoyo: true,
+      repeat: 3,
+      onComplete: () => vignette.destroy(),
     });
   }
 

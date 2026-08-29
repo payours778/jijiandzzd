@@ -331,25 +331,35 @@ export abstract class Unit extends Phaser.GameObjects.Text {
   }
 
   protected showDamageNumber(damage: number) {
+    // 分级：单次伤害≥50 或 ≥目标 18% 最大生命 → 大额金色字号；普通伤害维持红色小字
+    const ratio = this.maxHp > 0 ? damage / this.maxHp : 0;
+    const heavy = damage >= 50 || ratio >= 0.18;
     const number = this.scene.add
       .text(this.x, this.y - 20, `-${Math.round(damage)}`, {
         fontFamily: Config.fontFamily,
-        fontSize: "16px",
-        color: "#f87171",
+        fontSize: heavy ? "24px" : "16px",
+        color: heavy ? "#fbbf24" : "#f87171",
         fontStyle: "bold",
         stroke: "#111",
-        strokeThickness: 2,
+        strokeThickness: heavy ? 3 : 2,
       })
       .setOrigin(0.5)
       .setDepth(90);
 
     this.scene.tweens.add({
       targets: number,
-      y: this.y - 38,
+      y: this.y - (heavy ? 52 : 38),
       alpha: 0,
-      duration: 520,
+      duration: heavy ? 700 : 520,
       onComplete: () => number.destroy(),
     });
+    if (heavy) {
+      this.scene.tweens.add({
+        targets: number,
+        scale: { from: 1.35, to: 1 },
+        duration: 220,
+      });
+    }
   }
 
   protected onDestroyed() {
