@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<title>战斗页背景 · 十版</title>
+<style>
+  html, body { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; background: #000; }
+  .design { position: fixed; inset: 0; display: none; }
+  .design.on { display: block; }
+  svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+
+  /* 1 夜障孤营：深夜山影 + 军帐剪影 + 篝火微光 */
+  .d1 { background: linear-gradient(180deg, #06090f 0%, #0c1119 45%, #17110b 78%, #0a0704 100%); }
+  .d1 .fire { position: absolute; left: 18%; bottom: 6%; width: 46vw; height: 34vh;
+    background: radial-gradient(ellipse at center, rgba(224,120,40,.22), rgba(224,120,40,.06) 45%, transparent 70%); }
+  .d1 .fire2 { position: absolute; right: 14%; bottom: 4%; width: 34vw; height: 26vh;
+    background: radial-gradient(ellipse at center, rgba(224,120,40,.16), transparent 68%); }
+
+  /* 2 残阳血原：血色残阳压在地平线 */
+  .d2 { background: linear-gradient(180deg, #12060a 0%, #3d0d10 38%, #8a2414 58%, #1a0806 78%, #080404 100%); }
+  .d2 .sun { position: absolute; left: 62%; top: 52%; width: 22vw; height: 22vw; transform: translate(-50%, -50%);
+    border-radius: 50%; background: radial-gradient(circle, rgba(255,120,60,.95), rgba(200,60,30,.5) 52%, transparent 72%);
+    filter: blur(2px); }
+  .d2 .haze { position: absolute; inset: 0; background: linear-gradient(180deg, transparent 55%, rgba(10,3,3,.55) 100%); }
+
+  /* 3 烽燧狼烟：荒原烽燧 + 一柱狼烟 + 冷月 */
+  .d3 { background: linear-gradient(180deg, #070a0d 0%, #0d1315 50%, #0b0d0c 100%); }
+  .d3 .moon { position: absolute; right: 18%; top: 12%; width: 9vw; height: 9vw; border-radius: 50%;
+    background: radial-gradient(circle, rgba(220,228,235,.85), rgba(200,210,220,.18) 55%, transparent 75%); }
+  .d3 .smoke { position: absolute; left: 30%; bottom: 30%; width: 16vw; height: 62vh;
+    background: radial-gradient(ellipse at 50% 100%, rgba(180,180,190,.14), rgba(180,180,190,.05) 55%, transparent 78%);
+    filter: blur(14px); }
+
+  /* 4 铁幕孤城：城垣箭垛剪影 + 旗影 + 铁青天 */
+  .d4 { background: linear-gradient(180deg, #0b1016 0%, #101822 52%, #090c10 100%); }
+  .d4 .cold { position: absolute; inset: 0; background: linear-gradient(180deg, rgba(20,32,44,.0), rgba(20,32,44,.24) 100%); }
+
+  /* 5 风沙古道：斜切风沙 + 土黄尘幕 */
+  .d5 { background:
+    repeating-linear-gradient(112deg, rgba(210,180,120,.05) 0 2px, transparent 2px 26px),
+    linear-gradient(180deg, #241a0c 0%, #4a3418 46%, #241a0a 100%); }
+  .d5 .dust { position: absolute; inset: 0;
+    background: radial-gradient(ellipse at 70% 20%, rgba(200,170,110,.14), transparent 55%),
+                radial-gradient(ellipse at 25% 70%, rgba(160,130,80,.12), transparent 60%); }
+
+  /* 6 霜天冷月：巨月悬空 + 霜雾横带 */
+  .d6 { background: linear-gradient(180deg, #04070c 0%, #0a1622 46%, #0e2028 74%, #050a0e 100%); }
+  .d6 .moon { position: absolute; left: 24%; top: 16%; width: 16vw; height: 16vw; border-radius: 50%;
+    background: radial-gradient(circle, rgba(226,238,248,.9), rgba(200,220,235,.22) 55%, transparent 76%); }
+  .d6 .mist { position: absolute; inset: 0;
+    background: linear-gradient(180deg, transparent 52%, rgba(160,200,220,.07) 62%, transparent 70%, rgba(160,200,220,.05) 82%, transparent 92%); }
+
+  /* 7 焦土余烬：炭黑大地 + 上升火星 */
+  .d7 { background: linear-gradient(180deg, #050303 0%, #120704 55%, #1c0a05 80%, #050303 100%); }
+  .d7 .embers { position: absolute; inset: 0;
+    background:
+      radial-gradient(circle at 12% 82%, rgba(255,140,50,.5) 0 2px, transparent 3px),
+      radial-gradient(circle at 26% 64%, rgba(255,120,40,.4) 0 1.6px, transparent 3px),
+      radial-gradient(circle at 38% 88%, rgba(255,150,60,.45) 0 2px, transparent 3px),
+      radial-gradient(circle at 55% 70%, rgba(255,110,40,.35) 0 1.5px, transparent 3px),
+      radial-gradient(circle at 68% 86%, rgba(255,140,50,.45) 0 2px, transparent 3px),
+      radial-gradient(circle at 81% 60%, rgba(255,120,40,.35) 0 1.6px, transparent 3px),
+      radial-gradient(circle at 90% 78%, rgba(255,150,60,.4) 0 2px, transparent 3px); }
+
+  /* 8 雾渡大江：青灰江雾横带 + 远岸剪影 */
+  .d8 { background: linear-gradient(180deg, #0a1114 0%, #122026 52%, #0a1216 100%); }
+  .d8 .mist { position: absolute; inset: 0;
+    background: linear-gradient(180deg, transparent 40%, rgba(170,200,205,.1) 55%, rgba(150,190,195,.16) 66%, transparent 78%); }
+
+  /* 9 万箭穿云：暮空 + 箭雨流光 */
+  .d9 { background: linear-gradient(180deg, #140a08 0%, #2e1410 44%, #180a08 72%, #0a0504 100%); }
+  .d9 .arrows { position: absolute; inset: -20%;
+    background: repeating-linear-gradient(118deg, transparent 0 46px, rgba(240,200,150,.06) 46px 48px, transparent 48px 120px); }
+  .d9 .arrows2 { position: absolute; inset: -20%;
+    background: repeating-linear-gradient(118deg, transparent 0 90px, rgba(240,200,150,.09) 90px 92px, transparent 92px 230px); }
+
+  /* 10 玄旗猎猎：连营黑旗剪影 + 暗红天光 */
+  .d10 { background: linear-gradient(180deg, #0a0508 0%, #1c0c10 46%, #2a0e10 62%, #0a0506 100%); }
+  .d10 .red { position: absolute; inset: 0; background: linear-gradient(180deg, transparent 58%, rgba(160,30,30,.14) 100%); }
+</style>
+</head>
+<body>
+  <div class="design d1" data-d="1">
+    <svg viewBox="0 0 1440 900" preserveAspectRatio="none">
+      <path d="M0,520 L180,430 L340,500 L520,400 L700,480 L900,380 L1100,470 L1280,420 L1440,480 L1440,900 L0,900 Z" fill="#0b0e14"/>
+      <path d="M0,600 L240,540 L460,610 L720,530 L980,620 L1200,560 L1440,610 L1440,900 L0,900 Z" fill="#07090d"/>
+      <path d="M60,700 q30,-52 60,0 z M160,700 q30,-52 60,0 z M1130,690 q32,-54 64,0 z M1240,690 q32,-54 64,0 z" fill="#05070a"/>
+      <rect x="0" y="700" width="1440" height="200" fill="#04060a"/>
+    </svg>
+    <div class="fire"></div><div class="fire2"></div>
+  </div>
+
+  <div class="design d2" data-d="2">
+    <div class="sun"></div>
+    <svg viewBox="0 0 1440 900" preserveAspectRatio="none">
+      <path d="M0,600 L300,560 L620,620 L940,570 L1240,620 L1440,590 L1440,900 L0,900 Z" fill="#0a0404"/>
+      <rect x="0" y="640" width="1440" height="260" fill="#070303"/>
+    </svg>
+    <div class="haze"></div>
+  </div>
+
+  <div class="design d3" data-d="3">
+    <div class="moon"></div>
+    <div class="smoke"></div>
+    <svg viewBox="0 0 1440 900" preserveAspectRatio="none">
+      <path d="M0,560 L220,520 L460,580 L720,530 L980,590 L1240,545 L1440,580 L1440,900 L0,900 Z" fill="#080b0c"/>
+      <rect x="290" y="430" width="90" height="240" fill="#050708"/>
+      <rect x="282" y="418" width="106" height="18" fill="#040607"/>
+      <rect x="0" y="660" width="1440" height="240" fill="#060809"/>
+    </svg>
+  </div>
+
+  <div class="design d4" data-d="4">
+    <svg viewBox="0 0 1440 900" preserveAspectRatio="none">
+      <path d="M0,380 L200,330 L420,380 L640,330 L880,380 L1120,330 L1440,380 L1440,900 L0,900 Z" fill="#0a0f15"/>
+      <rect x="0" y="520" width="1440" height="380" fill="#060a0e"/>
+      <g fill="#05080b">
+        <rect x="40" y="484" width="46" height="40"/><rect x="120" y="484" width="46" height="40"/><rect x="200" y="484" width="46" height="40"/><rect x="280" y="484" width="46" height="40"/><rect x="360" y="484" width="46" height="40"/><rect x="440" y="484" width="46" height="40"/><rect x="520" y="484" width="46" height="40"/><rect x="600" y="484" width="46" height="40"/><rect x="680" y="484" width="46" height="40"/><rect x="760" y="484" width="46" height="40"/><rect x="840" y="484" width="46" height="40"/><rect x="920" y="484" width="46" height="40"/><rect x="1000" y="484" width="46" height="40"/><rect x="1080" y="484" width="46" height="40"/><rect x="1160" y="484" width="46" height="40"/><rect x="1240" y="484" width="46" height="40"/><rect x="1320" y="484" width="46" height="40"/>
+      </g>
+      <g fill="#04060a">
+        <path d="M180,380 l8,-64 l6,64 z"/><path d="M540,380 l8,-70 l6,70 z"/><path d="M900,380 l8,-64 l6,64 z"/><path d="M1260,380 l8,-70 l6,70 z"/>
+      </g>
+    </svg>
+    <div class="cold"></div>
+  </div>
+
+  <div class="design d5" data-d="5">
+    <div class="dust"></div>
+    <svg viewBox="0 0 1440 900" preserveAspectRatio="none">
+      <path d="M0,640 L360,600 L760,650 L1120,610 L1440,640 L1440,900 L0,900 Z" fill="#1c1408"/>
+      <path d="M120,640 q6,-70 -14,-120 M420,636 q-8,-60 8,-110 M980,646 q6,-64 -10,-118 M1260,640 q-6,-58 12,-104" stroke="#3a2c12" stroke-width="3" fill="none" opacity=".5"/>
+    </svg>
+  </div>
+
+  <div class="design d6" data-d="6">
+    <div class="moon"></div>
+    <svg viewBox="0 0 1440 900" preserveAspectRatio="none">
+      <path d="M0,520 L260,470 L540,540 L820,480 L1100,540 L1320,500 L1440,530 L1440,900 L0,900 Z" fill="#060b10"/>
+      <rect x="0" y="600" width="1440" height="300" fill="#04070a"/>
+    </svg>
+    <div class="mist"></div>
+  </div>
+
+  <div class="design d7" data-d="7">
+    <div class="embers"></div>
+    <svg viewBox="0 0 1440 900" preserveAspectRatio="none">
+      <path d="M0,700 L300,660 L640,710 L980,670 L1280,710 L1440,680 L1440,900 L0,900 Z" fill="#070403"/>
+    </svg>
+  </div>
+
+  <div class="design d8" data-d="8">
+    <svg viewBox="0 0 1440 900" preserveAspectRatio="none">
+      <path d="M0,430 L320,410 L680,440 L1020,415 L1440,440 L1440,560 L0,560 Z" fill="#0d1a1e"/>
+      <rect x="0" y="540" width="1440" height="360" fill="#0a1416"/>
+    </svg>
+    <div class="mist"></div>
+  </div>
+
+  <div class="design d9" data-d="9">
+    <div class="arrows"></div>
+    <div class="arrows2"></div>
+    <svg viewBox="0 0 1440 900" preserveAspectRatio="none">
+      <path d="M0,660 L360,630 L740,670 L1100,635 L1440,665 L1440,900 L0,900 Z" fill="#0a0505"/>
+    </svg>
+  </div>
+
+  <div class="design d10" data-d="10">
+    <svg viewBox="0 0 1440 900" preserveAspectRatio="none">
+      <path d="M0,480 L240,440 L520,490 L800,450 L1080,490 L1320,455 L1440,480 L1440,900 L0,900 Z" fill="#0c0508"/>
+      <g fill="#080406">
+        <rect x="140" y="300" width="5" height="180"/><path d="M145,300 l52,10 l-52,12 z"/>
+        <rect x="420" y="320" width="5" height="170"/><path d="M425,320 l52,10 l-52,12 z"/>
+        <rect x="700" y="296" width="5" height="180"/><path d="M705,296 l52,10 l-52,12 z"/>
+        <rect x="980" y="318" width="5" height="170"/><path d="M985,318 l52,10 l-52,12 z"/>
+        <rect x="1230" y="300" width="5" height="180"/><path d="M1235,300 l52,10 l-52,12 z"/>
+      </g>
+      <rect x="0" y="620" width="1440" height="280" fill="#060303"/>
+    </svg>
+    <div class="red"></div>
+  </div>
+
+  <script>
+    const d = new URLSearchParams(location.search).get("d") || "1";
+    document.querySelector(".design.d" + d)?.classList.add("on");
+  </script>
+</body>
+</html>
