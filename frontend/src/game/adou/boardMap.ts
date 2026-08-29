@@ -62,7 +62,7 @@ export function currentBoardThemeId(): number | null {
 export function preloadBoardMap(scene: Phaser.Scene) {
   scene.load.image("board-grass", "effects/board-grass.png");
   if (getBoardTheme(currentBoardThemeId()).style === "ship") {
-    scene.load.image("ship-bg", "/assets/battle/ship-bg.jpg?v=9");
+    scene.load.image("ship-bg", "/assets/battle/ship-bg.jpg?v=11");
   }
 }
 
