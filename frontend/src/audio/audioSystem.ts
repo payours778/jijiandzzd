@@ -1,4 +1,4 @@
-import { MUSIC_FILES, SFX_FILES, trainingBgmFile, type MusicKey, type SfxKey } from "./audioConfig";
+import { MUSIC_FILES, SFX_FILES, type MusicKey, type SfxKey } from "./audioConfig";
 
 export interface AudioSettings {
   muted: boolean;
@@ -23,6 +23,9 @@ let settings = loadSettings();
 let audioContext: AudioContext | null = null;
 let musicElement: HTMLAudioElement | null = null;
 let currentMusicKey: string | null = null;
+// 最近一次真正发起的 BGM 请求（用于取消静音/音量恢复时回到正确的场景音乐，
+// 而不是无条件拉起军营 BGM）。在守卫通过、即将 startLoop 时更新。
+let lastMusicRequest: { kind: "key"; value: MusicKey } | { kind: "src"; value: string } | null = null;
 // 环境音（风声等）独立通道, 与 BGM 可同时播放
 let ambientElement: HTMLAudioElement | null = null;
 let ambientKey: string | null = null;
@@ -85,6 +88,14 @@ const PRELOAD_SFX_KEYS: SfxKey[] = [
 const lastSfxAt = new Map<SfxKey, number>();
 const sfxPools = new Map<string, HTMLAudioElement[]>();
 const nextSfxSlot = new Map<string, number>();
+// 技能语音池：与 SFX 池同思路，避免每次放技能都 new Audio 重新拉取
+const MAX_VOICE_INSTANCES_PER_SRC = 2;
+const voicePools = new Map<string, HTMLAudioElement[]>();
+const nextVoiceSlot = new Map<string, number>();
+// 每次播放的令牌：元素被复用后，旧回调过期作废
+const voiceTokens = new WeakMap<HTMLAudioElement, symbol>();
+// 元素当前活跃的结算回调：被抢占时立即结算上一段语音，避免调用方（技能释放）被卡住
+const voiceFinishers = new WeakMap<HTMLAudioElement, () => void>();
 let preloadStarted = false;
 const listeners = new Set<() => void>();
 
@@ -246,8 +257,8 @@ export function setMuted(muted: boolean) {
   if (muted) {
     stopMusic();
   } else {
-    // 取消静音后恢复军营 BGM（不重启正在播放的同一首）
-    resumeTrainingBgm();
+    // 取消静音后恢复最近一次场景音乐（不重启正在播放的同一首）
+    resumeLastBgm();
   }
   saveSettings();
   notify();
@@ -267,31 +278,43 @@ export function setMusicVolume(volume: number) {
   if (settings.musicVolume <= 0) {
     stopMusic();
   } else if (wasZero) {
-    // 从静音状态恢复到有音量，重新拉起 BGM
-    resumeTrainingBgm();
+    // 从静音状态恢复到有音量，恢复最近一次场景音乐
+    resumeLastBgm();
   }
   saveSettings();
   notify();
 }
 
 /**
- * 根据当前设置恢复军营 BGM 播放。
- * 仅在开关开启、未静音、音量>0、选择了非 off 的 BGM 时播放；
- * 若当前音乐正是同一首且在播放，则不重启（避免音量调节时音乐中断）。
+ * 根据最近一次 BGM 请求恢复播放。
+ * - 军营（playLoopSrc 的自定义音乐）→ 原样恢复；
+ * - 带文件的场景音乐（如 BOSS BGM）→ 按场景 key 恢复；
+ * - battle 这类未配置文件的 key → 保持安静（不误播军营音乐）。
  */
-function resumeTrainingBgm() {
+function resumeLastBgm() {
   if (!settings.bgmEnabled || settings.muted || settings.musicVolume <= 0) {
     return;
   }
-  const file = trainingBgmFile(settings.trainingBgm);
-  if (file) {
-    playLoopSrc(file);
+  if (!lastMusicRequest) {
+    return;
+  }
+  if (lastMusicRequest.kind === "src") {
+    playLoopSrc(lastMusicRequest.value);
+    return;
+  }
+  if (MUSIC_FILES[lastMusicRequest.value]) {
+    playMusic(lastMusicRequest.value);
   }
 }
 
 export function setSfxVolume(volume: number) {
   settings.sfxVolume = clampVolume(volume, 0);
   for (const pool of sfxPools.values()) {
+    for (const sound of pool) {
+      sound.volume = settings.sfxVolume;
+    }
+  }
+  for (const pool of voicePools.values()) {
     for (const sound of pool) {
       sound.volume = settings.sfxVolume;
     }
@@ -361,6 +384,7 @@ export function playMusic(key: MusicKey) {
     return;
   }
 
+  lastMusicRequest = { kind: "key", value: key };
   startLoop(MUSIC_FILES[key], key);
 }
 
@@ -376,6 +400,7 @@ export function playLoopSrc(src: string) {
     return;
   }
 
+  lastMusicRequest = { kind: "src", value: src };
   startLoop(src, src);
 }
 
@@ -472,6 +497,32 @@ export function playSfx(key: SfxKey) {
   synthSfx(key);
 }
 
+function getVoiceElement(src: string) {
+  let pool = voicePools.get(src);
+  if (!pool) {
+    pool = [];
+    voicePools.set(src, pool);
+  }
+  const idle = pool.find((sound) => sound.paused);
+  if (idle) {
+    return idle;
+  }
+
+  if (pool.length < MAX_VOICE_INSTANCES_PER_SRC) {
+    const sound = new Audio(src);
+    sound.preload = "auto";
+    pool.push(sound);
+    return sound;
+  }
+
+  const index = nextVoiceSlot.get(src) ?? 0;
+  const sound = pool[index % pool.length];
+  nextVoiceSlot.set(src, index + 1);
+  voiceFinishers.get(sound)?.();
+  sound.pause();
+  return sound;
+}
+
 export function playVoiceOnce(key: SfxKey, onEnd: () => void, fallbackMs = 3000) {
   const src = SFX_FILES[key];
   if (!src || settings.muted || settings.sfxVolume <= 0 || typeof Audio === "undefined") {
@@ -480,18 +531,22 @@ export function playVoiceOnce(key: SfxKey, onEnd: () => void, fallbackMs = 3000)
   }
 
   unlock();
-  const sound = new Audio(src);
+  const sound = getVoiceElement(src);
+  const token = Symbol();
+  voiceTokens.set(sound, token);
   sound.volume = settings.sfxVolume;
+  sound.currentTime = 0;
   let done = false;
   const safeFinish = () => {
-    if (done) return;
+    if (done || voiceTokens.get(sound) !== token) return;
     done = true;
     onEnd();
   };
-  sound.addEventListener("ended", safeFinish);
-  sound.addEventListener("error", () => window.setTimeout(safeFinish, fallbackMs));
+  voiceFinishers.set(sound, safeFinish);
+  sound.addEventListener("ended", safeFinish, { once: true });
+  sound.addEventListener("error", safeFinish, { once: true });
   window.setTimeout(safeFinish, Math.max(fallbackMs, 15000));
-  sound.play().catch(() => window.setTimeout(safeFinish, fallbackMs));
+  sound.play().catch(() => safeFinish());
 }
 
 interface ToneOptions {
