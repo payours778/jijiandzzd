@@ -729,6 +729,8 @@ export class GamePlayScene extends Phaser.Scene {
       this.gateFlash.setAlpha(breach ? 0.2 + 0.16 * Math.sin(time / 130) : 0);
     }
 
+    this.sweepOrphanDeco();
+
 
     this.checkSynthesis();
 
@@ -921,9 +923,45 @@ export class GamePlayScene extends Phaser.Scene {
       .setDepth(-16);
   }
 
+  /**
+   * 孤儿清扫：影子/身份底座必须与某个存活单位精确贴合，
+   * 任何脱离的装饰物（异常销毁路径、时序边界导致）一律当场销毁，
+   * 从机制上保证"影子永远跟着字"。
+   */
+  private sweepOrphanDeco() {
+    const units: Array<{ x: number; y: number; halfH: number }> = [];
+    for (const row of this.board) {
+      for (const unit of row) {
+        if (unit && !unit.dead) {
+          units.push({ x: unit.x, y: unit.y, halfH: (unit.displayHeight || 30) / 2 });
+        }
+      }
+    }
+    for (const z of this.zombies) {
+      if (!z.dead) {
+        units.push({ x: z.x, y: z.y, halfH: (z.displayHeight || 30) / 2 });
+      }
+    }
+    for (const child of this.children.list) {
+      const c = child as Phaser.GameObjects.Graphics & { depth: number; x: number; y: number };
+      const isDeco = child.type === "Graphics" && c.depth === -6;
+      const isShadow = child.type === "Ellipse" && c.depth === -10;
+      if (!isDeco && !isShadow) {
+        continue;
+      }
+      const anchored = units.some((u) =>
+        isDeco
+          ? Math.abs(u.x - c.x) < 3 && Math.abs(u.y - c.y) < 3
+          : Math.abs(u.x + 4 - c.x) < 3 && Math.abs(u.y + u.halfH + 8 - c.y) < 3,
+      );
+      if (!anchored) {
+        c.destroy();
+      }
+    }
+  }
+
   /** 波次越高，棋盘色调越压抑：暖黄 → 黄昏橙 → 危险红 */
-  private updateSceneMood() {
-    const wave = this.wave;
+  private updateSceneMood() {    const wave = this.wave;
     let color = 0xfff2cc;
     let alpha = 0.05;
     if (wave >= 20) {

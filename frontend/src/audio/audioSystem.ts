@@ -331,11 +331,24 @@ function clearPendingGesture() {
   }
 }
 
+// BGM/环境音元素的加载错误处理：置空引用（停止音乐走 removeAttribute+load，不会触发此事件）
+const musicErrorHandler = () => {
+  musicElement = null;
+  currentMusicKey = null;
+};
+const ambientErrorHandler = () => {
+  ambientElement = null;
+  ambientKey = null;
+};
+
 function startLoop(src: string, key: string) {
   // 无论新音乐是否为空，都先停止当前音乐，确保同时只播放一首 BGM
   if (musicElement) {
     musicElement.pause();
-    musicElement.src = "";
+    // 先移除 error 监听再清空 src，避免空 src 触发伪加载错误
+    musicElement.removeEventListener("error", musicErrorHandler);
+    musicElement.removeAttribute("src");
+    musicElement.load();
     musicElement = null;
   }
   // 清理待触发的手势监听，避免累积导致重复播放
@@ -349,10 +362,7 @@ function startLoop(src: string, key: string) {
   musicElement = new Audio(src);
   musicElement.loop = true;
   musicElement.volume = settings.musicVolume;
-  musicElement.addEventListener("error", () => {
-    musicElement = null;
-    currentMusicKey = null;
-  });
+  musicElement.addEventListener("error", musicErrorHandler);
 
   const startMusic = () => {
     if (musicElement) {
@@ -409,7 +419,9 @@ export function stopMusic() {
   clearPendingGesture();
   if (musicElement) {
     musicElement.pause();
-    musicElement.src = "";
+    musicElement.removeEventListener("error", musicErrorHandler);
+    musicElement.removeAttribute("src");
+    musicElement.load();
     musicElement = null;
   }
   currentMusicKey = null;
@@ -423,7 +435,9 @@ export function stopAmbient() {
   }
   if (ambientElement) {
     ambientElement.pause();
-    ambientElement.src = "";
+    ambientElement.removeEventListener("error", musicErrorHandler);
+    ambientElement.removeAttribute("src");
+    ambientElement.load();
     ambientElement = null;
   }
   ambientKey = null;
@@ -450,10 +464,7 @@ export function playAmbient(src: string, volumeFactor = 1) {
   ambientElement = new Audio(src);
   ambientElement.loop = true;
   ambientElement.volume = Math.min(1, settings.musicVolume * volumeFactor);
-  ambientElement.addEventListener("error", () => {
-    ambientElement = null;
-    ambientKey = null;
-  });
+  ambientElement.addEventListener("error", ambientErrorHandler);
   const startAmbient = () => {
     if (ambientElement) {
       ambientElement.play().catch(() => {});
