@@ -3172,9 +3172,7 @@ img { max-width: 100%; display: block; }
   height: 100vh;
   overflow: hidden;
   background:
-    linear-gradient(180deg, rgba(5,7,11,.30) 0%, rgba(5,7,11,.06) 26%, rgba(5,7,11,.06) 84%, rgba(4,5,8,.42) 100%),
-    url("/assets/battle/ship-bg.jpg") center / cover no-repeat,
-    #0a1114;
+    linear-gradient(180deg, #0a161c 0%, #0c1e26 55%, #0e242c 100%);
 }
 .tower-defense-container {
   position: absolute;
