@@ -62,7 +62,7 @@ export function currentBoardThemeId(): number | null {
 export function preloadBoardMap(scene: Phaser.Scene) {
   scene.load.image("board-grass", "effects/board-grass.png");
   if (getBoardTheme(currentBoardThemeId()).style === "ship") {
-    scene.load.image("ship-bg", "/assets/battle/ship-bg.jpg?v=8");
+    scene.load.image("ship-bg", "/assets/battle/ship-bg.jpg?v=9");
   }
 }
 
@@ -98,31 +98,31 @@ function drawCellHints(scene: Phaser.Scene, geo: Geo, alpha: number, color = 0xf
 
 /* ─────────── 11 雾渡战船：船头朝左迎敌，棋盘嵌入甲板 ─────────── */
 function drawShip(scene: Phaser.Scene, geo: Geo, theme: BoardTheme) {
-  // 背景格区面板实测包围盒（纹理坐标）：(978,942)-(2502,1944)，1524x1002。
-  // 以 s=0.469 显示整图，使面板与真实棋盘 (130,90)-(814,580) 对齐（边缘偏差 <=20px）。
-  const sc = 0.469;
+  // 背景（雾江战船，格区已抹为甲板）在画布内按 0.5507 缩放渲染，
+  // 甲板之上绘制古风棋盘：木框 + 米黄面 + 镶嵌格板，与功能网格精确对齐。
   if (scene.textures.exists('ship-bg')) {
-    // 图像中心定位：棋盘中心 + (纹理中心 - 面板中心) * sc
-    scene.add.image(
-      472 + (1824 - 1740) * sc,
-      335 + (1200 - 1443) * sc,
-      'ship-bg',
-    ).setDisplaySize(3648 * sc, 2400 * sc).setDepth(-30);
+    scene.add.image(Config.gameWidth / 2, Config.gameHeight / 2, 'ship-bg')
+      .setDisplaySize(Config.gameWidth, Config.gameHeight)
+      .setDepth(-30);
   }
-  // 网格线（与功能网格精确对齐）
   const bw = geo.cols * geo.cw;
   const bh = geo.rows * geo.ch;
   const bLeft = Config.boardX;
   const bTop = Config.boardY;
-  for (let r = 1; r < geo.rows; r += 1) {
-    scene.add.rectangle(bLeft, bTop + r * geo.ch, bw, 1.6, 0x6a4a2a, 0.38).setOrigin(0, 0.5).setDepth(-16);
-  }
-  for (let c = 1; c < geo.cols; c += 1) {
-    scene.add.rectangle(bLeft + c * geo.cw, bTop, 1.6, bh, 0x6a4a2a, 0.38).setOrigin(0.5, 0).setDepth(-16);
-  }
+  // 木质外框（船甲板上的棋盘边框）
+  scene.add.rectangle(bLeft - 16, bTop - 16, bw + 32, bh + 32, 0x5a3a22, 1).setOrigin(0).setDepth(-24);
+  scene.add.rectangle(bLeft - 16, bTop - 16, bw + 32, bh + 32, undefined).setOrigin(0).setStrokeStyle(2, 0x8a6a3a, 0.8).setDepth(-24);
+  // 米黄棋盘面
+  scene.add.rectangle(bLeft - 6, bTop - 6, bw + 12, bh + 12, 0xe6d5a8, 1).setOrigin(0).setDepth(-23);
+  // 镶嵌格板（每格独立面板，缝隙露出木框色）
   for (let r = 0; r < geo.rows; r += 1) {
     for (let c = 0; c < geo.cols; c += 1) {
-      scene.add.rectangle(bLeft + c * geo.cw + geo.cw / 2, bTop + r * geo.ch + geo.ch / 2, geo.cw - 10, geo.ch - 10, 0xffffff, 0.03).setOrigin(0.5).setDepth(-16);
+      const cx = bLeft + c * geo.cw + geo.cw / 2;
+      const cy = bTop + r * geo.ch + geo.ch / 2;
+      scene.add.rectangle(cx, cy, geo.cw - 8, geo.ch - 8, 0xefe2b8, 1).setOrigin(0.5).setDepth(-22);
+      scene.add.rectangle(cx, cy, geo.cw - 8, geo.ch - 8, undefined).setOrigin(0.5).setStrokeStyle(1.2, 0x9a7440, 0.55).setDepth(-22);
+      // 格板底部投影线（镶嵌立体感）
+      scene.add.rectangle(cx - (geo.cw - 8) / 2 + 2, cy + (geo.ch - 8) / 2 - 1, geo.cw - 12, 1.4, 0x8a6a3a, 0.4).setOrigin(0, 0.5).setDepth(-22);
     }
   }
 }
