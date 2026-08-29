@@ -95,60 +95,23 @@ function drawCellHints(scene: Phaser.Scene, geo: Geo, alpha: number, color = 0xf
 
 /* ─────────── 11 雾渡战船：船头朝左迎敌，棋盘嵌入甲板 ─────────── */
 function drawShip(scene: Phaser.Scene, geo: Geo, theme: BoardTheme) {
-  const rand = makeRand(111);
+  // 格区底面/木质内框全部由背景图提供（已按真实棋盘大小重处理），
+  // 画布内只绘制与功能网格完全对齐的网格线。
   const bw = geo.cols * geo.cw;
   const bh = geo.rows * geo.ch;
   const bLeft = Config.boardX;
   const bTop = Config.boardY;
-  const frame = 16;
-  const outerX = bLeft - frame;
-  const outerY = bTop - frame;
-  const outerW = bw + frame * 2;
-  const outerH = bh + frame * 2;
-  const cx = outerX + outerW / 2;
-  const cy = outerY + outerH / 2;
-
-  // 原生船木板边框（棋盘四周一圈木板，让底板看起来嵌进甲板）
-  scene.add.rectangle(cx, cy, outerW, outerH, 0x7a5326).setOrigin(0.5).setDepth(-24);
-  scene.add.rectangle(cx, cy, outerW, outerH, undefined).setOrigin(0.5).setStrokeStyle(2, 0x3c2610, 0.95).setDepth(-24);
-  scene.add.rectangle(cx, cy, outerW - 4, outerH - 4, undefined).setOrigin(0.5).setStrokeStyle(1.5, 0x2a1a0c, 0.7).setDepth(-24);
-  // 木板拼缝
-  for (let r = 1; r < 5; r += 1) {
-    scene.add.rectangle(cx, outerY + (outerH / 5) * r, outerW, 1.5, 0x4a2f14, 0.8).setOrigin(0.5).setDepth(-24);
-  }
-  for (let cIdx = 1; cIdx < 6; cIdx += 1) {
-    scene.add.rectangle(outerX + (outerW / 6) * cIdx, cy, 1.5, outerH, 0x4a2f14, 0.8).setOrigin(0.5).setDepth(-24);
-  }
-  // 铆钉
-  for (const [sx, sy] of [
-    [outerX + 6, outerY + 6], [outerX + outerW - 6, outerY + 6],
-    [outerX + 6, outerY + outerH - 6], [outerX + outerW - 6, outerY + outerH - 6],
-    [cx, outerY + 6], [cx, outerY + outerH - 6],
-    [outerX + 6, cy], [outerX + outerW - 6, cy],
-  ]) {
-    scene.add.circle(sx, sy, 2.2, 0x2a1a0c, 0.9).setDepth(-23);
-  }
-
-  // 凹面底板：暖米黄半透明，让船甲板木纹透出，而不是浮层
-  scene.add.rectangle(bLeft + bw / 2, bTop + bh / 2, bw, bh, 0xe6d5a8, 0.42).setOrigin(0.5).setDepth(-24);
-  scene.add.rectangle(bLeft + bw / 2, bTop + 2, bw, 3, 0x3a2410, 0.25).setOrigin(0.5).setDepth(-23);
-  scene.add.rectangle(bLeft + 2, bTop + bh / 2, 3, bh, 0x3a2410, 0.22).setOrigin(0.5).setDepth(-23);
-  // 木纹与甲板细节（低透明度，不喧宾夺主）
-  for (let i = 0; i < 26; i += 1) {
-    scene.add.circle(bLeft + 8 + rand() * (bw - 16), bTop + 8 + rand() * (bh - 16), 2 + rand() * 9, 0xbfa060, 0.14).setDepth(-24);
-  }
-  for (let i = 0; i < 12; i += 1) {
-    scene.add.rectangle(bLeft + rand() * bw, bTop + rand() * bh, 40 + rand() * 60, 1.5, 0x8a6a3a, 0.1).setOrigin(0.5).setDepth(-24).setAngle(rand() * 6 - 3);
-  }
-
-  // 网格线透明度 35%-40%
   for (let r = 1; r < geo.rows; r += 1) {
-    scene.add.rectangle(bLeft, bTop + r * geo.ch, bw, 1, 0x6a4a2a, 0.38).setOrigin(0, 0.5).setDepth(-23);
+    scene.add.rectangle(bLeft, bTop + r * geo.ch, bw, 1.6, 0x6a4a2a, 0.38).setOrigin(0, 0.5).setDepth(-16);
   }
   for (let c = 1; c < geo.cols; c += 1) {
-    scene.add.rectangle(bLeft + c * geo.cw, bTop, 1, bh, 0x6a4a2a, 0.38).setOrigin(0.5, 0).setDepth(-23);
+    scene.add.rectangle(bLeft + c * geo.cw, bTop, 1.6, bh, 0x6a4a2a, 0.38).setOrigin(0.5, 0).setDepth(-16);
   }
-  drawCellHints(scene, geo, theme.hintAlpha, 0x3a2a18);
+  for (let r = 0; r < geo.rows; r += 1) {
+    for (let c = 0; c < geo.cols; c += 1) {
+      scene.add.rectangle(bLeft + c * geo.cw + geo.cw / 2, bTop + r * geo.ch + geo.ch / 2, geo.cw - 10, geo.ch - 10, 0xffffff, 0.03).setOrigin(0.5).setDepth(-16);
+    }
+  }
 }
 export function createBoardMap(scene: Phaser.Scene, rows: number, cols: number) {
   const theme = getBoardTheme(currentBoardThemeId());
