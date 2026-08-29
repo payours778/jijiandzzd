@@ -61,6 +61,9 @@ export function currentBoardThemeId(): number | null {
 
 export function preloadBoardMap(scene: Phaser.Scene) {
   scene.load.image("board-grass", "effects/board-grass.png");
+  if (getBoardTheme(currentBoardThemeId()).style === "ship") {
+    scene.load.image("ship-bg", "/assets/battle/ship-bg.jpg?v=8");
+  }
 }
 
 interface Geo {
@@ -95,8 +98,18 @@ function drawCellHints(scene: Phaser.Scene, geo: Geo, alpha: number, color = 0xf
 
 /* ─────────── 11 雾渡战船：船头朝左迎敌，棋盘嵌入甲板 ─────────── */
 function drawShip(scene: Phaser.Scene, geo: Geo, theme: BoardTheme) {
-  // 格区底面/木质内框全部由背景图提供（已按真实棋盘大小重处理），
-  // 画布内只绘制与功能网格完全对齐的网格线。
+  // 背景格区面板实测包围盒（纹理坐标）：(978,942)-(2502,1944)，1524x1002。
+  // 以 s=0.469 显示整图，使面板与真实棋盘 (130,90)-(814,580) 对齐（边缘偏差 <=20px）。
+  const sc = 0.469;
+  if (scene.textures.exists('ship-bg')) {
+    // 图像中心定位：棋盘中心 + (纹理中心 - 面板中心) * sc
+    scene.add.image(
+      472 + (1824 - 1740) * sc,
+      335 + (1200 - 1443) * sc,
+      'ship-bg',
+    ).setDisplaySize(3648 * sc, 2400 * sc).setDepth(-30);
+  }
+  // 网格线（与功能网格精确对齐）
   const bw = geo.cols * geo.cw;
   const bh = geo.rows * geo.ch;
   const bLeft = Config.boardX;
