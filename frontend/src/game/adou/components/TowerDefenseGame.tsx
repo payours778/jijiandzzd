@@ -85,7 +85,7 @@ export function TowerDefenseGame({
       parent: containerRef.current!,
       width: Config.gameWidth,
       height: Config.gameHeight,
-      backgroundColor: "#0f1114",
+      transparent: true,
       scene: mode === "fx-test" ? [FxTestScene] : [GamePlayScene],
       scale: {
         mode: Phaser.Scale.FIT,

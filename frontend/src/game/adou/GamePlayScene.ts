@@ -28,7 +28,7 @@ import { playSlashDownSwing } from "./effects/playSlashDownSwing";
 import { PlayDropCoinEffect } from "./effects/PlayDropCoinEffect";
 import { PlayDropItemEffect } from "./effects/PlayDropItemEffect";
 import { PlayFragmentSparkEffect } from "./effects/PlayFragmentSparkEffect";
-import { createBoardMap, preloadBoardMap } from "./boardMap";
+import { createBoardMap, getBoardTheme, currentBoardThemeId, preloadBoardMap } from "./boardMap";
 import { postAchievementEvent } from "./achievements/client";
 import { playMusic, playSfx } from "../../audio/audioSystem";
 import type { MusicKey } from "../../audio/audioConfig";
@@ -136,11 +136,25 @@ export class GamePlayScene extends Phaser.Scene {
   };
   private binBounds = {
     x: 0.875 * 960,
-    y: 0.12 * 640,
+    y: 0.30 * 640,
     width: 0.10 * 960,
-    height: 0.20 * 640,
+    height: 0.17 * 640,
+  };
+  private helpBounds = {
+    x: 0.875 * 960,
+    y: 0.095 * 640,
+    width: 0.10 * 960,
+    height: 0.16 * 640,
+  };
+  private surrenderBounds = {
+    x: 0.90 * 960,
+    y: 0.52 * 640,
+    width: 0.085 * 960,
+    height: 0.065 * 640,
   };
   private binText!: Phaser.GameObjects.Text;
+  private helpFlagBanner?: Phaser.GameObjects.Text;
+  private helpTip?: Phaser.GameObjects.Text;
   private selectedTestType: string | null = null;
   private testButtons: Phaser.GameObjects.Text[] = [];
   private testSfxButtons: Phaser.GameObjects.Text[] = [];
@@ -826,12 +840,21 @@ export class GamePlayScene extends Phaser.Scene {
         this.board[row][col] = null;
         const center = this.getCellCenter(row, col);
         this.add.rectangle(center.x, center.y, Config.cellWidth - 4, Config.cellHeight - 4, 0x0f1713, 0.16);
-        this.add.rectangle(center.x, center.y, Config.cellWidth - 4, Config.cellHeight - 4, undefined).setStrokeStyle(1, 0x3a3f48);
+        // 默认不画格子描边框，保持战场干净；仅武将保留金色描边（attachOutline）
       }
     }
 
-    this.createBattlefieldAnchors();
-    this.updateSceneMood();
+    if (getBoardTheme(currentBoardThemeId()).style === "ship") {
+      // 战船主题：无城墙/敌袭锚点，氛围层由 drawShip 内建
+      this.moodTint = this.add
+        .rectangle(Config.boardX, Config.boardY, Config.cols * Config.cellWidth, this.board.length * Config.cellHeight, 0x2288aa, 0.04)
+        .setOrigin(0)
+        .setDepth(-16);
+      this.updateSceneMood();
+    } else {
+      this.createBattlefieldAnchors();
+      this.updateSceneMood();
+    }
   }
 
   /**
@@ -981,35 +1004,48 @@ export class GamePlayScene extends Phaser.Scene {
   }
 
   private createUI() {
-    // 左上馒头/金币显示整体下移, 避开左上"返回军营"与右上音频等 HTML 悬浮按钮
+    // ── 顶部资源：古风字体 + 小型木质底衬 ──
+    const resFont = "'KaiTi', 'STKaiti', 'SimSun', serif";
     this.mantouText = this.add.text(this.px(2.5), this.py(7), "", {
-      fontFamily: Config.fontFamily,
+      fontFamily: resFont,
       fontSize: "22px",
-      color: "#facc15",
+      color: "#ffe08a",
       fontStyle: "bold",
+      stroke: "#1a0f06",
+      strokeThickness: 3,
     });
+    this.woodPlaque(this.mantouText.x - 2, this.mantouText.y - 4, 158, 34, -2);
     this.coinText = this.add
       .text(this.px(97.5), this.py(7), "", {
-        fontFamily: Config.fontFamily,
+        fontFamily: resFont,
         fontSize: "18px",
-        color: "#fde68a",
+        color: "#ffd98a",
         fontStyle: "bold",
+        stroke: "#1a0f06",
+        strokeThickness: 3,
       })
       .setOrigin(1, 0);
+    this.woodPlaque(this.coinText.x - 124, this.coinText.y - 4, 134, 32, -2);
 
     this.waveText = this.add
       .text(this.px(50), this.py(3), "", {
-        fontFamily: Config.fontFamily,
-        fontSize: "22px",
-        color: "#f87171",
+        fontFamily: resFont,
+        fontSize: "24px",
+        color: "#ff9d8a",
         fontStyle: "bold",
+        stroke: "#1a0f06",
+        strokeThickness: 3,
       })
       .setOrigin(0.5);
+    this.woodPlaque(this.px(50) - 65, this.py(3) - 16, 130, 38, -2);
 
-    this.messageText = this.add.text(this.px(50), this.py(8), "", {
+    // 顶部提示文字下移，避开上方灯笼屋檐
+    this.messageText = this.add.text(this.px(50), this.py(11), "", {
       fontFamily: Config.fontFamily,
       fontSize: "18px",
-      color: "#d1d5db",
+      color: "#f3ead6",
+      stroke: "#1a0f06",
+      strokeThickness: 3,
     }).setOrigin(0.5);
 
     this.selectedText = this.add.text(this.px(2.5), this.py(91), "", {
@@ -1018,18 +1054,10 @@ export class GamePlayScene extends Phaser.Scene {
       color: "#a78bfa",
     });
 
-    this.drawRoundedPanel(0, this.py(84), Config.gameWidth, this.py(12), 0x111318, 0.92, 0x3a3f48);
+    this.drawRoundedPanel(0, this.py(84), Config.gameWidth, this.py(12), 0x2a1c10, 0.9, 0x6a4520);
     this.createHandTray();
 
-    this.drawRoundedPanel(
-      this.drawButtonBounds.x,
-      this.drawButtonBounds.y,
-      this.drawButtonBounds.width,
-      this.drawButtonBounds.height,
-      0xfbbf24,
-      0.95,
-      0xb45309,
-    );
+    this.woodPlaque(this.drawButtonBounds.x, this.drawButtonBounds.y, this.drawButtonBounds.width, this.drawButtonBounds.height, 40);
     this.drawButton = this.add
       .text(
         this.drawButtonBounds.x + this.drawButtonBounds.width / 2,
@@ -1038,31 +1066,39 @@ export class GamePlayScene extends Phaser.Scene {
         {
           fontFamily: Config.fontFamily,
           fontSize: "20px",
-          color: "#111",
+          color: "#ffe9c0",
           fontStyle: "bold",
         },
       )
       .setOrigin(0.5)
+      .setDepth(41)
       .setInteractive({ useHandCursor: true });
 
+    this.createHelpFlag();
     this.createRecycleBin();
 
     this.add
       .text(this.px(2.5), this.py(95), "R：重新开局", {
         fontFamily: Config.fontFamily,
         fontSize: "16px",
-        color: "#6b7280",
+        color: "#8a7a60",
       });
 
+    // 投降：木质按钮
+    this.woodPlaque(this.surrenderBounds.x, this.surrenderBounds.y, this.surrenderBounds.width, this.surrenderBounds.height, 55);
     this.add
-      .text(this.px(97.5), this.py(38), "投降", {
-        fontFamily: Config.fontFamily,
-        fontSize: "18px",
-        color: "#fca5a5",
-        backgroundColor: "#7f1d1d",
-        padding: { x: 12, y: 6 },
-      })
-      .setOrigin(1, 0)
+      .text(
+        this.surrenderBounds.x + this.surrenderBounds.width / 2,
+        this.surrenderBounds.y + this.surrenderBounds.height / 2,
+        "投降",
+        {
+          fontFamily: Config.fontFamily,
+          fontSize: "18px",
+          color: "#ffe0c0",
+          fontStyle: "bold",
+        },
+      )
+      .setOrigin(0.5)
       .setDepth(60)
       .setInteractive({ useHandCursor: true })
       .on("pointerdown", () => this.showSurrenderConfirm());
@@ -1072,28 +1108,26 @@ export class GamePlayScene extends Phaser.Scene {
     this.dropCoinFx = new PlayDropCoinEffect(this, { target: { x: hudCoinX, y: hudCoinY }, onPickup: (value) => this.onCoinPickedUp(value) });
 
     // 1D: HUD 巅峰卷显示 + 物品掉落特效
+    this.woodPlaque(this.coinText.x - 178, this.coinText.y - 3, 54, 28, 56);
     this.legendScrollText = this.add
       .text(this.coinText.x - 130, this.coinText.y, "卷 0", {
         fontFamily: Config.fontFamily,
         fontSize: "16px",
-        color: "#fde68a",
+        color: "#ffe08a",
         fontStyle: "bold",
-        backgroundColor: "#7c2d12",
-        padding: { x: 8, y: 4 },
       })
       .setOrigin(1, 0)
       .setDepth(60);
     this.updateLegendScrollText();
 
     // 1E: HUD 武将碎片显示 + 碎片掉落特效
+    this.woodPlaque(this.legendScrollText.x - 36, this.coinText.y + 25, 76, 24, 56);
     this.fragText = this.add
       .text(this.legendScrollText.x, this.coinText.y + 28, "碎 0", {
         fontFamily: Config.fontFamily,
         fontSize: "14px",
-        color: "#e9d5ff",
+        color: "#e6c9ff",
         fontStyle: "bold",
-        backgroundColor: "#581c87",
-        padding: { x: 6, y: 2 },
       })
       .setOrigin(1, 0)
       .setDepth(60);
@@ -1126,9 +1160,9 @@ export class GamePlayScene extends Phaser.Scene {
       trayY,
       trayWidth,
       trayHeight,
-      0x15181d,
-      0.9,
-      0x4b5563,
+      0x2a1c10,
+      0.88,
+      0x6a4520,
     );
     this.handTrayObjects.push(panel);
 
@@ -1144,7 +1178,7 @@ export class GamePlayScene extends Phaser.Scene {
       .text(this.px(7), this.py(89), "手牌", {
         fontFamily: Config.fontFamily,
         fontSize: "14px",
-        color: "#9ca3af",
+        color: "#ffe0b0",
         fontStyle: "bold",
       })
       .setOrigin(0.5)
@@ -1160,22 +1194,17 @@ export class GamePlayScene extends Phaser.Scene {
     index: number,
   ): Phaser.GameObjects.Graphics {
     const graphics = this.add.graphics().setDepth(-5);
-    const fill = index % 2 === 0 ? 0x1f242c : 0x232833;
+    const fill = index % 2 === 0 ? 0x5a3a1c : 0x4e3218;
 
-    graphics.fillStyle(fill, 0.95);
-    graphics.fillRoundedRect(cx - width / 2, cy - height / 2, width, height, 8);
-    graphics.lineStyle(1, 0x111318, 1);
-    graphics.strokeRoundedRect(
-      cx - width / 2 + 0.5,
-      cy - height / 2 + 0.5,
-      width - 1,
-      height - 1,
-      8,
-    );
-    graphics.lineStyle(1, 0x4b5563, 0.85);
-    graphics.strokeRoundedRect(cx - width / 2, cy - height / 2, width, height, 8);
-
-    graphics.fillStyle(0xfbbf24, 0.9);
+    graphics.fillStyle(fill, 0.96);
+    graphics.fillRoundedRect(cx - width / 2, cy - height / 2, width, height, 6);
+    graphics.lineStyle(2, 0x2a180a, 1);
+    graphics.strokeRoundedRect(cx - width / 2, cy - height / 2, width, height, 6);
+    graphics.lineStyle(1, 0xb98a4a, 0.4);
+    graphics.strokeRoundedRect(cx - width / 2 + 2, cy - height / 2 + 2, width - 4, height - 4, 5);
+    graphics.lineStyle(1, 0x3a2410, 0.5);
+    graphics.lineBetween(cx - width / 2 + 4, cy, cx + width / 2 - 4, cy);
+    graphics.fillStyle(0xb98a4a, 0.9);
     graphics.fillCircle(cx + width / 2 - 4, cy - height / 2 + 4, 2.5);
     return graphics;
   }
@@ -1190,41 +1219,111 @@ export class GamePlayScene extends Phaser.Scene {
     }
   }
 
+  /** 古风木质牌匾/底衬（资源、按钮、回收站共用） */
+  private woodPlaque(x: number, y: number, width: number, height: number, depth: number): Phaser.GameObjects.Graphics {
+    const graphics = this.add.graphics().setDepth(depth);
+    const r = Math.max(3, Math.min(6, width / 6, height / 3));
+    graphics.fillStyle(0x5a3a1c, 0.96);
+    graphics.fillRoundedRect(x, y, width, height, r);
+    graphics.lineStyle(2, 0x2a180a, 1);
+    graphics.strokeRoundedRect(x + 1, y + 1, width - 2, height - 2, r);
+    graphics.lineStyle(1, 0x3a2410, 0.6);
+    for (let i = 0; i < 3; i += 1) {
+      const ly = y + height * (0.3 + i * 0.2);
+      graphics.lineBetween(x + 6, ly, x + width - 6, ly);
+    }
+    graphics.lineStyle(1, 0xb98a4a, 0.35);
+    graphics.strokeRoundedRect(x + 2, y + 2, width - 4, height - 4, Math.max(1, r - 1));
+    return graphics;
+  }
+
+  private createHelpFlag() {
+    const cx = this.helpBounds.x + this.helpBounds.width / 2;
+    const top = this.helpBounds.y;
+    this.add.rectangle(cx - 16, top + this.helpBounds.height * 0.92, 4, this.helpBounds.height + 14, 0x5a3a1c, 1).setOrigin(0.5, 1).setDepth(50);
+    const banner = this.add
+      .text(cx + 2, top + this.helpBounds.height * 0.5, "帮\n助", {
+        fontFamily: Config.fontFamily,
+        fontSize: "22px",
+        color: "#ffd98a",
+        fontStyle: "bold",
+        backgroundColor: "#8a2a1a",
+        padding: { x: 8, y: 8 },
+        align: "center",
+        stroke: "#2a0f06",
+        strokeThickness: 2,
+      })
+      .setOrigin(0.5)
+      .setDepth(51)
+      .setInteractive({ useHandCursor: true });
+    this.helpFlagBanner = banner;
+    this.tweens.add({
+      targets: banner,
+      angle: { from: -2, to: 2 },
+      duration: 1600,
+      yoyo: true,
+      repeat: -1,
+      ease: "sine.inout",
+    });
+    banner.on("pointerdown", () => this.toggleHelpTip(banner.x, banner.y));
+  }
+
+  private toggleHelpTip(px: number, py: number) {
+    if (this.helpTip) {
+      this.helpTip.destroy();
+      this.helpTip = undefined;
+      return;
+    }
+    const content = [
+      "拖拽手牌到棋盘放置",
+      "或点击手牌再点击棋盘",
+      "相同文字叠放可升级",
+      "丢进回收站可退回牌库",
+      "R 重新开局",
+    ].join("\n");
+    this.helpTip = this.add
+      .text(px - 24, py - 40, content, {
+        fontFamily: Config.fontFamily,
+        fontSize: "14px",
+        color: "#f3ead6",
+        backgroundColor: "#2a1c10",
+        padding: { x: 10, y: 8 },
+        align: "left",
+        stroke: "#0f0802",
+        strokeThickness: 2,
+      })
+      .setOrigin(1, 1)
+      .setDepth(120);
+  }
+
   private createRecycleBin() {
     const cx = this.binBounds.x + this.binBounds.width / 2;
     const cy = this.binBounds.y + this.binBounds.height / 2;
 
-    this.drawRoundedPanel(
-      this.binBounds.x,
-      this.binBounds.y,
-      this.binBounds.width,
-      this.binBounds.height,
-      0x1a1d24,
-      0.92,
-      0x6b7280,
-    );
+    this.woodPlaque(this.binBounds.x, this.binBounds.y, this.binBounds.width, this.binBounds.height, 40);
 
-    this.drawRecycleIcon(cx, cy - 10, 34);
+    this.drawRecycleIcon(cx, cy - 12, 30);
 
     this.binText = this.add
       .text(
         cx,
-        this.binBounds.y + this.binBounds.height - 18,
+        this.binBounds.y + this.binBounds.height - 16,
         "回收站",
         {
           fontFamily: Config.fontFamily,
           fontSize: "15px",
-          color: "#cbd5e1",
+          color: "#ffe0b0",
           fontStyle: "bold",
         },
       )
-      .setOrigin(0.5);
+      .setOrigin(0.5)
+      .setDepth(42);
   }
 
   private drawRecycleIcon(cx: number, cy: number, size: number) {
-    const graphics = this.add.graphics().setDepth(35);
+    const graphics = this.add.graphics().setDepth(41);
 
-    graphics.lineStyle(Math.max(2, Math.round(size * 0.12)), 0x9ca3af, 1);
+    graphics.lineStyle(Math.max(2, Math.round(size * 0.12)), 0x8a5a2a, 1);
     graphics.strokeRoundedRect(
       cx - size * 0.26,
       cy - size * 0.95,
@@ -1233,7 +1332,7 @@ export class GamePlayScene extends Phaser.Scene {
       2,
     );
 
-    graphics.fillStyle(0x9ca3af, 1);
+    graphics.fillStyle(0x8a5a2a, 1);
     graphics.fillRoundedRect(
       cx - size * 0.58,
       cy - size * 0.62,
@@ -1242,7 +1341,7 @@ export class GamePlayScene extends Phaser.Scene {
       2,
     );
 
-    graphics.fillStyle(0x475569, 1);
+    graphics.fillStyle(0x4a2c14, 1);
     graphics.fillRoundedRect(
       cx - size * 0.44,
       cy - size * 0.42,
@@ -1250,7 +1349,7 @@ export class GamePlayScene extends Phaser.Scene {
       size * 1.02,
       3,
     );
-    graphics.lineStyle(2, 0x111318, 1);
+    graphics.lineStyle(2, 0x2a180a, 1);
     graphics.strokeRoundedRect(
       cx - size * 0.44,
       cy - size * 0.42,
@@ -1259,7 +1358,7 @@ export class GamePlayScene extends Phaser.Scene {
       3,
     );
 
-    graphics.lineStyle(Math.max(1, Math.round(size * 0.08)), 0x94a3b8, 0.85);
+    graphics.lineStyle(Math.max(1, Math.round(size * 0.08)), 0xb98a4a, 0.9);
     graphics.lineBetween(cx, cy - size * 0.24, cx, cy + size * 0.44);
     graphics.lineBetween(
       cx - size * 0.25,
@@ -1274,7 +1373,6 @@ export class GamePlayScene extends Phaser.Scene {
       cy + size * 0.44,
     );
   }
-
   private drawRoundedPanel(
     x: number,
     y: number,
@@ -1349,17 +1447,19 @@ export class GamePlayScene extends Phaser.Scene {
         .setData("level", level)
         .setData("handIndex", index);
 
-      // 卡面底座：按兵种色描边的小卡片
+      // 卡面底座：古风木框 + 兵种色描边
       const base = this.add.graphics().setDepth(29);
       const borderColor = parseInt(this.getCardColor(card).slice(1), 16);
-      base.fillStyle(0x161a24, 0.96);
-      base.fillRoundedRect(text.x - 27, text.y - 25, 54, 50, 8);
-      base.lineStyle(2, borderColor, 0.7);
-      base.strokeRoundedRect(text.x - 27, text.y - 25, 54, 50, 8);
+      base.fillStyle(0x5a3a1c, 0.97);
+      base.fillRoundedRect(text.x - 27, text.y - 25, 54, 50, 6);
+      base.lineStyle(2, 0x2a180a, 1);
+      base.strokeRoundedRect(text.x - 27, text.y - 25, 54, 50, 6);
+      base.lineStyle(2, borderColor, 0.8);
+      base.strokeRoundedRect(text.x - 24, text.y - 22, 48, 44, 5);
       this.handBases.push(base);
 
       const isSelected = this.selectedHandIndex === index;
-      text.setBackgroundColor(isSelected ? "#facc15" : "#252a33");
+      text.setBackgroundColor(isSelected ? "#c9862f" : "transparent");
 
       text.on("pointerdown", (pointer: Phaser.Input.Pointer) => {
         this.handTapDownIndex = index;
@@ -1433,8 +1533,8 @@ export class GamePlayScene extends Phaser.Scene {
       .text(fromText.x, fromText.y - 42, content, {
         fontFamily: Config.fontFamily,
         fontSize: "12px",
-        color: "#f3f4f6",
-        backgroundColor: "#111318",
+        color: "#ffe0b0",
+        backgroundColor: "rgba(46,28,14,0.94)",
         padding: { x: 8, y: 6 },
         align: "left",
       })
@@ -1764,7 +1864,7 @@ export class GamePlayScene extends Phaser.Scene {
 
   private snapHandCardBack(cardText: Phaser.GameObjects.Text, handIndex: number) {
     const x = this.px(16) + handIndex * this.px(6.6);
-    cardText.setBackgroundColor("#252a33");
+    cardText.setBackgroundColor("transparent");
     cardText.setPosition(x, this.py(89));
   }
 
