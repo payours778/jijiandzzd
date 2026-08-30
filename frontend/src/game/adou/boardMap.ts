@@ -101,8 +101,14 @@ function drawShip(scene: Phaser.Scene, geo: Geo, theme: BoardTheme) {
   // 背景（雾江战船，格区已抹为甲板）在画布内按 0.5507 缩放渲染，
   // 甲板之上绘制古风棋盘：木框 + 米黄面 + 镶嵌格板，与功能网格精确对齐。
   if (scene.textures.exists('ship-bg')) {
+    // 船体按宽度铺满、垂直居中，保持宽高比（避免宽画布下被压扁）
+    const src = scene.textures.get('ship-bg').getSourceImage() as HTMLImageElement;
+    const bgW = src.naturalWidth || src.width;
+    const bgH = src.naturalHeight || src.height;
+    const dispW = Config.gameWidth;
+    const dispH = bgW > 0 ? (bgH / bgW) * dispW : Config.gameHeight;
     scene.add.image(Config.gameWidth / 2, Config.gameHeight / 2, 'ship-bg')
-      .setDisplaySize(Config.gameWidth, Config.gameHeight)
+      .setDisplaySize(dispW, dispH)
       .setDepth(-30);
   }
   const bw = geo.cols * geo.cw;

@@ -129,28 +129,28 @@ export class GamePlayScene extends Phaser.Scene {
   private gameOverPanel?: Phaser.GameObjects.Graphics;
   private gameOverButton?: Phaser.GameObjects.Text;
   private drawButtonBounds = {
-    x: 0.62 * 960,
-    y: 0.8575 * 640,
-    width: 0.16 * 960,
-    height: 0.065 * 640,
+    x: 0.62 * Config.gameWidth,
+    y: 0.8575 * Config.gameHeight,
+    width: 0.16 * Config.gameWidth,
+    height: 0.065 * Config.gameHeight,
   };
   private binBounds = {
-    x: 0.875 * 960,
-    y: 0.30 * 640,
-    width: 0.10 * 960,
-    height: 0.17 * 640,
+    x: 0.875 * Config.gameWidth,
+    y: 0.30 * Config.gameHeight,
+    width: 0.10 * Config.gameWidth,
+    height: 0.17 * Config.gameHeight,
   };
   private helpBounds = {
-    x: 0.875 * 960,
-    y: 0.095 * 640,
-    width: 0.10 * 960,
-    height: 0.16 * 640,
+    x: 0.875 * Config.gameWidth,
+    y: 0.095 * Config.gameHeight,
+    width: 0.10 * Config.gameWidth,
+    height: 0.16 * Config.gameHeight,
   };
   private surrenderBounds = {
-    x: 0.90 * 960,
-    y: 0.52 * 640,
-    width: 0.085 * 960,
-    height: 0.065 * 640,
+    x: 0.90 * Config.gameWidth,
+    y: 0.52 * Config.gameHeight,
+    width: 0.085 * Config.gameWidth,
+    height: 0.065 * Config.gameHeight,
   };
   private binText!: Phaser.GameObjects.Text;
   private helpFlagBanner?: Phaser.GameObjects.Text;
