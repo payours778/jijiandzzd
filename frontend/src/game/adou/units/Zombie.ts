@@ -35,6 +35,10 @@ export class Zombie extends Unit {
     if (this.dead) {
       return;
     }
+    // 眩晕：定身，不移动、不啃咬
+    if (scene.time.now < this.stunUntil) {
+      return;
+    }
 
     this.biteTimer -= delta;
     this.syncHealthBar();

@@ -38,6 +38,10 @@ export class WeiUnit extends Zombie {
     if (this.dead) {
       return;
     }
+    // 眩晕：定身，冲锋/撤退/移动全部暂停
+    if (scene.time.now < this.stunUntil) {
+      return;
+    }
     this.syncHealthBar();
 
     if (time >= this.expireAt) {

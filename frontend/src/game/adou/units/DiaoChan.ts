@@ -40,6 +40,8 @@ export class DiaoChan extends Zombie {
 
   override update(scene: GamePlayScene, time: number, delta: number) {
     if (this.dead) return;
+    // 眩晕：定身，技能与移动全部暂停
+    if (scene.time.now < this.stunUntil) return;
     this.syncHealthBar();
     this.normalCooldown -= delta;
     this.fanCooldown -= delta;

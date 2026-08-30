@@ -83,11 +83,24 @@ const PRELOAD_SFX_KEYS: SfxKey[] = [
   "machao_attack",
   "diaochan_attack",
   "lubu_attack",
+  "lubu_boss_entry",
+  "caocao_boss_entry",
+  "diaochan_boss_entry",
+  "boss_warning",
+  "game_over",
+  "zhaoyun_longdan",
+  "zhangfei_roar",
+  "weiyan_enter",
+  "weiyan_kill",
 ];
 
 const lastSfxAt = new Map<SfxKey, number>();
 const sfxPools = new Map<string, HTMLAudioElement[]>();
 const nextSfxSlot = new Map<string, number>();
+// WebAudio 解码缓冲：攻击/技能音效走 BufferSource 直出，消除 HTMLAudio 的播放延迟
+const sfxBuffers = new Map<string, AudioBuffer>();
+const sfxBufferFailed = new Set<string>();
+let sfxGainNode: GainNode | null = null;
 // 技能语音池：与 SFX 池同思路，避免每次放技能都 new Audio 重新拉取
 const MAX_VOICE_INSTANCES_PER_SRC = 2;
 const voicePools = new Map<string, HTMLAudioElement[]>();
@@ -192,7 +205,62 @@ export function preloadSfx() {
     }
     const sound = getSfxElement(src);
     sound.load();
+    void decodeSfx(src);
   }
+}
+
+function getSfxGainNode(ctx: AudioContext): GainNode {
+  if (!sfxGainNode) {
+    sfxGainNode = ctx.createGain();
+    sfxGainNode.gain.value = settings.sfxVolume;
+    sfxGainNode.connect(ctx.destination);
+  }
+  return sfxGainNode;
+}
+
+/** 拉取并解码音效文件为 AudioBuffer（失败标记后走 HTMLAudio 兜底，不再重试）。 */
+function decodeSfx(src: string): Promise<AudioBuffer | undefined> {
+  const cached = sfxBuffers.get(src);
+  if (cached || sfxBufferFailed.has(src)) {
+    return Promise.resolve(cached);
+  }
+  return (async () => {
+    try {
+      const response = await fetch(src);
+      if (!response.ok) {
+        throw new Error(`http ${response.status}`);
+      }
+      const raw = await response.arrayBuffer();
+      const ctx = getContext();
+      if (!ctx) {
+        throw new Error("no audio context");
+      }
+      const decoded = await ctx.decodeAudioData(raw);
+      sfxBuffers.set(src, decoded);
+      return decoded;
+    } catch {
+      sfxBufferFailed.add(src);
+      return undefined;
+    }
+  })();
+}
+
+/** 用解码缓冲即时播放（WebAudio 延迟≈0）；缓冲未就绪/上下文不可用时返回 false 走兜底。 */
+function playBufferSfx(src: string): boolean {
+  const ctx = getContext();
+  if (!ctx || ctx.state !== "running") {
+    return false;
+  }
+  const buffer = sfxBuffers.get(src);
+  if (!buffer) {
+    void decodeSfx(src);
+    return false;
+  }
+  const source = ctx.createBufferSource();
+  source.buffer = buffer;
+  source.connect(getSfxGainNode(ctx));
+  source.start();
+  return true;
 }
 
 function getContext(): AudioContext | null {
@@ -309,6 +377,9 @@ function resumeLastBgm() {
 
 export function setSfxVolume(volume: number) {
   settings.sfxVolume = clampVolume(volume, 0);
+  if (sfxGainNode) {
+    sfxGainNode.gain.value = settings.sfxVolume;
+  }
   for (const pool of sfxPools.values()) {
     for (const sound of pool) {
       sound.volume = settings.sfxVolume;
@@ -502,6 +573,10 @@ export function playSfx(key: SfxKey) {
 
   const src = SFX_FILES[key];
   if (src && typeof Audio !== "undefined") {
+    // 优先走 WebAudio 缓冲直出（零延迟）；未解码完成/不可用时回退 HTMLAudio 池
+    if (playBufferSfx(src)) {
+      return;
+    }
     const sound = getSfxElement(src);
     sound.play().catch(() => {});
     return;

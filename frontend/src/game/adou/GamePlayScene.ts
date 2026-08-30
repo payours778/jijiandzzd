@@ -114,6 +114,7 @@ export class GamePlayScene extends Phaser.Scene {
   private bossQueue: Array<"吕布" | "貂蝉" | "曹操"> = [];
   private bossWaveCache: Record<number, "吕布" | "貂蝉" | "曹操"> = {};
   private currentBossMusicKey: MusicKey | null = null;
+  private lastBossMusicRetryAt = 0;
   private refreshCost = Config.refreshStartCost;
   private drawCount = 0;
   private fragmentPool: Record<string, number> = {};
@@ -923,7 +924,8 @@ export class GamePlayScene extends Phaser.Scene {
     this.checkGameOver();
   }
 
-  /** 根据场上是否存活 boss 切换背景音乐：在场播对应 boss BGM，离场切回 */
+  /** 根据场上是否存活 boss 切换背景音乐：在场播对应 boss BGM，离场切回。
+   *  切换后若播放被自动播放策略拒绝等原因中断，每 2s 自愈重试一次。 */
   private updateBossMusic() {
     const aliveBoss = this.zombies.find(
       (z) => !z.dead && (z instanceof LuBu || z instanceof DiaoChan || z instanceof CaoCao),
@@ -936,6 +938,10 @@ export class GamePlayScene extends Phaser.Scene {
     if (key) {
       if (this.currentBossMusicKey !== key) {
         this.currentBossMusicKey = key;
+        playMusic(key);
+      } else if (this.time.now - this.lastBossMusicRetryAt > 2000) {
+        // playMusic 内部对"正在正常播放"的同 key 直接跳过，不会打断
+        this.lastBossMusicRetryAt = this.time.now;
         playMusic(key);
       }
     } else if (this.currentBossMusicKey) {
