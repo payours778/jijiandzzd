@@ -335,6 +335,8 @@ function clearPendingGesture() {
 const musicErrorHandler = () => {
   musicElement = null;
   currentMusicKey = null;
+  // 文件加载失败时清掉"最近请求"，避免取消静音后反复重试坏文件
+  lastMusicRequest = null;
 };
 const ambientErrorHandler = () => {
   ambientElement = null;
@@ -435,7 +437,7 @@ export function stopAmbient() {
   }
   if (ambientElement) {
     ambientElement.pause();
-    ambientElement.removeEventListener("error", musicErrorHandler);
+    ambientElement.removeEventListener("error", ambientErrorHandler);
     ambientElement.removeAttribute("src");
     ambientElement.load();
     ambientElement = null;
@@ -548,15 +550,20 @@ export function playVoiceOnce(key: SfxKey, onEnd: () => void, fallbackMs = 3000)
   sound.volume = settings.sfxVolume;
   sound.currentTime = 0;
   let done = false;
+  let finishTimer: ReturnType<typeof setTimeout> | null = null;
   const safeFinish = () => {
     if (done || voiceTokens.get(sound) !== token) return;
     done = true;
+    if (finishTimer) {
+      clearTimeout(finishTimer);
+      finishTimer = null;
+    }
     onEnd();
   };
   voiceFinishers.set(sound, safeFinish);
   sound.addEventListener("ended", safeFinish, { once: true });
   sound.addEventListener("error", safeFinish, { once: true });
-  window.setTimeout(safeFinish, Math.max(fallbackMs, 15000));
+  finishTimer = window.setTimeout(safeFinish, Math.max(fallbackMs, 15000));
   sound.play().catch(() => safeFinish());
 }
 
@@ -576,7 +583,8 @@ function playTone(options: ToneOptions) {
   const now = ctx.currentTime + (options.delay ?? 0);
   const oscillator = ctx.createOscillator();
   const gain = ctx.createGain();
-  const volume = Math.min(1, Math.max(0, options.volume ?? 0.2));
+  // 合成音效也要跟随 SFX 音量滑块
+  const volume = Math.min(1, Math.max(0, (options.volume ?? 0.2) * settings.sfxVolume));
 
   oscillator.type = options.type ?? "square";
   oscillator.frequency.setValueAtTime(options.frequency, now);
@@ -615,7 +623,7 @@ function playNoise(options: {
   source.buffer = buffer;
 
   const gain = ctx.createGain();
-  gain.gain.setValueAtTime(options.volume ?? 0.15, now);
+  gain.gain.setValueAtTime((options.volume ?? 0.15) * settings.sfxVolume, now);
   gain.gain.exponentialRampToValueAtTime(0.0001, now + options.duration);
 
   let output: AudioNode = source;
