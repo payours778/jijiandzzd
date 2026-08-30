@@ -13,7 +13,7 @@ import type { WeaponSeriesId } from "./types";
 export const WEAPON_ASSET_VERSION = "7";
 
 /** 近战系（复用剑素材：挥砍动画，单帧 120x120） */
-const SWORD_KIND: WeaponSeriesId[] = ["sword", "blade", "spear", "halberd", "hammer", "dagger"];
+const SWORD_KIND: WeaponSeriesId[] = ["sword", "blade", "spear"];
 /** 远程/法器系（复用弓素材：动画，单帧 52x52） */
 
 /** 是否为剑系（挥砍动画） */

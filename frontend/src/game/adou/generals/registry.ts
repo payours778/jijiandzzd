@@ -60,15 +60,15 @@ export interface GeneralConfigItem {
 
 export const GeneralConfig: Record<GeneralKey, GeneralConfigItem> = {
   刘备: { hp: 500, damage: 22, cooldown: 1800, color: "#f59e0b", liuBeiHealInterval: 5000, liuBeiHealPercent: 0.1 },
-  赵云: { hp: 500, damage: 16, cooldown: 420, color: "#38bdf8", longDanDamageBonus: 0.1, reviveDelay: 3000 },
-  黄忠: { hp: 500, damage: 26, cooldown: 1800, color: "#fbbf24", arrowStormChance: 0.1, arrowStormDuration: 4700 },
+  赵云: { hp: 500, damage: 16, cooldown: 420, color: "#38bdf8", longDanDamageBonus: 0.2, reviveDelay: 3000 },
+  黄忠: { hp: 500, damage: 26, cooldown: 1000, color: "#fbbf24", arrowStormChance: 0.1, arrowStormDuration: 4700 },
   关羽: { hp: 500, damage: 60, cooldown: 2400, color: "#ef4444", skillCooldown: 6000 },
-  张飞: { hp: 500, damage: 40, cooldown: 2800, color: "#a855f7", roarThresholdRatio: 0.5, pushbackCells: 2 },
+  张飞: { hp: 500, damage: 60, cooldown: 2800, color: "#a855f7", roarThresholdRatio: 0.5, pushbackCells: 2 },
   黄祖: { hp: 500, damage: 30, cooldown: 1000, color: "#84cc16", skillCooldown: 10000, rapidDuration: 3000, rapidSpeedMultiplier: 3 },
-  张苞: { hp: 500, damage: 28, cooldown: 600, color: "#22d3ee", stunChance: 0.1, stunDuration: 1000 },
+  张苞: { hp: 500, damage: 28, cooldown: 1000, color: "#22d3ee", stunChance: 0.1, stunDuration: 2000 },
   关平: { hp: 500, damage: 25, cooldown: 700, color: "#fb7185", bladeChance: 0.05, bladeDuration: 5000, bladeInterval: 1000 },
-  马超: { hp: 1000, damage: 30, cooldown: 1800, color: "#60a5fa", chargeSelfCostRatio: 0.1, chargeDamageRatio: 0.2, chargeDamageReduction: 0.2 },
-  魏延: { hp: 800, damage: 5, cooldown: 100, color: "#4ade80", weiYanRageThresholdRatio: 0.5, weiYanRageDuration: 15000, weiYanRageCooldown: 60000, weiYanRageRangeMultiplier: 2, weiYanLifestealRatio: 1, weiYanKillHealRatio: 0.2 },
+  马超: { hp: 1000, damage: 30, cooldown: 3000, color: "#60a5fa", chargeSelfCostRatio: 0.1, chargeDamageRatio: 0.2, chargeDamageReduction: 0.2 },
+  魏延: { hp: 800, damage: 5, cooldown: 100, color: "#4ade80", weiYanRageThresholdRatio: 0.5, weiYanRageDuration: 45000, weiYanRageCooldown: 60000, weiYanRageRangeMultiplier: 2, weiYanLifestealRatio: 1, weiYanKillHealRatio: 0.2 },
 };
 
 export const GENERAL_KEYS: GeneralKey[] = [

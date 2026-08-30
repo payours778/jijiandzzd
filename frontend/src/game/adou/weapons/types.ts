@@ -26,13 +26,7 @@ export type WeaponSeriesId =
   | "bow"      // 弓系
   | "blade"    // 刀系
   | "spear"    // 枪系
-  | "halberd"  // 戟系
-  | "hammer"   // 锤系
-  | "fan"      // 扇系
-  | "sword"    // 剑系
-  | "dagger"   // 匕首系
-  | "tome"     // 法器/法术书
-  | "throwing";// 暗器/投掷
+  | "sword";   // 剑系
 
 export interface WeaponSeries {
   id: WeaponSeriesId;

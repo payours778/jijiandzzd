@@ -123,20 +123,22 @@ export const SoldierStats = {
   刀: { hp: 300, damage: 30, cooldown: 700, range: 1, color: "#c98a3d" },
   枪: { hp: 200, damage: 15, cooldown: 700, range: 3, color: "#5b8dd6" },
   骑: { hp: 250, damage: 15, cooldown: 700, range: 1.5, color: "#d96a5a" },
-  弓: { hp: 200, damage: 10, cooldown: 1000, range: 999, color: "#46a583" },
+  弓: { hp: 200, damage: 12, cooldown: 1000, range: 999, color: "#46a583" },
 };
 
 export const MedicConfig = {
   hp: 300,
   healInterval: 3000,
-  healPercent: 0.1,
+  healPercent: 0.05,
   levelHealBonus: 0.05,
+  levelCooldownReduction: 150,
+  minHealInterval: 1200,
   color: "#4fae9b",
 };
 
 export const ZombieStats = {
   normal: { hp: 100, speed: 22 },
-  cone: { hp: 200, speed: 16 },
+  cone: { hp: 200, speed: 22 },
   biteDamage: 8,
   biteInterval: 900,
 };
@@ -148,7 +150,7 @@ export const LuBuStats = {
   slashDamage: 95,
   slashMaxHpRatio: 0.5,
   arrowDamage: 180,
-  normalCooldown: 1100,
+  normalCooldown: 2000,
   skillCooldown: 10000,
   moveInterval: 1100,
   slashRest: 500,
@@ -160,7 +162,7 @@ export const LuBuStats = {
 
 export const DiaoChanStats = {
   hp: 2400,
-  speed: 9,
+  speed: 15,
   normalDamage: 35,
   fanDamage: 60,
   moonlightPercentDamage: 0.3,
@@ -180,7 +182,7 @@ export const CaoCaoStats = {
   hp: 4500,
   speed: 10,
   normalDamage: 45,
-  normalCooldown: 1200,
+  normalCooldown: 3000,
   slashDamage: 1,
   heavyWoundRatio: 0.5,
   heavyWoundDuration: 5000,
@@ -195,9 +197,9 @@ export const CaoCaoStats = {
 };
 
 export const GeneralXpConfig = {
-  normalKillXp: 5,
-  coneKillXp: 9,
-  bossXpPool: 80,
+  normalKillXp: 10,
+  coneKillXp: 13,
+  bossXpPool: 100,
   participantRate: 0.5,
   levelUpRequirements: [60, 150, 280, 440],
   maxXpLevel: 5,

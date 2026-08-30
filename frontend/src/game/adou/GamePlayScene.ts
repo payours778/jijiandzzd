@@ -2014,9 +2014,10 @@ export class GamePlayScene extends Phaser.Scene {
       for (let col = 0; col < Config.cols; col += 1) {
         const unit = this.board[row][col];
         if (unit instanceof Farm && !unit.dead && this.time.now >= unit.nextProduceAt) {
-          this.mantou += Config.farmProduceNum;
+          const amount = unit.getProduceAmount();
+          this.mantou += amount;
           unit.nextProduceAt = this.time.now + unit.getProduceInterval();
-          unit.showProduceNumber(Config.farmProduceNum);
+          unit.showProduceNumber(amount);
           playSfx("farm");
         }
       }
@@ -2596,6 +2597,26 @@ private updateCoinText() {
     )[0] || null;
   }
 
+  /** 魅惑反水用：找距指定格最近的友方单位（棋盘上，不含 ignore）。 */
+  getNearestFriendlyUnit(row: number, col: number, ignore?: Unit): Unit | null {
+    let nearest: Unit | null = null;
+    let nearestDist = Infinity;
+    for (let r = 0; r < this.board.length; r += 1) {
+      for (let c = 0; c < Config.cols; c += 1) {
+        const unit = this.board[r][c];
+        if (!unit || unit.dead || !unit.isAlly() || unit === ignore) {
+          continue;
+        }
+        const dist = (r - row) * (r - row) + (c - col) * (c - col);
+        if (dist < nearestDist) {
+          nearestDist = dist;
+          nearest = unit;
+        }
+      }
+    }
+    return nearest;
+  }
+
   getHighestHpZombie() {
     return this.zombies
       .filter((zombie) => !zombie.dead)
@@ -3112,7 +3133,7 @@ private updateCoinText() {
     });
   }
 
-  animateDaoSlash(unit: Unit, target: Zombie) {
+  animateDaoSlash(unit: Unit, _target?: Unit) {
     playSlashDownSwing(unit.x, unit.y, this, this.slashPool);
     this.playWeaponStrike(unit);
   }

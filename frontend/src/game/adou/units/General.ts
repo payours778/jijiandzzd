@@ -145,6 +145,27 @@ export class General extends Unit implements HasWeaponSlot {
     this.updateMountedWeapon();
     const config = GeneralConfig[this.generalName];
 
+    // 魅惑反水：持续期间攻击最近的友方单位，不索敌僵尸、不触发技能。
+    if (this.isCharmed()) {
+      this.attackTimer -= delta;
+      if (this.attackTimer > 0) {
+        return;
+      }
+      const charmedTarget = scene.getNearestFriendlyUnit(this.row, this.col, this);
+      if (!charmedTarget) {
+        return;
+      }
+      charmedTarget.takeDamage(
+        config.damage * (1 + (this.level - 1) * 1),
+        false,
+        this,
+      );
+      scene.animateDaoSlash(this, charmedTarget);
+      playSfx("melee");
+      this.attackTimer = config.cooldown;
+      return;
+    }
+
     if (this.generalName === "黄祖") {
       this.huangZuSkillCooldown -= delta;
       if (this.huangZuRapidRemaining > 0) {
@@ -165,7 +186,9 @@ export class General extends Unit implements HasWeaponSlot {
       this.liuBeiHealTimer -= delta;
       if (this.liuBeiHealTimer <= 0) {
         this.liuBeiHealTimer = config.liuBeiHealInterval ?? 5000;
-        scene.healAllFriendlies(config.liuBeiHealPercent ?? 0.1);
+        const healPercent =
+          (config.liuBeiHealPercent ?? 0.1) + (this.level - 1) * 0.015;
+        scene.healAllFriendlies(healPercent);
         playSfx("liubei_heal");
         playSfx("liubei_heal_voice");
       }
@@ -443,7 +466,7 @@ export class General extends Unit implements HasWeaponSlot {
     }
   }
   addLongDanStack() {
-    if (this.generalName !== "赵云" || this.longDanStacks >= 2) {
+    if (this.generalName !== "赵云" || this.longDanStacks >= 3) {
       return;
     }
     this.longDanStacks += 1;
@@ -863,9 +886,6 @@ export class General extends Unit implements HasWeaponSlot {
       case "bow":
         img.setDisplaySize(34, 30);
         break;
-      case "halberd":
-        img.setDisplaySize(26, 26);
-        break;
       case "spear":
         img.setDisplaySize(30, 60);
         break;
@@ -921,7 +941,7 @@ export class General extends Unit implements HasWeaponSlot {
     }
 
     // 其余按武器体系兜底：枪三连刺 / 刀回旋 / 剑劈刺组合
-    if (weapon.series === "spear" || weapon.series === "halberd") {
+    if (weapon.series === "spear") {
       this.animateMountedThrust(
         scene,
         pos,

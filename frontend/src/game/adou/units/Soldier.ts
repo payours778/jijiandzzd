@@ -50,6 +50,18 @@ export class Soldier extends Unit implements HasWeaponSlot {
     const damageMultiplier = 1 + (this.level - 1) * 1;
     const cooldownMultiplier = Math.max(0.2, 1 - (this.level - 1) * 0.2);
 
+    // 魅惑反水：持续期间攻击最近的友方单位，不再索敌僵尸。
+    if (this.isCharmed()) {
+      const charmedTarget = scene.getNearestFriendlyUnit(this.row, this.col, this);
+      if (charmedTarget) {
+        charmedTarget.takeDamage(stats.damage * damageMultiplier, false, this);
+        scene.animateDaoSlash(this, charmedTarget);
+        playSfx("melee");
+        this.attackTimer = stats.cooldown * cooldownMultiplier;
+      }
+      return;
+    }
+
     if (this.soldierType === "刀") {
       const target = scene.getFrontZombieInRange(
         this.row,

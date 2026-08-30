@@ -10,6 +10,7 @@ export abstract class Unit extends Phaser.GameObjects.Text {
   dead = false;
   reviving = false;
   stunUntil = 0;
+  charmUntil = 0;
   level = 1;
   baseText: string;
   isDestroyed = false;
@@ -337,11 +338,16 @@ export abstract class Unit extends Phaser.GameObjects.Text {
     this.scene.time.delayedCall(duration, () => marker.destroy());
   }
 
+  /** 魅惑：独立于眩晕的状态，持续期间被魅惑单位反水攻击最近的友方单位。 */
+  isCharmed(): boolean {
+    return !this.isDestroyed && !!this.scene && this.scene.time.now < this.charmUntil;
+  }
+
   charm(duration: number) {
     if (this.isDestroyed || !this.scene || this.invincible) {
       return;
     }
-    this.stunUntil = this.scene.time.now + duration;
+    this.charmUntil = this.scene.time.now + duration;
     const marker = this.scene.add
       .text(this.x, this.y - 20, "魅", {
         fontFamily: Config.fontFamily,

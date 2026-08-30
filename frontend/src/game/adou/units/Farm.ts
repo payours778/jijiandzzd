@@ -25,6 +25,10 @@ export class Farm extends Unit {
     return Config.farmProduceInterval / (1 + (this.level - 1) * 0.25);
   }
 
+  getProduceAmount() {
+    return Config.farmProduceNum + (this.level - 1) * 12;
+  }
+
   private startHoe() {
     this.hoeTween = this.scene.tweens.add({
       targets: this,

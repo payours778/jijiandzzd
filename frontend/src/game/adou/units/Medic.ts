@@ -38,7 +38,10 @@ export class Medic extends Unit {
     if (this.healTimer > 0) {
       return;
     }
-    this.healTimer = MedicConfig.healInterval;
+    this.healTimer = Math.max(
+      MedicConfig.minHealInterval,
+      MedicConfig.healInterval - (this.level - 1) * MedicConfig.levelCooldownReduction,
+    );
 
     const target = scene.getLowestHpFriendlyUnit();
     if (!target) {
