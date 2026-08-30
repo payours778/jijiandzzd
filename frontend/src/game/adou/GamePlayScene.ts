@@ -30,7 +30,7 @@ import { PlayDropItemEffect } from "./effects/PlayDropItemEffect";
 import { PlayFragmentSparkEffect } from "./effects/PlayFragmentSparkEffect";
 import { createBoardMap, getBoardTheme, currentBoardThemeId, preloadBoardMap } from "./boardMap";
 import { postAchievementEvent } from "./achievements/client";
-import { playMusic, playSfx } from "../../audio/audioSystem";
+import { playMusic, playSfx, ensureMusicPlaying } from "../../audio/audioSystem";
 import type { MusicKey } from "../../audio/audioConfig";
 import {
   BOSS_DROP_GUARANTEE,
@@ -940,9 +940,9 @@ export class GamePlayScene extends Phaser.Scene {
         this.currentBossMusicKey = key;
         playMusic(key);
       } else if (this.time.now - this.lastBossMusicRetryAt > 2000) {
-        // playMusic 内部对"正在正常播放"的同 key 直接跳过，不会打断
+        // 自愈：播放被自动播放策略拒绝/加载后未起播时，只对现有元素重新 play()
         this.lastBossMusicRetryAt = this.time.now;
-        playMusic(key);
+        ensureMusicPlaying(key);
       }
     } else if (this.currentBossMusicKey) {
       this.currentBossMusicKey = null;

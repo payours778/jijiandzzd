@@ -471,6 +471,22 @@ export function playMusic(key: MusicKey) {
   startLoop(MUSIC_FILES[key], key);
 }
 
+/**
+ * 确保 key 对应的场景音乐正在播放：
+ * - key 不是当前音乐 → 走 playMusic 正常切换；
+ * - 是当前音乐但元素处于暂停（自动播放被拒/加载后未起播）→ 只对现有元素重新 play()，
+ *   不重建元素、不打断缓冲加载。供外部周期性自愈调用。
+ */
+export function ensureMusicPlaying(key: MusicKey) {
+  if (currentMusicKey !== key) {
+    playMusic(key);
+    return;
+  }
+  if (musicElement && musicElement.paused && !musicElement.ended) {
+    musicElement.play().catch(() => {});
+  }
+}
+
 /** 循环播放一段自定义音乐（军营背景音乐自选用） */
 export function playLoopSrc(src: string) {
   unlock();
