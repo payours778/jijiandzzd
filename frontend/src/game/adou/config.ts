@@ -123,7 +123,7 @@ export const SoldierStats = {
   刀: { hp: 300, damage: 30, cooldown: 700, range: 1, color: "#c98a3d" },
   枪: { hp: 200, damage: 15, cooldown: 700, range: 3, color: "#5b8dd6" },
   骑: { hp: 250, damage: 15, cooldown: 700, range: 1.5, color: "#d96a5a" },
-  弓: { hp: 200, damage: 10, cooldown: 1000, range: 999, color: "#46a583" },
+  弓: { hp: 200, damage: 12, cooldown: 1000, range: 999, color: "#46a583" },
 };
 
 export const MedicConfig = {

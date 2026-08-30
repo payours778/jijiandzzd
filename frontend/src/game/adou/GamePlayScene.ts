@@ -3586,10 +3586,10 @@ private updateCoinText() {
       const waves = Math.max(0, Math.floor((durationMs - 260) / waveInterval));
       for (let wave = 1; wave <= waves; wave += 1) {
         this.time.delayedCall(260 + wave * waveInterval, () => {
-          // 每一波箭雨都造成伤害 (修复: 之前只有第一段有伤害)
+          // 每一波箭雨都造成伤害, 后续波次按 60% 递减 (平衡调整)
           this.zombies.forEach((zombie) => {
             if (!zombie.dead) {
-              zombie.takeDamage(damage, false, source);
+              zombie.takeDamage(damage * 0.6, false, source);
             }
           });
           for (let row = 0; row < Config.rows; row += 1) {
