@@ -40,19 +40,17 @@ import {
 import { useTrainingGroundStore } from "./training/store";
 import { useRecruitStore } from "./recruit/store";
 import { RECRUIT_HEROES } from "./recruit/registry";
-import { useGeneralStore } from "./generals/store";
+import { useGeneralStore, type GeneralInstance } from "./generals/store";
 import { useAppStore } from "../../store/useAppStore";
 
 import {
   getWeapon,
   getDefaultWeaponFor,
-  getWeaponsBySeries,
-  getSeries,
+  listWeapons,
   WEAPON_ASSET_VERSION,
   weaponAnimFrameSize,
   weaponAnimPath,
   type WeaponDefinition,
-  type WeaponSeriesId,
 } from "./weapons";
 
 interface HandCard {
@@ -158,14 +156,12 @@ export class GamePlayScene extends Phaser.Scene {
   private selectedTestType: string | null = null;
   private testButtons: Phaser.GameObjects.Text[] = [];
   private testSfxButtons: Phaser.GameObjects.Text[] = [];
-  private testWeaponButtons: Phaser.GameObjects.Text[] = [];
-  private testSelectedWeaponId: string | null = null;
-  private testEquipTarget: General | null = null;
-  private testEquipMarker?: Phaser.GameObjects.Rectangle;
-  private testWeaponLabel?: Phaser.GameObjects.Text;
-  private testWeaponSeries: WeaponSeriesId = "sword";
-  private testWeaponSeriesTabs: Phaser.GameObjects.Text[] = [];
-  private testWeaponButtonPanels: Phaser.GameObjects.Graphics[] = [];
+  // 测试模式「武将·装备」面板状态
+  private testGeneralName: GeneralKey = "刘备";
+  private testGeneralSlot: "main" | "secondary" | "accessory" | null = null;
+  private testGeneralWeaponPage = 0;
+  private testGeneralPanelTexts: Phaser.GameObjects.Text[] = [];
+  private testGeneralPanelPanels: Phaser.GameObjects.Graphics[] = [];
   private cardTooltip?: Phaser.GameObjects.Text;
   private slashPool: Phaser.GameObjects.Graphics[] = [];
   private arrowPool: Phaser.GameObjects.Image[] = [];
@@ -419,16 +415,13 @@ export class GamePlayScene extends Phaser.Scene {
       color: "#a78bfa",
     });
 
-    this.testWeaponButtons = [];
-    this.testSelectedWeaponId = null;
-    this.testEquipTarget = null;
-    this.testEquipMarker = undefined;
-    this.testWeaponLabel = undefined;
-    this.testWeaponSeries = "sword";
-    this.testWeaponSeriesTabs = [];
-    this.testWeaponButtonPanels = [];
+    this.testGeneralName = "刘备";
+    this.testGeneralSlot = null;
+    this.testGeneralWeaponPage = 0;
+    this.testGeneralPanelTexts = [];
+    this.testGeneralPanelPanels = [];
     this.createRecycleBin();
-    this.createTestWeaponPanel();
+    this.createTestGeneralPanel();
 
     const testSfxList = [
       { text: "吕布出场", sfx: "lubu_boss_entry" },
@@ -513,142 +506,279 @@ export class GamePlayScene extends Phaser.Scene {
     });
   }
 
-  private createTestWeaponPanel() {
-    const px0 = 826;
-    const py0 = 208;
-    const pw = 132;
-    const ph = 240;
+  /**
+   * 测试模式「武将·装备」面板（替代旧「武器·军械库」面板，不再遮挡棋盘）：
+   * 选武将 → 调等级/星级 → 三个装备槽（主/副/饰品）安装武器。
+   * 数据全部写入 useGeneralStore（window.__generalStore），
+   * 战斗内 General 构造时自行读取 equippedWeapons.main 挂载武器。
+   */
+  private createTestGeneralPanel() {
+    const px0 = Config.boardX + Config.cols * Config.cellWidth + 14;
+    const py0 = Config.boardY;
+    const pw = 150;
+    const ph = 300;
     this.drawRoundedPanel(px0, py0, pw, ph, 0x15181d, 0.85, 0x57534e);
-
-    this.add.text(px0 + pw / 2, py0 + 13, "武器·军械库", {
+    this.add.text(px0 + pw / 2, py0 + 13, "武将·装备", {
       fontFamily: Config.fontFamily, fontSize: "13px", color: "#fbbf24", fontStyle: "bold",
     }).setOrigin(0.5);
-
-    // 军械库仅实装 剑/刀/枪/弓 四系，页签按商店顺序展示
-    const seriesOrder: WeaponSeriesId[] = ["sword", "blade", "spear", "bow"];
-    const tabW = 24;
-    const tabH = 13;
-    const tabGap = 2;
-    const tabStartX = px0 + 8;
-    const tabStartY = py0 + 24;
-    seriesOrder.forEach((seriesId, index) => {
-      const tx = tabStartX + index * (tabW + tabGap);
-      const ty = tabStartY;
-      this.drawRoundedPanel(tx, ty, tabW, tabH, 0x1f2937, 0.9, 0x57534e);
-      const tab = this.add.text(tx + tabW / 2, ty + tabH / 2, `${getSeries(seriesId).glyph}系`, {
-        fontFamily: Config.fontFamily, fontSize: "10px", color: "#e5e7eb",
-      }).setOrigin(0.5).setInteractive({ useHandCursor: true }).setData("seriesId", seriesId);
-      tab.on("pointerdown", () => this.onTestWeaponSeriesClick(seriesId));
-      this.testWeaponSeriesTabs.push(tab);
-    });
-
-    this.testWeaponLabel = this.add.text(px0 + pw / 2, py0 + ph + 16, "", {
-      fontFamily: Config.fontFamily, fontSize: "13px", color: "#fcd34d",
-    }).setOrigin(0.5);
-    this.updateTestWeaponPanel();
+    this.testGeneralName = "刘备";
+    this.testGeneralSlot = null;
+    this.testGeneralWeaponPage = 0;
+    this.updateTestGeneralPanel();
   }
 
-  private onTestWeaponSeriesClick(seriesId: WeaponSeriesId) {
-    playSfx("click");
-    this.testWeaponSeries = seriesId;
-    this.updateTestWeaponPanel();
-  }
-
-  private onTestWeaponClick(weaponId: string | null) {
-    playSfx("click");
-    this.testSelectedWeaponId = weaponId;
-    this.updateTestWeaponPanel();
-    if (this.testEquipTarget) {
-      this.equipTestWeapon(this.testEquipTarget, weaponId);
-      this.messageText.setText(`已为 ${this.testEquipTarget.generalName} 更换武器`);
-    } else {
-      this.messageText.setText(weaponId ? "已选择武器，拖一个武将到棋盘即可装备" : "已选择卸下武器");
-    }
-  }
-
-  private equipTestWeapon(unit: General, weaponId: string | null) {
-    if (weaponId) {
-      unit.equipWeapon(weaponId);
-    } else {
-      unit.unequipWeapon();
-    }
-    const heroId = GENERAL_NAME_TO_ID[unit.generalName];
+  private getTestGeneralInstance(): GeneralInstance | null {
     try {
-      (window as any).__generalStore?.getState?.()?.equipWeapon?.(heroId, "main", weaponId);
-    } catch { /* 静默 */ }
-    this.updateTestWeaponPanel();
-  }
-
-  private selectTestGeneral(unit: General) {
-    this.testEquipTarget = unit;
-    if (!this.testEquipMarker) {
-      this.testEquipMarker = this.add.rectangle(0, 0, Config.cellWidth, Config.cellHeight)
-        .setStrokeStyle(2, 0xfbbf24, 1)
-        .setFillStyle(0xfbbf24, 0.12)
-        .setDepth(50);
+      const heroId = GENERAL_NAME_TO_ID[this.testGeneralName];
+      return (window as any).__generalStore?.getState?.()?.instances?.[heroId] ?? null;
+    } catch {
+      return null;
     }
-    this.testEquipMarker.setPosition(unit.x, unit.y);
-    this.testEquipMarker.setVisible(true);
-    this.messageText.setText(`已选中 ${unit.generalName}，点击右侧武器即可更换`);
-    this.updateTestWeaponPanel();
   }
 
-  private clearTestEquipTarget() {
-    this.testEquipTarget = null;
-    this.testEquipMarker?.setVisible(false);
-    this.updateTestWeaponPanel();
-  }
+  private updateTestGeneralPanel() {
+    this.testGeneralPanelTexts.forEach((t) => t.destroy());
+    this.testGeneralPanelTexts = [];
+    this.testGeneralPanelPanels.forEach((p) => p.destroy());
+    this.testGeneralPanelPanels = [];
 
-  private updateTestWeaponPanel() {
-    // 系列页签：高亮当前系列
-    this.testWeaponSeriesTabs.forEach((tab) => {
-      const active = tab.getData("seriesId") === this.testWeaponSeries;
-      tab.setBackgroundColor(active ? "#b45309" : "transparent");
-      tab.setColor(active ? "#fff7ed" : "#e5e7eb");
-    });
+    const px0 = Config.boardX + Config.cols * Config.cellWidth + 14;
+    const py0 = Config.boardY;
+    const pw = 150;
 
-    // 重建当前系列武器列表（含"卸下"入口），数据来自军械库同源注册表
-    this.testWeaponButtons.forEach((btn) => btn.destroy());
-    this.testWeaponButtons = [];
-    this.testWeaponButtonPanels.forEach((panel) => panel.destroy());
-    this.testWeaponButtonPanels = [];
+    const inst = this.getTestGeneralInstance();
+    const level = Math.min(5, Math.max(1, inst?.level ?? 1));
+    const star = Math.min(5, Math.max(0, inst?.star ?? 0));
+    const equipped = inst?.equippedWeapons;
 
-    const px0 = 826;
-    const startX = px0 + 8;
-    const startY = 254;
-    const bw = 56;
-    const bh = 16;
-    const gap = 2;
-    const items: Array<{ id: string | null; label: string }> = [
-      { id: null, label: "卸下（默认）" },
-      ...getWeaponsBySeries(this.testWeaponSeries).map((w) => ({
-        id: w.id,
-        label: w.name.length > 5 ? w.name.slice(0, 5) : w.name,
-      })),
-    ];
-    items.forEach((item, index) => {
-      const col = index % 2;
-      const row = Math.floor(index / 2);
-      const bx = startX + col * (bw + gap);
-      const by = startY + row * (bh + gap);
-      this.testWeaponButtonPanels.push(
+    // 武将选择（2 列 × 5 行）
+    const gridX = px0 + 6;
+    const gridY = py0 + 24;
+    const bw = 69;
+    const bh = 15;
+    const colStep = 71;
+    TEST_GENERALS.forEach((name, index) => {
+      const bx = gridX + (index % 2) * colStep;
+      const by = gridY + Math.floor(index / 2) * 17;
+      this.testGeneralPanelPanels.push(
         this.drawRoundedPanel(bx, by, bw, bh, 0x1f2937, 0.9, 0x57534e),
       );
-      const btn = this.add.text(bx + bw / 2, by + bh / 2, item.label, {
-        fontFamily: Config.fontFamily, fontSize: "10px", color: "#e5e7eb",
-      }).setOrigin(0.5).setInteractive({ useHandCursor: true }).setData("weaponId", item.id);
-      btn.on("pointerdown", () => this.onTestWeaponClick(item.id));
-      const active = item.id === this.testSelectedWeaponId;
-      btn.setBackgroundColor(active ? "#b45309" : "transparent");
-      btn.setColor(active ? "#fff7ed" : "#e5e7eb");
-      this.testWeaponButtons.push(btn);
+      const active = name === this.testGeneralName;
+      const btn = this.add.text(bx + bw / 2, by + bh / 2, name, {
+        fontFamily: Config.fontFamily, fontSize: "11px", color: active ? "#fff7ed" : "#e5e7eb",
+      }).setOrigin(0.5).setInteractive({ useHandCursor: true });
+      if (active) {
+        btn.setBackgroundColor("#b45309");
+      }
+      btn.on("pointerdown", () => this.onTestGeneralPick(name));
+      this.testGeneralPanelTexts.push(btn);
     });
 
-    const target = this.testEquipTarget;
-    const pending = this.testSelectedWeaponId ? (getWeapon(this.testSelectedWeaponId)?.name ?? "默认") : "默认";
-    this.testWeaponLabel?.setText(
-      target ? `已选 ${target.generalName}：${target.getWeapon()?.name ?? "默认"}` : `待装：${pending}`
+    // 等级 / 星级行
+    const statRows: Array<{
+      label: string;
+      value: number;
+      min: number;
+      dec: () => void;
+      inc: () => void;
+    }> = [
+      {
+        label: "等级",
+        value: level,
+        min: 1,
+        dec: () => this.adjustTestGeneralLevel(-1),
+        inc: () => this.adjustTestGeneralLevel(1),
+      },
+      {
+        label: "星级",
+        value: star,
+        min: 0,
+        dec: () => this.adjustTestGeneralStar(-1),
+        inc: () => this.adjustTestGeneralStar(1),
+      },
+    ];
+    statRows.forEach((row, i) => {
+      const y = py0 + 112 + i * 20;
+      this.addTestPanelMinusPlusRow(
+        px0, pw, y, `${row.label}：${row.value}`,
+        row.value <= row.min, row.value >= 5, row.dec, row.inc,
+      );
+    });
+
+    // 三个装备槽
+    const slots: Array<{ slot: "main" | "secondary" | "accessory"; label: string }> = [
+      { slot: "main", label: "主武器" },
+      { slot: "secondary", label: "副武器" },
+      { slot: "accessory", label: "饰品" },
+    ];
+    slots.forEach((item, i) => {
+      const y = py0 + 154 + i * 17;
+      const active = this.testGeneralSlot === item.slot;
+      this.testGeneralPanelPanels.push(
+        this.drawRoundedPanel(px0 + 6, y, pw - 12, 15, 0x1f2937, 0.9, active ? 0xfbbf24 : 0x57534e),
+      );
+      const weaponId = equipped?.[item.slot] ?? null;
+      const weaponName = weaponId ? (getWeapon(weaponId)?.name ?? "无效") : "空";
+      const text = this.add.text(px0 + 12, y + 7.5, `${item.label}：${weaponName}`, {
+        fontFamily: Config.fontFamily, fontSize: "10px", color: active ? "#fde68a" : "#e5e7eb",
+      }).setOrigin(0, 0.5).setInteractive({ useHandCursor: true });
+      text.on("pointerdown", () => this.onTestGeneralSlotClick(item.slot));
+      this.testGeneralPanelTexts.push(text);
+    });
+
+    // 未选槽位时的提示
+    if (!this.testGeneralSlot) {
+      const hint = this.add.text(px0 + pw / 2, py0 + 230, "点击装备槽\n选择武器", {
+        fontFamily: Config.fontFamily, fontSize: "11px", color: "#6b7280", align: "center",
+      }).setOrigin(0.5);
+      this.testGeneralPanelTexts.push(hint);
+      return;
+    }
+
+    // 武器列表（卸下 + 4 系 56 把，分页滚动）
+    const slot = this.testGeneralSlot;
+    const items: Array<{ id: string | null; label: string }> = [
+      { id: null, label: "卸下" },
+      ...listWeapons().map((w) => ({
+        id: w.id,
+        label: w.name.length > 6 ? w.name.slice(0, 6) : w.name,
+      })),
+    ];
+    const perPage = 8;
+    const pageCount = Math.max(1, Math.ceil(items.length / perPage));
+    this.testGeneralWeaponPage = Math.min(this.testGeneralWeaponPage, pageCount - 1);
+    const page = this.testGeneralWeaponPage;
+    const listY = py0 + 206;
+    items.slice(page * perPage, (page + 1) * perPage).forEach((item, index) => {
+      const bx = px0 + 6 + (index % 2) * colStep;
+      const by = listY + Math.floor(index / 2) * 17;
+      this.testGeneralPanelPanels.push(
+        this.drawRoundedPanel(bx, by, bw, bh, 0x1f2937, 0.9, 0x57534e),
+      );
+      const active = item.id !== null && item.id === equipped?.[slot];
+      const btn = this.add.text(bx + bw / 2, by + bh / 2, item.label, {
+        fontFamily: Config.fontFamily, fontSize: "10px", color: active ? "#fff7ed" : "#e5e7eb",
+      }).setOrigin(0.5).setInteractive({ useHandCursor: true });
+      if (active) {
+        btn.setBackgroundColor("#b45309");
+      }
+      btn.on("pointerdown", () => this.onTestGeneralWeaponClick(item.id));
+      this.testGeneralPanelTexts.push(btn);
+    });
+
+    // 分页：上一页 / 下一页
+    const navY = py0 + 276;
+    this.addTestPanelMinusPlusRow(
+      px0, pw, navY, `${page + 1}/${pageCount}`,
+      page <= 0, page >= pageCount - 1,
+      () => this.onTestGeneralWeaponPageChange(-1),
+      () => this.onTestGeneralWeaponPageChange(1),
     );
+  }
+
+  /** 面板通用行：左侧 − 按钮、中间文字、右侧 + 按钮（到边界时按钮置灰无响应） */
+  private addTestPanelMinusPlusRow(
+    px0: number,
+    pw: number,
+    y: number,
+    label: string,
+    minusDisabled: boolean,
+    plusDisabled: boolean,
+    onMinus: () => void,
+    onPlus: () => void,
+  ) {
+    const bw = 16;
+    const bh = 16;
+    const mkButton = (x: number, text: string, disabled: boolean, handler: () => void) => {
+      this.testGeneralPanelPanels.push(
+        this.drawRoundedPanel(x - bw / 2, y, bw, bh, 0x1f2937, 0.9, 0x57534e),
+      );
+      const btn = this.add.text(x, y + bh / 2, text, {
+        fontFamily: Config.fontFamily, fontSize: "12px", color: disabled ? "#6b7280" : "#e5e7eb",
+      }).setOrigin(0.5).setInteractive({ useHandCursor: true });
+      if (!disabled) {
+        btn.on("pointerdown", handler);
+      }
+      this.testGeneralPanelTexts.push(btn);
+    };
+    mkButton(px0 + 14, "−", minusDisabled, onMinus);
+    const label_ = this.add.text(px0 + pw / 2, y + bh / 2, label, {
+      fontFamily: Config.fontFamily, fontSize: "11px", color: "#e5e7eb",
+    }).setOrigin(0.5);
+    this.testGeneralPanelTexts.push(label_);
+    mkButton(px0 + pw - 14, "＋", plusDisabled, onPlus);
+  }
+
+  private onTestGeneralPick(name: string) {
+    playSfx("click");
+    this.testGeneralName = name as GeneralKey;
+    this.testGeneralSlot = null;
+    this.testGeneralWeaponPage = 0;
+    this.updateTestGeneralPanel();
+  }
+
+  private adjustTestGeneralLevel(delta: number) {
+    playSfx("click");
+    const heroId = GENERAL_NAME_TO_ID[this.testGeneralName];
+    try {
+      const api = (window as any).__generalStore?.getState?.();
+      if (!api) return;
+      api.ensureInstance?.(heroId);
+      const cur = api.instances?.[heroId]?.level ?? 1;
+      api.setLevel?.(heroId, Math.min(5, Math.max(1, cur + delta)));
+    } catch { /* 静默 */ }
+    this.updateTestGeneralPanel();
+  }
+
+  private adjustTestGeneralStar(delta: number) {
+    playSfx("click");
+    const heroId = GENERAL_NAME_TO_ID[this.testGeneralName];
+    try {
+      const api = (window as any).__generalStore?.getState?.();
+      if (!api) return;
+      api.ensureInstance?.(heroId);
+      const cur = api.instances?.[heroId]?.star ?? 0;
+      api.setStar?.(heroId, Math.min(5, Math.max(0, cur + delta)));
+    } catch { /* 静默 */ }
+    this.updateTestGeneralPanel();
+  }
+
+  private onTestGeneralSlotClick(slot: "main" | "secondary" | "accessory") {
+    playSfx("click");
+    this.testGeneralSlot = this.testGeneralSlot === slot ? null : slot;
+    this.testGeneralWeaponPage = 0;
+    this.updateTestGeneralPanel();
+  }
+
+  private onTestGeneralWeaponPageChange(delta: number) {
+    playSfx("click");
+    this.testGeneralWeaponPage = Math.max(0, this.testGeneralWeaponPage + delta);
+    this.updateTestGeneralPanel();
+  }
+
+  private testGeneralSlotLabel(slot: "main" | "secondary" | "accessory") {
+    return slot === "main" ? "主武器" : slot === "secondary" ? "副武器" : "饰品";
+  }
+
+  private onTestGeneralWeaponClick(weaponId: string | null) {
+    playSfx("click");
+    const slot = this.testGeneralSlot;
+    if (!slot) {
+      return;
+    }
+    const heroId = GENERAL_NAME_TO_ID[this.testGeneralName];
+    const current = this.getTestGeneralInstance()?.equippedWeapons?.[slot] ?? null;
+    // 点「卸下」或再点当前已装武器 → 清空；点其他武器 → 装备
+    const next = weaponId && weaponId !== current ? weaponId : null;
+    try {
+      (window as any).__generalStore?.getState?.()?.equipWeapon?.(heroId, slot, next);
+    } catch { /* 静默 */ }
+    this.messageText.setText(
+      next
+        ? `已为 ${this.testGeneralName} 的${this.testGeneralSlotLabel(slot)}装备 ${getWeapon(next)?.name ?? ""}`
+        : `已卸下 ${this.testGeneralName} 的${this.testGeneralSlotLabel(slot)}`,
+    );
+    this.updateTestGeneralPanel();
   }
 
   private handleTestPointerDown(pointer: Phaser.Input.Pointer) {
@@ -726,14 +856,6 @@ export class GamePlayScene extends Phaser.Scene {
   override update(time: number, delta: number) {
     if (this.gameOver) {
       return;
-    }
-
-    if (this.testEquipTarget) {
-      if (this.testEquipTarget.dead || this.testEquipTarget.isDestroyed) {
-        this.clearTestEquipTarget();
-      } else if (this.testEquipMarker) {
-        this.testEquipMarker.setPosition(this.testEquipTarget.x, this.testEquipTarget.y);
-      }
     }
 
     // 防线告警：僵尸踏入最后一格时城门闪烁红光
@@ -1951,15 +2073,7 @@ export class GamePlayScene extends Phaser.Scene {
     }
 
     this.board[row][col] = unit;
-    if (unit instanceof General) {
-      unit.setInteractive({ draggable: true });
-      unit.on("pointerdown", () => this.selectTestGeneral(unit));
-      if (this.testSelectedWeaponId) {
-        this.equipTestWeapon(unit, this.testSelectedWeaponId);
-      }
-    } else {
-      unit.setInteractive({ draggable: true });
-    }
+    unit.setInteractive({ draggable: true });
     this.messageText.setText(`已放置：${type}`);
   }
 
@@ -1980,9 +2094,6 @@ export class GamePlayScene extends Phaser.Scene {
   }
 
   private recycleUnit(unit: Unit) {
-    if (this.testEquipTarget === unit) {
-      this.clearTestEquipTarget();
-    }
     this.board[unit.row][unit.col] = null;
 
     if (unit.baseText in FragmentPool) {
